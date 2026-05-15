@@ -21,7 +21,7 @@ public final class LoadingScreen extends ScreenAdapter {
         Gdx.gl.glClearColor(0.08f, 0.09f, 0.08f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         if (!loaded) {
-            assetManager.loadGeneratedPlaceholders();
+            assetManager.loadAssets();
             loaded = true;
             game.setScreen(new MainMenuScreen(game, assetManager));
         }

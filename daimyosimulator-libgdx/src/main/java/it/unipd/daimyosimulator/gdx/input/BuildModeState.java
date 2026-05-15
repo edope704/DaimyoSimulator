@@ -1,18 +1,23 @@
 package it.unipd.daimyosimulator.gdx.input;
 
 import it.unipd.daimyosimulator.core.building.BuildingType;
+import it.unipd.daimyosimulator.core.domain.Position;
 
 import java.util.Optional;
 
 public final class BuildModeState {
     private BuildingType selectedType;
+    private Position previewPosition;
+    private Boolean lastPlacementValid;
 
     public void enter(BuildingType type) {
         selectedType = type;
+        lastPlacementValid = null;
     }
 
     public void clear() {
         selectedType = null;
+        lastPlacementValid = null;
     }
 
     public boolean isActive() {
@@ -21,5 +26,21 @@ public final class BuildModeState {
 
     public Optional<BuildingType> selectedType() {
         return Optional.ofNullable(selectedType);
+    }
+
+    public Optional<Position> previewPosition() {
+        return Optional.ofNullable(previewPosition);
+    }
+
+    public void setPreviewPosition(Position previewPosition) {
+        this.previewPosition = previewPosition;
+    }
+
+    public Optional<Boolean> lastPlacementValid() {
+        return Optional.ofNullable(lastPlacementValid);
+    }
+
+    public void setLastPlacementValid(boolean lastPlacementValid) {
+        this.lastPlacementValid = lastPlacementValid;
     }
 }

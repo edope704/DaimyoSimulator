@@ -1,14 +1,9 @@
 package it.unipd.daimyosimulator.gdx.assets;
 
-import it.unipd.daimyosimulator.core.domain.NaturalFeature;
 import it.unipd.daimyosimulator.core.policy.PolicyType;
 import it.unipd.daimyosimulator.core.resource.ResourceType;
 
 public final class IconRegistry {
-    public String naturalFeature(NaturalFeature feature) {
-        return feature == NaturalFeature.FOREST ? "feature_forest" : MissingAssetFallback.NAME;
-    }
-
     public String resource(ResourceType type) {
         return switch (type) {
             case RICE -> "icon_resource_rice";
@@ -23,6 +18,19 @@ public final class IconRegistry {
             case AGRICULTURAL_EXPANSION -> "icon_policy_agricultural_expansion";
             case MILITARY_PROTECTION -> "icon_policy_military_protection";
             case CRAFTSMEN_PRODUCTION -> "icon_policy_craftsmen_production";
+        };
+    }
+
+    public String parameter(ParameterType type) {
+        return switch (type) {
+            case HAPPINESS -> "icon_parameter_happiness";
+            case PROTECTION -> "icon_parameter_protection";
+            case FOOD -> "icon_parameter_food";
+            case FAITH -> "icon_parameter_faith";
+            case HOUSING -> "icon_parameter_housing";
+            case CRAFTSMANSHIP -> "icon_parameter_craftsmanship";
+            case POPULATION -> "icon_population";
+            case EVENT_ALERT -> "icon_event_alert";
         };
     }
 }

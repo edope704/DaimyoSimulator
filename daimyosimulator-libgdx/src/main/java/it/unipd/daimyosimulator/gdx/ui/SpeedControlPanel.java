@@ -4,6 +4,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import it.unipd.daimyosimulator.gdx.assets.GameAssetManager;
 
 public final class SpeedControlPanel extends Table {
     private boolean paused = true;
@@ -11,10 +12,14 @@ public final class SpeedControlPanel extends Table {
     private final TextButton pauseButton;
     private final TextButton speedButton;
 
-    public SpeedControlPanel(Skin skin, Runnable nextTick) {
-        TextButton nextButton = new TextButton("Next Tick", skin);
-        pauseButton = new TextButton("Paused", skin);
+    public SpeedControlPanel(Skin skin, GameAssetManager assetManager, Runnable nextTick) {
+        setBackground(new com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable(assetManager.getUi(assetManager.ui().panelWood())));
+        TextButton nextButton = new TextButton("Next", skin);
+        nextButton.add(new com.badlogic.gdx.scenes.scene2d.ui.Image(assetManager.getUi(assetManager.ui().playButton()))).size(24);
+        pauseButton = new TextButton("Pause", skin);
+        pauseButton.add(new com.badlogic.gdx.scenes.scene2d.ui.Image(assetManager.getUi(assetManager.ui().pauseButton()))).size(24);
         speedButton = new TextButton("1x", skin);
+        speedButton.add(new com.badlogic.gdx.scenes.scene2d.ui.Image(assetManager.getUi(assetManager.ui().fastButton()))).size(24);
         nextButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {

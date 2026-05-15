@@ -50,7 +50,7 @@ public final class VillageScreen extends ScreenAdapter {
 
         stage = new Stage(new ScreenViewport());
         skin = new HudSkinFactory().create(assetManager);
-        hud = new DashboardHud(skin, facade, buildModeState);
+        hud = new DashboardHud(skin, assetManager, facade, buildModeState);
         hud.setSnapshotConsumer(this::setSnapshot);
         hud.refresh(currentSnapshot, facade.getDashboard());
         stage.addActor(hud);
@@ -62,7 +62,7 @@ public final class VillageScreen extends ScreenAdapter {
                 hud::setStatus,
                 hud::setSelectedCell
         );
-        GameInputProcessor gameInputProcessor = new GameInputProcessor(camera, new ScreenToGridMapper(), router);
+        GameInputProcessor gameInputProcessor = new GameInputProcessor(camera, new ScreenToGridMapper(), router, buildModeState);
         Gdx.input.setInputProcessor(new InputMultiplexer(stage, cameraController, gameInputProcessor));
     }
 

@@ -1,11 +1,10 @@
 package it.unipd.daimyosimulator.gdx.assets;
 
 public final class TileSpriteRegistry {
-    public String grassTile() {
-        return "tile_grass";
-    }
-
-    public String dirtTile() {
-        return "tile_dirt";
+    public String spriteName(TileType type) {
+        return switch (type) {
+            case GRASS -> "tile_grass";
+            case DIRT -> "tile_dirt";
+        };
     }
 }

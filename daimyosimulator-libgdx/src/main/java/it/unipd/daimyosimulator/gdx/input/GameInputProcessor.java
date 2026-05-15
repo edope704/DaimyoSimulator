@@ -9,11 +9,14 @@ public final class GameInputProcessor extends InputAdapter {
     private final OrthographicCamera camera;
     private final ScreenToGridMapper mapper;
     private final InputCommandRouter commandRouter;
+    private final BuildModeState buildModeState;
 
-    public GameInputProcessor(OrthographicCamera camera, ScreenToGridMapper mapper, InputCommandRouter commandRouter) {
+    public GameInputProcessor(OrthographicCamera camera, ScreenToGridMapper mapper, InputCommandRouter commandRouter,
+                              BuildModeState buildModeState) {
         this.camera = camera;
         this.mapper = mapper;
         this.commandRouter = commandRouter;
+        this.buildModeState = buildModeState;
     }
 
     @Override
@@ -23,5 +26,11 @@ public final class GameInputProcessor extends InputAdapter {
         }
         commandRouter.handleGridClick(mapper.screenToGrid(camera, screenX, screenY, RenderConstants.TILE_SIZE));
         return true;
+    }
+
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+        buildModeState.setPreviewPosition(mapper.screenToGrid(camera, screenX, screenY, RenderConstants.TILE_SIZE));
+        return false;
     }
 }

@@ -14,12 +14,13 @@ public final class WorldRenderer implements Disposable {
     private final NaturalFeatureRenderer naturalFeatureRenderer;
     private final BuildingRenderer buildingRenderer;
     private final AnimationRenderer animationRenderer = new AnimationRenderer();
-    private final GridOverlayRenderer gridOverlayRenderer = new GridOverlayRenderer();
+    private final GridOverlayRenderer gridOverlayRenderer;
 
     public WorldRenderer(GameAssetManager assetManager) {
         this.tileRenderer = new TileRenderer(assetManager);
         this.naturalFeatureRenderer = new NaturalFeatureRenderer(assetManager);
         this.buildingRenderer = new BuildingRenderer(assetManager);
+        this.gridOverlayRenderer = new GridOverlayRenderer(assetManager);
     }
 
     public void render(VillageSnapshot snapshot, OrthographicCamera camera, BuildModeState buildModeState,
@@ -29,6 +30,10 @@ public final class WorldRenderer implements Disposable {
         tileRenderer.render(batch, snapshot);
         naturalFeatureRenderer.render(batch, snapshot);
         buildingRenderer.render(batch, snapshot);
+        if (buildModeState.isActive() && buildModeState.previewPosition().isPresent()) {
+            var position = buildModeState.previewPosition().orElseThrow();
+            buildModeState.selectedType().ifPresent(type -> buildingRenderer.drawPreview(batch, type, position.x(), position.y()));
+        }
         animationRenderer.render(batch, snapshot, delta);
         batch.end();
         gridOverlayRenderer.render(camera, snapshot, buildModeState, selected);

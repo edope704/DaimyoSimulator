@@ -8,6 +8,7 @@ import it.unipd.daimyosimulator.core.app.view.DashboardViewModel;
 import it.unipd.daimyosimulator.core.app.view.EventLogViewModel;
 import it.unipd.daimyosimulator.core.app.view.VillageSnapshot;
 import it.unipd.daimyosimulator.core.domain.Position;
+import it.unipd.daimyosimulator.gdx.assets.GameAssetManager;
 import it.unipd.daimyosimulator.gdx.input.BuildModeState;
 
 import java.util.function.Consumer;
@@ -24,19 +25,20 @@ public final class DashboardHud extends Table {
     private Consumer<VillageSnapshot> snapshotConsumer = snapshot -> { };
     private Position selectedPosition;
 
-    public DashboardHud(Skin skin, CoreGameFacade facade, BuildModeState buildModeState) {
+    public DashboardHud(Skin skin, GameAssetManager assetManager, CoreGameFacade facade, BuildModeState buildModeState) {
         this.facade = facade;
-        this.resourcePanel = new ResourcePanel(skin);
-        this.populationPanel = new PopulationPanel(skin);
-        this.parameterPanel = new VillageParameterPanel(skin);
-        this.selectedBuildingPanel = new SelectedBuildingPanel(skin);
-        this.eventLogPanel = new EventLogPanel(skin);
-        this.speedControlPanel = new SpeedControlPanel(skin, this::nextTick);
-        this.policyPanel = new PolicyPanel(skin, facade, this::setStatus, () -> refresh(facade.getCurrentSnapshot(), facade.getDashboard()));
+        setBackground(new com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable(assetManager.getUi(assetManager.ui().panelWood())));
+        this.resourcePanel = new ResourcePanel(skin, assetManager);
+        this.populationPanel = new PopulationPanel(skin, assetManager);
+        this.parameterPanel = new VillageParameterPanel(skin, assetManager);
+        this.selectedBuildingPanel = new SelectedBuildingPanel(skin, assetManager);
+        this.eventLogPanel = new EventLogPanel(skin, assetManager);
+        this.speedControlPanel = new SpeedControlPanel(skin, assetManager, this::nextTick);
+        this.policyPanel = new PolicyPanel(skin, assetManager, facade, this::setStatus, () -> refresh(facade.getCurrentSnapshot(), facade.getDashboard()));
 
         Table top = new Table();
         top.left();
-        top.add(new MenuOverlay(skin, facade, snapshot -> {
+        top.add(new MenuOverlay(skin, assetManager, facade, snapshot -> {
             snapshotConsumer.accept(snapshot);
             refresh(snapshot, facade.getDashboard());
         }, this::setStatus)).left().padRight(8);
@@ -46,7 +48,7 @@ public final class DashboardHud extends Table {
 
         Table side = new Table();
         side.top().left();
-        side.add(new BuildMenu(skin, buildModeState, this::setStatus)).left();
+        side.add(new BuildMenu(skin, assetManager, buildModeState, this::setStatus)).left();
         side.row().padTop(8);
         side.add(policyPanel).left();
         side.row().padTop(8);

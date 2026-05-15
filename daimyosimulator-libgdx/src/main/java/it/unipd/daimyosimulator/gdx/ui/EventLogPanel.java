@@ -1,9 +1,12 @@
 package it.unipd.daimyosimulator.gdx.ui;
 
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import it.unipd.daimyosimulator.core.app.view.EventLogViewModel;
+import it.unipd.daimyosimulator.gdx.assets.GameAssetManager;
+import it.unipd.daimyosimulator.gdx.assets.ParameterType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,10 +15,12 @@ public final class EventLogPanel extends Table {
     private final Label label;
     private final List<String> events = new ArrayList<>();
 
-    public EventLogPanel(Skin skin) {
+    public EventLogPanel(Skin skin, GameAssetManager assetManager) {
+        setBackground(new com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable(assetManager.getUi(assetManager.ui().panelParchment())));
+        add(new Image(assetManager.getParameterIcon(ParameterType.EVENT_ALERT))).size(28).left().top();
         label = new Label("", skin);
         label.setWrap(true);
-        add(label).left().width(380);
+        add(label).left().width(340);
     }
 
     public void refresh(EventLogViewModel eventLog) {

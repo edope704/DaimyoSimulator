@@ -8,7 +8,8 @@ import it.unipd.daimyosimulator.core.app.view.CellViewModel;
 public final class SelectedBuildingPanel extends Table {
     private final Label label;
 
-    public SelectedBuildingPanel(Skin skin) {
+    public SelectedBuildingPanel(Skin skin, it.unipd.daimyosimulator.gdx.assets.GameAssetManager assetManager) {
+        setBackground(new com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable(assetManager.getUi(assetManager.ui().panelParchment())));
         label = new Label("No selection", skin);
         add(label).left().width(360);
     }

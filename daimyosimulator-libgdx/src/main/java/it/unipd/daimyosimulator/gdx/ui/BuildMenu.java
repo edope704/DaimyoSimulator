@@ -5,15 +5,18 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import it.unipd.daimyosimulator.core.building.BuildingType;
+import it.unipd.daimyosimulator.gdx.assets.GameAssetManager;
 import it.unipd.daimyosimulator.gdx.input.BuildModeState;
 
 import java.util.function.Consumer;
 
 public final class BuildMenu extends Table {
-    public BuildMenu(Skin skin, BuildModeState buildModeState, Consumer<String> statusConsumer) {
-        defaults().pad(2).height(28);
+    public BuildMenu(Skin skin, GameAssetManager assetManager, BuildModeState buildModeState, Consumer<String> statusConsumer) {
+        setBackground(new com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable(assetManager.getUi(assetManager.ui().panelWood())));
+        defaults().pad(2).height(42);
         for (BuildingType type : BuildingType.values()) {
             TextButton button = new TextButton(shortName(type), skin);
+            button.add(new com.badlogic.gdx.scenes.scene2d.ui.Image(assetManager.getBuilding(type))).size(30).padRight(4);
             button.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
@@ -21,7 +24,7 @@ public final class BuildMenu extends Table {
                     statusConsumer.accept("Build mode: " + type);
                 }
             });
-            add(button).width(94);
+            add(button).width(132);
             row();
         }
     }

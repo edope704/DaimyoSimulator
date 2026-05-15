@@ -1,5 +1,6 @@
 package it.unipd.daimyosimulator.gdx.ui;
 
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -8,19 +9,22 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import it.unipd.daimyosimulator.core.app.CoreGameFacade;
 import it.unipd.daimyosimulator.core.app.view.PolicyViewModel;
 import it.unipd.daimyosimulator.core.policy.PolicyType;
+import it.unipd.daimyosimulator.gdx.assets.GameAssetManager;
 
 import java.util.function.Consumer;
 
 public final class PolicyPanel extends Table {
     private final Label label;
 
-    public PolicyPanel(Skin skin, CoreGameFacade facade, Consumer<String> statusConsumer, Runnable refresh) {
+    public PolicyPanel(Skin skin, GameAssetManager assetManager, CoreGameFacade facade, Consumer<String> statusConsumer, Runnable refresh) {
+        setBackground(new com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable(assetManager.getUi(assetManager.ui().panelParchment())));
         label = new Label("", skin);
         defaults().pad(2);
         add(label).colspan(3).left();
         row();
         for (PolicyType type : PolicyType.values()) {
             TextButton button = new TextButton(shortName(type), skin);
+            button.add(new Image(assetManager.getPolicyIcon(type))).size(24).padRight(2);
             button.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {

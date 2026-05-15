@@ -33,6 +33,8 @@ public final class InputCommandRouter {
         if (buildModeState.isActive()) {
             buildModeState.selectedType().ifPresent(type -> {
                 PlacementResult result = facade.constructBuilding(type, position);
+                buildModeState.setPreviewPosition(position);
+                buildModeState.setLastPlacementValid(result.success());
                 messageConsumer.accept(result.message());
                 snapshotConsumer.accept(result.afterState());
                 if (result.success()) {

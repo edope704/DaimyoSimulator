@@ -19,10 +19,11 @@ public final class HudSkinFactory {
 
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
         buttonStyle.font = font;
-        buttonStyle.fontColor = Color.WHITE;
-        buttonStyle.up = new TextureRegionDrawable(assetManager.getRegion("ui_button"));
-        buttonStyle.down = new TextureRegionDrawable(assetManager.getRegion("tile_dirt"));
-        buttonStyle.checked = new TextureRegionDrawable(assetManager.getRegion("tile_grass"));
+        buttonStyle.fontColor = new Color(0.98f, 0.90f, 0.72f, 1f);
+        buttonStyle.downFontColor = Color.WHITE;
+        buttonStyle.up = new TextureRegionDrawable(assetManager.getUi(assetManager.ui().buttonWood()));
+        buttonStyle.down = new TextureRegionDrawable(assetManager.getUi(assetManager.ui().panelWood()));
+        buttonStyle.checked = new TextureRegionDrawable(assetManager.getUi(assetManager.ui().panelParchment()));
         skin.add("default", buttonStyle);
         return skin;
     }
