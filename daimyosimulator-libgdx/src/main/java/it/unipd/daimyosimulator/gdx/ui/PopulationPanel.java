@@ -12,7 +12,7 @@ public final class PopulationPanel extends Table {
     private final Label label;
 
     public PopulationPanel(Skin skin, GameAssetManager assetManager) {
-        setBackground(new com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable(assetManager.getUi(assetManager.ui().panelParchment())));
+        setBackground(skin.getDrawable("hud-panel"));
         label = new Label("", skin);
         add(new Image(assetManager.getParameterIcon(ParameterType.POPULATION))).size(24).padRight(4);
         add(label).left();

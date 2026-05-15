@@ -27,7 +27,6 @@ public final class DashboardHud extends Table {
 
     public DashboardHud(Skin skin, GameAssetManager assetManager, CoreGameFacade facade, BuildModeState buildModeState) {
         this.facade = facade;
-        setBackground(new com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable(assetManager.getUi(assetManager.ui().panelWood())));
         this.resourcePanel = new ResourcePanel(skin, assetManager);
         this.populationPanel = new PopulationPanel(skin, assetManager);
         this.parameterPanel = new VillageParameterPanel(skin, assetManager);
@@ -49,20 +48,21 @@ public final class DashboardHud extends Table {
         Table side = new Table();
         side.top().left();
         side.add(new BuildMenu(skin, assetManager, buildModeState, this::setStatus)).left();
-        side.row().padTop(8);
-        side.add(policyPanel).left();
-        side.row().padTop(8);
-        side.add(parameterPanel).left();
-        side.row().padTop(8);
-        side.add(selectedBuildingPanel).left();
-        side.row().padTop(8);
-        side.add(eventLogPanel).left();
+
+        Table bottom = new Table();
+        bottom.left();
+        bottom.add(policyPanel).left().padRight(8);
+        bottom.add(parameterPanel).left().padRight(8);
+        bottom.add(selectedBuildingPanel).left().padRight(8);
+        bottom.add(eventLogPanel).left();
 
         setFillParent(true);
         top().left();
-        add(top).expandX().fillX().left().pad(6);
+        add(top).expandX().height(58).fillX().left().top().pad(6);
         row();
-        add(side).left().top().pad(6);
+        add(side).width(170).expandY().left().top().padLeft(6);
+        row();
+        add(bottom).expandX().height(108).fillX().left().bottom().pad(6);
     }
 
     public void setSnapshotConsumer(Consumer<VillageSnapshot> snapshotConsumer) {

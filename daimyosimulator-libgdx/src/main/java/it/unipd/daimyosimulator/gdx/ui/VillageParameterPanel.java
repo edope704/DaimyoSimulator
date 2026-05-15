@@ -15,7 +15,7 @@ public final class VillageParameterPanel extends Table {
     private final Map<ParameterType, Label> labels = new EnumMap<>(ParameterType.class);
 
     public VillageParameterPanel(Skin skin, GameAssetManager assetManager) {
-        setBackground(new com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable(assetManager.getUi(assetManager.ui().panelParchment())));
+        setBackground(skin.getDrawable("hud-panel"));
         defaults().pad(2);
         addParameter(skin, assetManager, ParameterType.HAPPINESS);
         addParameter(skin, assetManager, ParameterType.PROTECTION);

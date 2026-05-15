@@ -9,9 +9,9 @@ public final class SelectedBuildingPanel extends Table {
     private final Label label;
 
     public SelectedBuildingPanel(Skin skin, it.unipd.daimyosimulator.gdx.assets.GameAssetManager assetManager) {
-        setBackground(new com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable(assetManager.getUi(assetManager.ui().panelParchment())));
+        setBackground(skin.getDrawable("hud-panel"));
         label = new Label("No selection", skin);
-        add(label).left().width(360);
+        add(label).left().width(300);
     }
 
     public void refresh(CellViewModel cell) {

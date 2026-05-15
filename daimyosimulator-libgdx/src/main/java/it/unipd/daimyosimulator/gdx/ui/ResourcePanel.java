@@ -15,7 +15,7 @@ public final class ResourcePanel extends Table {
     private final Map<ResourceType, Label> labels = new EnumMap<>(ResourceType.class);
 
     public ResourcePanel(Skin skin, GameAssetManager assetManager) {
-        setBackground(new com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable(assetManager.getUi(assetManager.ui().panelParchment())));
+        setBackground(skin.getDrawable("hud-panel"));
         defaults().pad(2);
         for (ResourceType type : ResourceType.values()) {
             add(new Image(assetManager.getResourceIcon(type))).size(24);

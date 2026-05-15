@@ -13,7 +13,7 @@ public final class SpeedControlPanel extends Table {
     private final TextButton speedButton;
 
     public SpeedControlPanel(Skin skin, GameAssetManager assetManager, Runnable nextTick) {
-        setBackground(new com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable(assetManager.getUi(assetManager.ui().panelWood())));
+        setBackground(skin.getDrawable("hud-panel"));
         TextButton nextButton = new TextButton("Next", skin);
         nextButton.add(new com.badlogic.gdx.scenes.scene2d.ui.Image(assetManager.getUi(assetManager.ui().playButton()))).size(24);
         pauseButton = new TextButton("Pause", skin);

@@ -17,7 +17,7 @@ public final class PolicyPanel extends Table {
     private final Label label;
 
     public PolicyPanel(Skin skin, GameAssetManager assetManager, CoreGameFacade facade, Consumer<String> statusConsumer, Runnable refresh) {
-        setBackground(new com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable(assetManager.getUi(assetManager.ui().panelParchment())));
+        setBackground(skin.getDrawable("hud-panel"));
         label = new Label("", skin);
         defaults().pad(2);
         add(label).colspan(3).left();
@@ -33,7 +33,7 @@ public final class PolicyPanel extends Table {
                     refresh.run();
                 }
             });
-            add(button).width(108);
+            add(button).width(118);
         }
     }
 

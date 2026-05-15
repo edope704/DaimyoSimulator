@@ -1,6 +1,7 @@
 package it.unipd.daimyosimulator.gdx.screen;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
@@ -31,6 +32,7 @@ public final class VillageScreen extends ScreenAdapter {
     private Skin skin;
     private DashboardHud hud;
     private float autoTickTimer;
+    private boolean debugOverlay;
 
     public VillageScreen(DaimyoSimulatorGame game, GameAssetManager assetManager) {
         this.game = game;
@@ -70,9 +72,13 @@ public final class VillageScreen extends ScreenAdapter {
     public void render(float delta) {
         Gdx.gl.glClearColor(0.12f, 0.17f, 0.13f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F3)) {
+            debugOverlay = !debugOverlay;
+            hud.setStatus("Debug overlay " + (debugOverlay ? "on" : "off"));
+        }
         cameraController.update(delta);
         processAutomaticTicks(delta);
-        worldRenderer.render(currentSnapshot, camera, buildModeState, hud.getSelectedPosition(), delta);
+        worldRenderer.render(currentSnapshot, camera, buildModeState, hud.getSelectedPosition(), delta, debugOverlay);
         stage.act(delta);
         stage.draw();
     }

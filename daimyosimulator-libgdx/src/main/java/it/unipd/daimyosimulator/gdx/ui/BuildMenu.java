@@ -12,11 +12,11 @@ import java.util.function.Consumer;
 
 public final class BuildMenu extends Table {
     public BuildMenu(Skin skin, GameAssetManager assetManager, BuildModeState buildModeState, Consumer<String> statusConsumer) {
-        setBackground(new com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable(assetManager.getUi(assetManager.ui().panelWood())));
-        defaults().pad(2).height(42);
+        setBackground(skin.getDrawable("hud-panel"));
+        defaults().pad(1).height(34);
         for (BuildingType type : BuildingType.values()) {
             TextButton button = new TextButton(shortName(type), skin);
-            button.add(new com.badlogic.gdx.scenes.scene2d.ui.Image(assetManager.getBuilding(type))).size(30).padRight(4);
+            button.add(new com.badlogic.gdx.scenes.scene2d.ui.Image(assetManager.getBuilding(type))).size(22).padRight(3);
             button.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
@@ -24,7 +24,7 @@ public final class BuildMenu extends Table {
                     statusConsumer.accept("Build mode: " + type);
                 }
             });
-            add(button).width(132);
+            add(button).width(156);
             row();
         }
     }

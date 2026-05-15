@@ -16,11 +16,11 @@ public final class EventLogPanel extends Table {
     private final List<String> events = new ArrayList<>();
 
     public EventLogPanel(Skin skin, GameAssetManager assetManager) {
-        setBackground(new com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable(assetManager.getUi(assetManager.ui().panelParchment())));
+        setBackground(skin.getDrawable("hud-panel"));
         add(new Image(assetManager.getParameterIcon(ParameterType.EVENT_ALERT))).size(28).left().top();
         label = new Label("", skin);
         label.setWrap(true);
-        add(label).left().width(340);
+        add(label).left().width(360);
     }
 
     public void refresh(EventLogViewModel eventLog) {

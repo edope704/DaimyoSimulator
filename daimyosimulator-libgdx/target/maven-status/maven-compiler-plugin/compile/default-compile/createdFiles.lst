@@ -1,3 +1,4 @@
+it\unipd\daimyosimulator\gdx\assets\SpriteSheetRegionRegistry.class
 it\unipd\daimyosimulator\gdx\ui\SpeedControlPanel$1.class
 it\unipd\daimyosimulator\gdx\screen\MainMenuScreen.class
 it\unipd\daimyosimulator\gdx\ui\MenuOverlay$1.class
@@ -41,6 +42,7 @@ it\unipd\daimyosimulator\gdx\render\AnimationRenderer.class
 it\unipd\daimyosimulator\gdx\input\GameInputProcessor.class
 it\unipd\daimyosimulator\gdx\assets\IconRegistry.class
 it\unipd\daimyosimulator\gdx\input\BuildModeState.class
+it\unipd\daimyosimulator\gdx\assets\SpriteSheetRegionRegistry$RegionDefinition.class
 it\unipd\daimyosimulator\gdx\render\GridOverlayRenderer.class
 it\unipd\daimyosimulator\gdx\assets\SpriteRegistry.class
 it\unipd\daimyosimulator\gdx\DaimyoSimulatorGame.class

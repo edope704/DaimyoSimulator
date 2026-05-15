@@ -24,7 +24,7 @@ public final class WorldRenderer implements Disposable {
     }
 
     public void render(VillageSnapshot snapshot, OrthographicCamera camera, BuildModeState buildModeState,
-                       Position selected, float delta) {
+                       Position selected, float delta, boolean debug) {
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
         tileRenderer.render(batch, snapshot);
@@ -36,7 +36,7 @@ public final class WorldRenderer implements Disposable {
         }
         animationRenderer.render(batch, snapshot, delta);
         batch.end();
-        gridOverlayRenderer.render(camera, snapshot, buildModeState, selected);
+        gridOverlayRenderer.render(camera, snapshot, buildModeState, selected, debug);
     }
 
     @Override
