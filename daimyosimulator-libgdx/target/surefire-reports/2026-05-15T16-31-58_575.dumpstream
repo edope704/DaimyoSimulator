@@ -1,0 +1,5 @@
+# Created at 2026-05-15T16:32:01.867
+Boot Manifest-JAR contains absolute paths in classpath 'D:\ToDo\Desktop\EDIDS\DaimyoSimulator\daimyosimulator-libgdx\target\test-classes'
+Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
+'other' has different root
+

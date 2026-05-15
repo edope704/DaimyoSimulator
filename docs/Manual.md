@@ -81,8 +81,11 @@ mvn -pl daimyosimulator-desktop -am package
 Run the desktop launcher if the Maven exec plugin is configured:
 
 ```bash
+mvn clean package
 mvn -pl daimyosimulator-desktop -am exec:java
 ```
+
+The implemented desktop module configures this command through `exec-maven-plugin`. Run `mvn clean package` first; package also installs core/libGDX artifacts locally so direct `exec:java` can resolve them.
 
 Alternative launch from IDE:
 
@@ -119,6 +122,12 @@ Expected launch flow:
 3. `LoadingScreen` loads texture atlases, UI skin files, icons, and placeholders.
 4. `VillageScreen` creates the world renderer, HUD stage, camera, and input multiplexer.
 5. The user can start or load a village and interact with it through the libGDX UI.
+
+The default save/load path used by the HUD is:
+
+```text
+%USERPROFILE%\.daimyosimulator\savegame.json
+```
 
 ---
 
@@ -206,5 +215,7 @@ AI tools were used as support for:
 - reviewing separation between core logic and presentation;
 - drafting documentation sections;
 - suggesting unit/system test coverage.
+
+AI-assisted code must be reviewed by the team before submission.
 
 The team remains responsible for reviewing, understanding, validating, and explaining all generated content.
