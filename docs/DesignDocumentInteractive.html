@@ -1,0 +1,3080 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DaimyoSimulator — Interactive Design Document</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f8f3ea;
+      --surface: rgba(255,255,255,0.9);
+      --surface-solid: #fffdf8;
+      --text: #241b14;
+      --muted: #6d6258;
+      --border: rgba(74, 55, 36, 0.18);
+      --accent: #9b4d1e;
+      --accent-2: #23604a;
+      --shadow: 0 16px 40px rgba(46, 29, 15, 0.12);
+      --code-bg: #fff7eb;
+      --code-text: #2f241a;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(155, 77, 30, .16), transparent 35rem),
+        radial-gradient(circle at bottom right, rgba(35, 96, 74, .14), transparent 30rem),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.62;
+    }
+    .app-shell {
+      display: grid;
+      grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.25rem;
+      border-right: 1px solid var(--border);
+      background: rgba(255,255,255,.34);
+      backdrop-filter: blur(14px);
+    }
+    .brand {
+      display: grid;
+      gap: .35rem;
+      margin-bottom: 1rem;
+    }
+    .brand strong { font-size: 1rem; }
+    .brand span { color: var(--muted); font-size: .86rem; }
+    .nav-tools { display: grid; gap: .5rem; margin: 1rem 0; }
+    .nav-tools button, .nav-tools a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .35rem;
+      border: 1px solid var(--border);
+      background: var(--surface-solid);
+      color: var(--text);
+      border-radius: .75rem;
+      padding: .55rem .75rem;
+      font-weight: 650;
+      font-size: .87rem;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    nav.toc { display: grid; gap: .15rem; }
+    nav.toc a {
+      display: block;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .88rem;
+      padding: .28rem .3rem .28rem calc(.3rem + var(--indent) * .8rem);
+      border-radius: .5rem;
+      border-left: 2px solid transparent;
+    }
+    nav.toc a:hover, nav.toc a:focus {
+      color: var(--text);
+      background: rgba(155,77,30,.09);
+      border-left-color: var(--accent);
+      outline: none;
+    }
+    main { min-width: 0; padding: 2rem; }
+    article {
+      max-width: 1180px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1.5rem;
+      box-shadow: var(--shadow);
+      padding: clamp(1.25rem, 3vw, 3rem);
+    }
+    h1, h2, h3, h4 { line-height: 1.2; margin-top: 1.6em; margin-bottom: .55em; }
+    h1 { font-size: clamp(2rem, 4vw, 3.2rem); margin-top: 0; }
+    h2 { font-size: clamp(1.45rem, 2.5vw, 2rem); border-top: 1px solid var(--border); padding-top: 1.15rem; }
+    h3 { font-size: 1.25rem; }
+    h4 { font-size: 1.05rem; }
+    .heading-link {
+      opacity: 0;
+      margin-left: -1.1em;
+      padding-right: .32em;
+      color: var(--accent);
+      text-decoration: none;
+      transition: opacity .15s ease;
+    }
+    h1:hover .heading-link, h2:hover .heading-link, h3:hover .heading-link, h4:hover .heading-link { opacity: 1; }
+    p, li { color: var(--text); }
+    a { color: var(--accent-2); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0 1.5rem;
+      overflow: hidden;
+      border-radius: .85rem;
+      display: block;
+      overflow-x: auto;
+    }
+    th, td { border: 1px solid var(--border); padding: .6rem .75rem; vertical-align: top; }
+    th { background: rgba(155,77,30,.12); text-align: left; }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: .92em;
+      border-radius: .35rem;
+      background: rgba(155,77,30,.10);
+      padding: .08rem .28rem;
+    }
+    pre {
+      overflow: auto;
+      background: var(--code-bg);
+      color: var(--code-text);
+      border-radius: 1rem;
+      padding: 1rem;
+      border: 1px solid var(--border);
+    }
+    pre code { background: transparent; color: inherit; padding: 0; }
+    .diagram-card {
+      margin: 1.35rem 0 2rem;
+      border: 1px solid var(--border);
+      border-radius: 1.2rem;
+      background: var(--surface-solid);
+      box-shadow: 0 10px 28px rgba(36,27,20,.08);
+      overflow: hidden;
+    }
+    .diagram-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: .7rem .8rem;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(155,77,30,.11), transparent);
+    }
+    .diagram-title { color: var(--muted); font-size: .9rem; font-weight: 700; }
+    .diagram-actions { display: flex; gap: .45rem; flex-wrap: wrap; justify-content: flex-end; }
+    .diagram-actions button {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: .65rem;
+      padding: .42rem .62rem;
+      font-weight: 750;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .diagram-actions button:hover { border-color: var(--accent); color: var(--accent); }
+    .diagram-viewport {
+      position: relative;
+      height: clamp(460px, 78vh, 760px);
+      min-height: 420px;
+      overflow: hidden;
+      cursor: grab;
+      touch-action: none;
+      background:
+        linear-gradient(rgba(100,100,100,.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(100,100,100,.055) 1px, transparent 1px),
+        rgba(127,127,127,.025);
+      background-size: 24px 24px;
+    }
+    .diagram-viewport:active { cursor: grabbing; }
+    .diagram-render {
+      position: absolute;
+      left: 0;
+      top: 0;
+      display: inline-block;
+      min-width: max-content;
+      min-height: max-content;
+      transform-origin: 0 0;
+      will-change: transform;
+      user-select: none;
+    }
+    .diagram-render svg {
+      max-width: none !important;
+      height: auto !important;
+      display: block;
+      background: white;
+      border-radius: .8rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,.12);
+      padding: 1rem;
+    }
+    .diagram-card:fullscreen {
+      background: var(--surface-solid);
+      padding: 0;
+      border-radius: 0;
+    }
+    .diagram-card:fullscreen .diagram-viewport {
+      height: calc(100vh - 57px);
+      min-height: 0;
+    }
+    .diagram-source-details {
+      border-top: 1px solid var(--border);
+      padding: .65rem .8rem;
+    }
+    .diagram-source-details summary { cursor: pointer; color: var(--muted); font-weight: 650; }
+    .diagram-error { padding: 1rem; color: #9f1239; font-weight: 650; }
+    blockquote {
+      border-left: 4px solid var(--accent);
+      margin-left: 0;
+      padding-left: 1rem;
+      color: var(--muted);
+    }
+    .floating-tip {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      max-width: 320px;
+      background: var(--surface-solid);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      box-shadow: var(--shadow);
+      padding: .75rem .9rem;
+      color: var(--muted);
+      font-size: .88rem;
+      z-index: 20;
+    }
+    .floating-tip button {
+      float: right;
+      margin-left: .5rem;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 900;
+    }
+    @media (max-width: 920px) {
+      .app-shell { grid-template-columns: 1fr; }
+      aside { position: static; height: auto; max-height: 46vh; border-right: 0; border-bottom: 1px solid var(--border); }
+      main { padding: 1rem; }
+      article { border-radius: 1rem; }
+      .diagram-toolbar { align-items: flex-start; flex-direction: column; }
+      .diagram-viewport { height: 72vh; min-height: 340px; }
+    }
+    @media print {
+      aside, .floating-tip, .diagram-actions, .diagram-source-details { display: none !important; }
+      .app-shell { display: block; }
+      body { background: white; }
+      article { box-shadow: none; border: 0; padding: 0; }
+      .diagram-viewport { height: auto; overflow: visible; min-height: 0; }
+      .diagram-render { position: static; transform: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside>
+      <div class="brand">
+        <strong>DaimyoSimulator</strong>
+        <span>Interactive DesignDocument.md viewer</span>
+      </div>
+      <div class="nav-tools">
+        <button id="expandAllDiagrams" type="button">Fit all diagrams</button>
+        <button id="downloadMarkdown" type="button">Download original Markdown</button>
+      </div>
+      <nav class="toc" aria-label="Table of contents">
+        <a class="toc-level-1" style="--indent:0" href="#daimyosimulator-design-document">DaimyoSimulator — Design Document</a>
+<a class="toc-level-2" style="--indent:1" href="#1-domain-model">1. Domain Model</a>
+<a class="toc-level-3" style="--indent:2" href="#1-1-domain-overview">1.1 Domain overview</a>
+<a class="toc-level-3" style="--indent:2" href="#1-2-domain-model-diagram">1.2 Domain model diagram</a>
+<a class="toc-level-3" style="--indent:2" href="#1-3-buildings-and-responsibilities">1.3 Buildings and responsibilities</a>
+<a class="toc-level-3" style="--indent:2" href="#1-4-resource-and-parameter-model">1.4 Resource and parameter model</a>
+<a class="toc-level-2" style="--indent:1" href="#2-system-sequence-diagrams">2. System Sequence Diagrams</a>
+<a class="toc-level-3" style="--indent:2" href="#2-1-ssd-create-a-new-village">2.1 SSD — Create a new village</a>
+<a class="toc-level-3" style="--indent:2" href="#2-2-ssd-construct-a-building">2.2 SSD — Construct a building</a>
+<a class="toc-level-3" style="--indent:2" href="#2-3-ssd-advance-one-tick">2.3 SSD — Advance one tick</a>
+<a class="toc-level-3" style="--indent:2" href="#2-4-ssd-activate-a-strategy-policy">2.4 SSD — Activate a strategy policy</a>
+<a class="toc-level-3" style="--indent:2" href="#2-5-ssd-save-and-load-village">2.5 SSD — Save and load village</a>
+<a class="toc-level-2" style="--indent:1" href="#3-architectural-organization">3. Architectural Organization</a>
+<a class="toc-level-3" style="--indent:2" href="#3-1-three-responsibility-split">3.1 Three responsibility split</a>
+<a class="toc-level-3" style="--indent:2" href="#3-2-maven-multi-module-architecture">3.2 Maven multi-module architecture</a>
+<a class="toc-level-3" style="--indent:2" href="#3-3-package-architecture">3.3 Package architecture</a>
+<a class="toc-level-2" style="--indent:1" href="#4-design-class-model">4. Design Class Model</a>
+<a class="toc-level-3" style="--indent:2" href="#4-1-controllerfacade-and-core-class-diagram">4.1 Controller/facade and core class diagram</a>
+<a class="toc-level-3" style="--indent:2" href="#4-2-building-hierarchy-and-interfaces">4.2 Building hierarchy and interfaces</a>
+<a class="toc-level-3" style="--indent:2" href="#4-3-strategy-policies">4.3 Strategy policies</a>
+<a class="toc-level-3" style="--indent:2" href="#4-4-libgdx-application-structure">4.4 libGDX application structure</a>
+<a class="toc-level-3" style="--indent:2" href="#4-5-worldrenderer-and-uihud-collaboration">4.5 WorldRenderer and UI/HUD collaboration</a>
+<a class="toc-level-3" style="--indent:2" href="#4-6-boundary-between-libgdx-and-pure-java-core">4.6 Boundary between libGDX and pure Java core</a>
+<a class="toc-level-2" style="--indent:1" href="#5-internal-sequence-diagrams">5. Internal Sequence Diagrams</a>
+<a class="toc-level-3" style="--indent:2" href="#5-1-internal-sequence-construct-a-building-in-the-core">5.1 Internal sequence — Construct a building in the core</a>
+<a class="toc-level-3" style="--indent:2" href="#5-2-internal-sequence-advance-one-tick-in-the-core">5.2 Internal sequence — Advance one tick in the core</a>
+<a class="toc-level-3" style="--indent:2" href="#5-3-internal-sequence-activate-a-strategy-policy">5.3 Internal sequence — Activate a strategy policy</a>
+<a class="toc-level-3" style="--indent:2" href="#5-4-internal-sequence-save-and-load-village">5.4 Internal sequence — Save and load village</a>
+<a class="toc-level-3" style="--indent:2" href="#5-5-selecting-a-building-from-the-hud-and-placing-it-on-the-map">5.5 Selecting a building from the HUD and placing it on the map</a>
+<a class="toc-level-3" style="--indent:2" href="#5-6-clicking-a-cell-and-opening-the-selected-building-panel">5.6 Clicking a cell and opening the selected building panel</a>
+<a class="toc-level-3" style="--indent:2" href="#5-7-pressing-next-tick-pause-speed-controls">5.7 Pressing next tick / pause / speed controls</a>
+<a class="toc-level-3" style="--indent:2" href="#5-8-refreshing-the-hud-after-tickresult">5.8 Refreshing the HUD after TickResult</a>
+<a class="toc-level-3" style="--indent:2" href="#5-9-loading-texturesassets-at-application-startup">5.9 Loading textures/assets at application startup</a>
+<a class="toc-level-2" style="--indent:1" href="#6-rendering-flow">6. Rendering Flow</a>
+<a class="toc-level-2" style="--indent:1" href="#7-input-flow">7. Input Flow</a>
+<a class="toc-level-3" style="--indent:2" href="#7-1-camera-pan-and-zoom">7.1 Camera pan and zoom</a>
+<a class="toc-level-3" style="--indent:2" href="#7-2-build-mode-and-map-cell-selection">7.2 Build mode and map cell selection</a>
+<a class="toc-level-3" style="--indent:2" href="#7-3-ui-button-events">7.3 UI button events</a>
+<a class="toc-level-2" style="--indent:1" href="#8-asset-pipeline">8. Asset Pipeline</a>
+<a class="toc-level-3" style="--indent:2" href="#8-1-assets-folder-structure">8.1 Assets folder structure</a>
+<a class="toc-level-3" style="--indent:2" href="#8-2-naming-convention">8.2 Naming convention</a>
+<a class="toc-level-3" style="--indent:2" href="#8-3-textureatlas-and-individual-textures">8.3 TextureAtlas and individual textures</a>
+<a class="toc-level-3" style="--indent:2" href="#8-4-buildingtype-to-sprite-mapping">8.4 BuildingType-to-sprite mapping</a>
+<a class="toc-level-3" style="--indent:2" href="#8-5-missing-asset-fallback">8.5 Missing asset fallback</a>
+<a class="toc-level-2" style="--indent:1" href="#9-design-decisions-and-pattern-mapping">9. Design Decisions and Pattern Mapping</a>
+<a class="toc-level-2" style="--indent:1" href="#10-testing-strategy">10. Testing Strategy</a>
+<a class="toc-level-3" style="--indent:2" href="#10-1-core-unit-tests">10.1 Core unit tests</a>
+<a class="toc-level-3" style="--indent:2" href="#10-2-controllerfacade-tests">10.2 Controller/facade tests</a>
+<a class="toc-level-3" style="--indent:2" href="#10-3-rendererui-tests">10.3 Renderer/UI tests</a>
+<a class="toc-level-2" style="--indent:1" href="#11-traceability-to-user-stories">11. Traceability to User Stories</a>
+<a class="toc-level-2" style="--indent:1" href="#12-notes-for-implementation">12. Notes for Implementation</a>
+      </nav>
+    </aside>
+    <main>
+      <article>
+        <h1 id="daimyosimulator-design-document"><a class="heading-link" href="#daimyosimulator-design-document" aria-label="Link to section">#</a>DaimyoSimulator — Design Document</h1>
+<p><strong>Project type:</strong> Java rule-based simulation engine inspired by SimCity Lite<br />
+<strong>Scenario:</strong> Ancient Japan village management, around year 1200<br />
+<strong>Main objective:</strong> The player develops and balances a village by placing buildings, assigning villagers indirectly through the available job slots, managing resources, activating one strategy policy at a time, and advancing the simulation through ticks.</p>
+<p>This document is written for the GitHub design deliverable. The diagrams use <strong>Mermaid</strong>, which is rendered directly by GitHub Markdown.</p>
+<hr />
+<h2 id="1-domain-model"><a class="heading-link" href="#1-domain-model" aria-label="Link to section">#</a>1. Domain Model</h2>
+<h3 id="1-1-domain-overview"><a class="heading-link" href="#1-1-domain-overview" aria-label="Link to section">#</a>1.1 Domain overview</h3>
+<p>DaimyoSimulator is centered on a <code>Village</code>. A village contains a logical grid map, the current village state, the available villagers, placed buildings, resources, active policies, and event history. The player does not manually control each villager. Instead, the player constructs buildings, and the simulation assigns available villagers to roles according to the job slots created by those buildings.</p>
+<p>The domain is intentionally independent from the graphical presentation. The same core simulation must be usable from unit tests, persistence services, or a future alternative UI without importing libGDX.</p>
+<p>The main domain concepts are:</p>
+<ul>
+<li><strong>Village</strong>: aggregate root of the simulation.</li>
+<li><strong>Grid</strong>: a rectangular logical map, for example 20x20 cells.</li>
+<li><strong>Cell</strong>: one map position. It can contain one building or one natural feature.</li>
+<li><strong>Natural Feature</strong>: forest is generated randomly during map creation and is required by Woodcutter's Huts.</li>
+<li><strong>Villager</strong>: one person living in the village. A villager can be idle, unhoused, or employed.</li>
+<li><strong>Role</strong>: the current role assigned to a villager, such as Rice Farmer, Woodcutter, Blacksmith, Artisan, Trader, Samurai, or Monk.</li>
+<li><strong>Building</strong>: construction placed by the player using timber. Buildings create housing capacity, job slots, production, exchange, or parameter bonuses.</li>
+<li><strong>Resources</strong>: Rice, Timber, Tools, and Luxury Goods.</li>
+<li><strong>Village Parameters</strong>: Happiness, Protection, Food, Faith, Housing, and Craftsmanship.</li>
+<li><strong>Strategy Policy</strong>: one active temporary policy that modifies production, protection, or consumption.</li>
+<li><strong>Random Event</strong>: condition-based or probability-based event triggered during ticks.</li>
+</ul>
+<h3 id="1-2-domain-model-diagram"><a class="heading-link" href="#1-2-domain-model-diagram" aria-label="Link to section">#</a>1.2 Domain model diagram</h3>
+
+<section class="diagram-card" data-diagram="1">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 1</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 1">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>classDiagram
+    class Village {
+        Grid grid
+        VillageState state
+        List~Villager~ villagers
+        PolicyManager policyManager
+        int tickNumber
+        construct(Building, Position)
+        getState()
+    }
+
+    class Grid {
+        int width
+        int height
+        getCell(Position)
+        getNeighbours(Position)
+    }
+
+    class Cell {
+        Position position
+        Building building
+        NaturalFeature feature
+        isEmpty()
+    }
+
+    class Position {
+        int x
+        int y
+    }
+
+    class NaturalFeature {
+        &lt;&lt;enumeration&gt;&gt;
+        FOREST
+    }
+
+    class VillageState {
+        ResourceStock resources
+        VillageParameters parameters
+        int birthProgress
+    }
+
+    class ResourceStock {
+        int rice
+        int timber
+        int tools
+        int luxuryGoods
+        has(ResourceType, int)
+        add(ResourceType, int)
+        consume(ResourceType, int)
+    }
+
+    class VillageParameters {
+        int happiness
+        int protection
+        int food
+        int faith
+        int housing
+        int craftsmanship
+    }
+
+    class Villager {
+        Role role
+        HousingStatus housingStatus
+    }
+
+    class Role {
+        &lt;&lt;enumeration&gt;&gt;
+        UNHOUSED
+        IDLE
+        RICE_FARMER
+        WOODCUTTER
+        BLACKSMITH
+        ARTISAN
+        TRADER
+        SAMURAI
+        MONK
+    }
+
+    class Building {
+        &lt;&lt;abstract&gt;&gt;
+        BuildingType type
+        int timberCost
+        getPlacementRules()
+    }
+
+    class PolicyStrategy {
+        &lt;&lt;interface&gt;&gt;
+        modifyProduction(BuildingEffect)
+        modifyConsumption(ConsumptionPlan)
+        modifyParameters(VillageParameters)
+    }
+
+    Village *-- Grid
+    Village *-- VillageState
+    Village *-- Villager
+    Village *-- PolicyManager
+    PolicyManager --&gt; PolicyStrategy
+    Grid *-- Cell
+    Cell *-- Position
+    Cell o-- Building
+    Cell o-- NaturalFeature
+    VillageState *-- ResourceStock
+    VillageState *-- VillageParameters
+    Villager --&gt; Role
+    Building &lt;|-- Dwelling
+    Building &lt;|-- RiceFarm
+    Building &lt;|-- RicePaddy
+    Building &lt;|-- WoodcuttersHut
+    Building &lt;|-- Mine
+    Building &lt;|-- Smithy
+    Building &lt;|-- Workshop
+    Building &lt;|-- Market
+    Building &lt;|-- GuardPost
+    Building &lt;|-- Temple
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">classDiagram
+    class Village {
+        Grid grid
+        VillageState state
+        List~Villager~ villagers
+        PolicyManager policyManager
+        int tickNumber
+        construct(Building, Position)
+        getState()
+    }
+
+    class Grid {
+        int width
+        int height
+        getCell(Position)
+        getNeighbours(Position)
+    }
+
+    class Cell {
+        Position position
+        Building building
+        NaturalFeature feature
+        isEmpty()
+    }
+
+    class Position {
+        int x
+        int y
+    }
+
+    class NaturalFeature {
+        &lt;&lt;enumeration&gt;&gt;
+        FOREST
+    }
+
+    class VillageState {
+        ResourceStock resources
+        VillageParameters parameters
+        int birthProgress
+    }
+
+    class ResourceStock {
+        int rice
+        int timber
+        int tools
+        int luxuryGoods
+        has(ResourceType, int)
+        add(ResourceType, int)
+        consume(ResourceType, int)
+    }
+
+    class VillageParameters {
+        int happiness
+        int protection
+        int food
+        int faith
+        int housing
+        int craftsmanship
+    }
+
+    class Villager {
+        Role role
+        HousingStatus housingStatus
+    }
+
+    class Role {
+        &lt;&lt;enumeration&gt;&gt;
+        UNHOUSED
+        IDLE
+        RICE_FARMER
+        WOODCUTTER
+        BLACKSMITH
+        ARTISAN
+        TRADER
+        SAMURAI
+        MONK
+    }
+
+    class Building {
+        &lt;&lt;abstract&gt;&gt;
+        BuildingType type
+        int timberCost
+        getPlacementRules()
+    }
+
+    class PolicyStrategy {
+        &lt;&lt;interface&gt;&gt;
+        modifyProduction(BuildingEffect)
+        modifyConsumption(ConsumptionPlan)
+        modifyParameters(VillageParameters)
+    }
+
+    Village *-- Grid
+    Village *-- VillageState
+    Village *-- Villager
+    Village *-- PolicyManager
+    PolicyManager --&gt; PolicyStrategy
+    Grid *-- Cell
+    Cell *-- Position
+    Cell o-- Building
+    Cell o-- NaturalFeature
+    VillageState *-- ResourceStock
+    VillageState *-- VillageParameters
+    Villager --&gt; Role
+    Building &lt;|-- Dwelling
+    Building &lt;|-- RiceFarm
+    Building &lt;|-- RicePaddy
+    Building &lt;|-- WoodcuttersHut
+    Building &lt;|-- Mine
+    Building &lt;|-- Smithy
+    Building &lt;|-- Workshop
+    Building &lt;|-- Market
+    Building &lt;|-- GuardPost
+    Building &lt;|-- Temple
+</code></pre>
+  </details>
+</section>
+<h3 id="1-3-buildings-and-responsibilities"><a class="heading-link" href="#1-3-buildings-and-responsibilities" aria-label="Link to section">#</a>1.3 Buildings and responsibilities</h3>
+<table>
+<thead>
+<tr>
+  <th>Building</th>
+  <th>Main responsibility</th>
+  <th>Job slots / role</th>
+  <th>Rule enforcement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>Dwelling</code></td>
+  <td>Provides housing capacity</td>
+  <td>none</td>
+  <td>Required to house villagers born in the village</td>
+</tr>
+<tr>
+  <td><code>RiceFarm</code></td>
+  <td>Holds farmers</td>
+  <td>Rice Farmer</td>
+  <td>Needed near Rice Paddies</td>
+</tr>
+<tr>
+  <td><code>RicePaddy</code></td>
+  <td>Produces rice</td>
+  <td>indirectly uses farmers from Rice Farm</td>
+  <td>Produces only if a Rice Farm is nearby and at least one farmer exists</td>
+</tr>
+<tr>
+  <td><code>WoodcuttersHut</code></td>
+  <td>Produces timber</td>
+  <td>Woodcutter</td>
+  <td>Must be near forest</td>
+</tr>
+<tr>
+  <td><code>Mine</code></td>
+  <td>Unlocks Smithy and Workshop</td>
+  <td>optional / none</td>
+  <td>At least one Mine must exist before Smithy or Workshop can be built</td>
+</tr>
+<tr>
+  <td><code>Smithy</code></td>
+  <td>Produces tools</td>
+  <td>Blacksmith</td>
+  <td>Requires Mine</td>
+</tr>
+<tr>
+  <td><code>Workshop</code></td>
+  <td>Produces luxury goods</td>
+  <td>Artisan</td>
+  <td>Requires Mine</td>
+</tr>
+<tr>
+  <td><code>Market</code></td>
+  <td>Exchanges resources</td>
+  <td>Trader</td>
+  <td>Exchange amount and speed depend on traders</td>
+</tr>
+<tr>
+  <td><code>GuardPost</code></td>
+  <td>Increases protection</td>
+  <td>Samurai</td>
+  <td>Consumes tools/luxury goods under policy effects</td>
+</tr>
+<tr>
+  <td><code>Temple</code></td>
+  <td>Increases faith</td>
+  <td>Monk</td>
+  <td>Supports faith-based events and happiness</td>
+</tr>
+</tbody>
+</table>
+<h3 id="1-4-resource-and-parameter-model"><a class="heading-link" href="#1-4-resource-and-parameter-model" aria-label="Link to section">#</a>1.4 Resource and parameter model</h3>
+<p>The central resources are:</p>
+<ul>
+<li><strong>Rice</strong>: consumed every tick by living villagers. Produced by Rice Paddies.</li>
+<li><strong>Timber</strong>: consumed when constructing buildings. Produced by Woodcutter's Huts.</li>
+<li><strong>Tools</strong>: produced by Smithies. Consumed by rice farmers and samurai, especially under policies.</li>
+<li><strong>Luxury Goods</strong>: produced by Workshops. Consumed by monks and samurai, especially under policies.</li>
+</ul>
+<p>The main village parameters are recalculated each tick:</p>
+<ul>
+<li><strong>Happiness</strong>: global indicator based on the whole village condition.</li>
+<li><strong>Protection</strong>: based mainly on the ratio between Samurai and villagers.</li>
+<li><strong>Food</strong>: based on rice stock and expected rice consumption.</li>
+<li><strong>Faith</strong>: based on monks and temples compared with total population.</li>
+<li><strong>Housing</strong>: based on housed villagers compared with total villagers.</li>
+<li><strong>Craftsmanship</strong>: based on available tools, craftsmen, smithies, and workshops.</li>
+</ul>
+<p>Happiness is not calculated manually by the player. It is derived from the other parameters by <code>HappinessCalculator</code>, so it stays testable and separated from <code>VillageState</code>.</p>
+<hr />
+<h2 id="2-system-sequence-diagrams"><a class="heading-link" href="#2-system-sequence-diagrams" aria-label="Link to section">#</a>2. System Sequence Diagrams</h2>
+<p>The following diagrams are <strong>system sequence diagrams</strong>. They show the external interaction between the player and the DaimyoSimulator system without exposing internal classes.</p>
+<h3 id="2-1-ssd-create-a-new-village"><a class="heading-link" href="#2-1-ssd-create-a-new-village" aria-label="Link to section">#</a>2.1 SSD — Create a new village</h3>
+
+<section class="diagram-card" data-diagram="2">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 2</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 2">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>sequenceDiagram
+    actor Player
+    participant System as DaimyoSimulator System
+
+    Player-&gt;&gt;System: startNewVillage(width, height)
+    System--&gt;&gt;Player: villageCreated(initialState, generatedMap)
+    Player-&gt;&gt;System: viewVillageSummary()
+    System--&gt;&gt;Player: villageSummary(resources, parameters, tickNumber)
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">sequenceDiagram
+    actor Player
+    participant System as DaimyoSimulator System
+
+    Player-&gt;&gt;System: startNewVillage(width, height)
+    System--&gt;&gt;Player: villageCreated(initialState, generatedMap)
+    Player-&gt;&gt;System: viewVillageSummary()
+    System--&gt;&gt;Player: villageSummary(resources, parameters, tickNumber)
+</code></pre>
+  </details>
+</section>
+<h3 id="2-2-ssd-construct-a-building"><a class="heading-link" href="#2-2-ssd-construct-a-building" aria-label="Link to section">#</a>2.2 SSD — Construct a building</h3>
+
+<section class="diagram-card" data-diagram="3">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 3</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 3">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>sequenceDiagram
+    actor Player
+    participant System as DaimyoSimulator System
+
+    Player-&gt;&gt;System: requestConstructBuilding(buildingType, position)
+    System--&gt;&gt;Player: constructionResult(success/failure, message)
+    Player-&gt;&gt;System: viewCell(position)
+    System--&gt;&gt;Player: cellStatus(position, buildingOrFeature)
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">sequenceDiagram
+    actor Player
+    participant System as DaimyoSimulator System
+
+    Player-&gt;&gt;System: requestConstructBuilding(buildingType, position)
+    System--&gt;&gt;Player: constructionResult(success/failure, message)
+    Player-&gt;&gt;System: viewCell(position)
+    System--&gt;&gt;Player: cellStatus(position, buildingOrFeature)
+</code></pre>
+  </details>
+</section>
+<h3 id="2-3-ssd-advance-one-tick"><a class="heading-link" href="#2-3-ssd-advance-one-tick" aria-label="Link to section">#</a>2.3 SSD — Advance one tick</h3>
+
+<section class="diagram-card" data-diagram="4">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 4</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 4">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>sequenceDiagram
+    actor Player
+    participant System as DaimyoSimulator System
+
+    Player-&gt;&gt;System: advanceTick()
+    System--&gt;&gt;Player: tickResult(beforeState, afterState, production, consumption, events)
+    Player-&gt;&gt;System: viewDashboard()
+    System--&gt;&gt;Player: dashboardData(resources, parameters, villagers, activePolicy)
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">sequenceDiagram
+    actor Player
+    participant System as DaimyoSimulator System
+
+    Player-&gt;&gt;System: advanceTick()
+    System--&gt;&gt;Player: tickResult(beforeState, afterState, production, consumption, events)
+    Player-&gt;&gt;System: viewDashboard()
+    System--&gt;&gt;Player: dashboardData(resources, parameters, villagers, activePolicy)
+</code></pre>
+  </details>
+</section>
+<h3 id="2-4-ssd-activate-a-strategy-policy"><a class="heading-link" href="#2-4-ssd-activate-a-strategy-policy" aria-label="Link to section">#</a>2.4 SSD — Activate a strategy policy</h3>
+
+<section class="diagram-card" data-diagram="5">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 5</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 5">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>sequenceDiagram
+    actor Player
+    participant System as DaimyoSimulator System
+
+    Player-&gt;&gt;System: activatePolicy(policyType)
+    System--&gt;&gt;Player: policyActivationResult(success/failure, activePolicy, cooldown)
+    Player-&gt;&gt;System: advanceTick()
+    System--&gt;&gt;Player: tickResult(policyEffectsApplied)
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">sequenceDiagram
+    actor Player
+    participant System as DaimyoSimulator System
+
+    Player-&gt;&gt;System: activatePolicy(policyType)
+    System--&gt;&gt;Player: policyActivationResult(success/failure, activePolicy, cooldown)
+    Player-&gt;&gt;System: advanceTick()
+    System--&gt;&gt;Player: tickResult(policyEffectsApplied)
+</code></pre>
+  </details>
+</section>
+<h3 id="2-5-ssd-save-and-load-village"><a class="heading-link" href="#2-5-ssd-save-and-load-village" aria-label="Link to section">#</a>2.5 SSD — Save and load village</h3>
+
+<section class="diagram-card" data-diagram="6">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 6</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 6">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>sequenceDiagram
+    actor Player
+    participant System as DaimyoSimulator System
+
+    Player-&gt;&gt;System: saveVillage(filePath)
+    System--&gt;&gt;Player: saveResult(success/failure, message)
+    Player-&gt;&gt;System: loadVillage(filePath)
+    System--&gt;&gt;Player: loadResult(success/failure, restoredVillageState)
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">sequenceDiagram
+    actor Player
+    participant System as DaimyoSimulator System
+
+    Player-&gt;&gt;System: saveVillage(filePath)
+    System--&gt;&gt;Player: saveResult(success/failure, message)
+    Player-&gt;&gt;System: loadVillage(filePath)
+    System--&gt;&gt;Player: loadResult(success/failure, restoredVillageState)
+</code></pre>
+  </details>
+</section>
+<hr />
+<h2 id="3-architectural-organization"><a class="heading-link" href="#3-architectural-organization" aria-label="Link to section">#</a>3. Architectural Organization</h2>
+<h3 id="3-1-three-responsibility-split"><a class="heading-link" href="#3-1-three-responsibility-split" aria-label="Link to section">#</a>3.1 Three responsibility split</h3>
+<p>DaimyoSimulator is separated into three responsibilities:</p>
+<table>
+<thead>
+<tr>
+  <th>Responsibility</th>
+  <th>Technology</th>
+  <th>Owns</th>
+  <th>Must not own</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Core Game Logic</td>
+  <td>Pure Java</td>
+  <td>Village simulation, logical grid, buildings, placement rules, villagers/jobs, economy/resources, policies, random events, save/load, tick engine</td>
+  <td>libGDX imports, rendering, Scene2D widgets, camera logic</td>
+</tr>
+<tr>
+  <td>Game World Renderer</td>
+  <td>libGDX</td>
+  <td>Drawing the village map, tiles, buildings, forests, animations, SpriteBatch, OrthographicCamera, visual mapping from snapshots</td>
+  <td>Simulation rules, resource formulas, placement validation, persistence</td>
+</tr>
+<tr>
+  <td>Game UI / HUD</td>
+  <td>libGDX Scene2D UI</td>
+  <td>Build buttons, resources, population, parameters, selected building panel, pause/speed/next-tick, policy buttons, event log, menus</td>
+  <td>Direct mutation of <code>Village</code>, <code>Cell</code>, <code>Building</code>, <code>ResourceStock</code>, or <code>Villager</code></td>
+</tr>
+</tbody>
+</table>
+<p>The UI and renderer communicate with the core only through <code>GameController</code>, <code>CoreGameFacade</code>, application services, DTOs, immutable snapshots, or view models.</p>
+<h3 id="3-2-maven-multi-module-architecture"><a class="heading-link" href="#3-2-maven-multi-module-architecture" aria-label="Link to section">#</a>3.2 Maven multi-module architecture</h3>
+<pre><code class="language-text">daimyosimulator/
+├── pom.xml
+├── daimyosimulator-core/
+│   ├── pom.xml
+│   └── src/
+│       ├── main/java/it/unipd/daimyosimulator/core/...
+│       └── test/java/it/unipd/daimyosimulator/core/...
+├── daimyosimulator-libgdx/
+│   ├── pom.xml
+│   └── src/
+│       ├── main/java/it/unipd/daimyosimulator/gdx/...
+│       └── main/resources/assets/...
+└── daimyosimulator-desktop/
+    ├── pom.xml
+    └── src/main/java/it/unipd/daimyosimulator/desktop/DesktopLauncher.java
+</code></pre>
+<p>Dependencies flow in one direction:</p>
+<pre><code class="language-text">daimyosimulator-desktop
+        ↓
+daimyosimulator-libgdx
+        ↓
+daimyosimulator-core
+</code></pre>
+<p>The forbidden direction is:</p>
+<pre><code class="language-text">daimyosimulator-core ❌ must not depend on daimyosimulator-libgdx
+</code></pre>
+<p>The core module must compile and run JUnit tests without any <code>com.badlogic.gdx.*</code> imports.</p>
+<h3 id="3-3-package-architecture"><a class="heading-link" href="#3-3-package-architecture" aria-label="Link to section">#</a>3.3 Package architecture</h3>
+<h4 id="core-module-packages"><a class="heading-link" href="#core-module-packages" aria-label="Link to section">#</a>Core module packages</h4>
+<pre><code class="language-text">it.unipd.daimyosimulator.core
+├── application/
+│   ├── CoreGameFacade.java
+│   ├── GameController.java
+│   ├── VillageInitializer.java
+│   ├── BuildCommand.java
+│   ├── TickCommand.java
+│   ├── PlacementResult.java
+│   ├── PolicyActivationResult.java
+│   └── TickResult.java
+├── application/view/
+│   ├── VillageSnapshot.java
+│   ├── CellViewModel.java
+│   ├── BuildingViewModel.java
+│   ├── DashboardViewModel.java
+│   ├── ResourceViewModel.java
+│   ├── PopulationViewModel.java
+│   ├── PolicyViewModel.java
+│   └── EventLogViewModel.java
+├── domain/
+│   ├── village/
+│   ├── grid/
+│   ├── building/
+│   ├── villager/
+│   ├── resource/
+│   ├── policy/
+│   ├── rule/
+│   └── event/
+├── engine/
+│   ├── SimulationEngine.java
+│   ├── TickProcessor.java
+│   ├── TickContext.java
+│   ├── JobAssignmentService.java
+│   ├── ProductionService.java
+│   ├── ConsumptionService.java
+│   ├── ShortageService.java
+│   ├── BirthDeathService.java
+│   ├── VillageParameterCalculator.java
+│   └── HappinessCalculator.java
+├── factory/
+│   ├── BuildingFactory.java
+│   └── PolicyFactory.java
+└── persistence/
+    ├── VillagePersistenceService.java
+    ├── VillageMapper.java
+    ├── dto/
+    └── json/
+</code></pre>
+<h4 id="libgdx-module-packages"><a class="heading-link" href="#libgdx-module-packages" aria-label="Link to section">#</a>libGDX module packages</h4>
+<pre><code class="language-text">it.unipd.daimyosimulator.gdx
+├── app/
+│   └── DaimyoSimulatorGame.java
+├── screen/
+│   ├── LoadingScreen.java
+│   ├── MainMenuScreen.java
+│   └── VillageScreen.java
+├── render/
+│   ├── WorldRenderer.java
+│   ├── TileRenderer.java
+│   ├── BuildingRenderer.java
+│   ├── NaturalFeatureRenderer.java
+│   ├── AnimationRenderer.java
+│   ├── GridOverlayRenderer.java
+│   └── RenderConstants.java
+├── ui/
+│   ├── HudStageFactory.java
+│   ├── DashboardHud.java
+│   ├── BuildMenu.java
+│   ├── ResourcePanel.java
+│   ├── PopulationPanel.java
+│   ├── VillageParameterPanel.java
+│   ├── SelectedBuildingPanel.java
+│   ├── SpeedControlPanel.java
+│   ├── PolicyPanel.java
+│   ├── EventLogPanel.java
+│   └── MenuOverlay.java
+├── input/
+│   ├── GameInputProcessor.java
+│   ├── CameraController.java
+│   ├── BuildModeState.java
+│   ├── ScreenToGridMapper.java
+│   └── InputCommandRouter.java
+├── asset/
+│   ├── GameAssetManager.java
+│   ├── AssetPaths.java
+│   ├── BuildingSpriteRegistry.java
+│   ├── TileSpriteRegistry.java
+│   ├── IconRegistry.java
+│   └── MissingAssetFallback.java
+└── adapter/
+    ├── SnapshotToRenderModelAdapter.java
+    ├── CellRenderModel.java
+    ├── BuildingRenderModel.java
+    └── HudViewModelAdapter.java
+</code></pre>
+<h4 id="desktop-module-package"><a class="heading-link" href="#desktop-module-package" aria-label="Link to section">#</a>desktop module package</h4>
+<pre><code class="language-text">it.unipd.daimyosimulator.desktop
+└── DesktopLauncher.java
+</code></pre>
+<hr />
+<h2 id="4-design-class-model"><a class="heading-link" href="#4-design-class-model" aria-label="Link to section">#</a>4. Design Class Model</h2>
+<h3 id="4-1-controllerfacade-and-core-class-diagram"><a class="heading-link" href="#4-1-controllerfacade-and-core-class-diagram" aria-label="Link to section">#</a>4.1 Controller/facade and core class diagram</h3>
+
+<section class="diagram-card" data-diagram="7">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 7</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 7">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>classDiagram
+    class CoreGameFacade {
+        +startNewVillage(width, height) VillageSnapshot
+        +placeBuilding(type, position) PlacementResult
+        +advanceTick() TickResult
+        +activatePolicy(policyType) PolicyActivationResult
+        +inspectCell(position) CellViewModel
+        +getSnapshot() VillageSnapshot
+        +save(path) SaveResult
+        +load(path) VillageSnapshot
+    }
+
+    class GameController {
+        +startNewVillage(width, height)
+        +constructBuilding(type, position)
+        +advanceTick()
+        +activatePolicy(policyType)
+        +save(path)
+        +load(path)
+    }
+
+    class SimulationEngine {
+        +advanceTick(Village) TickResult
+    }
+
+    class Village {
+        -Grid grid
+        -VillageState state
+        -List~Villager~ villagers
+        -PolicyManager policyManager
+        +construct(Building, Position)
+        +getState()
+    }
+
+    class TickResult {
+        VillageState beforeState
+        VillageState afterState
+        List~BuildingEffect~ buildingEffects
+        List~EventEffect~ eventEffects
+        String activePolicyName
+    }
+
+    class VillageSnapshot {
+        &lt;&lt;immutable&gt;&gt;
+        int width
+        int height
+        List~CellViewModel~ cells
+        DashboardViewModel dashboard
+    }
+
+    class CellViewModel {
+        &lt;&lt;immutable&gt;&gt;
+        Position position
+        NaturalFeature feature
+        BuildingViewModel building
+    }
+
+    class BuildingViewModel {
+        &lt;&lt;immutable&gt;&gt;
+        BuildingType type
+        int workers
+        int jobSlots
+        String productionSummary
+    }
+
+    class DashboardViewModel {
+        &lt;&lt;immutable&gt;&gt;
+        ResourceViewModel resources
+        PopulationViewModel population
+        PolicyViewModel policy
+        EventLogViewModel eventLog
+    }
+
+    class VillagePersistenceService {
+        +save(Village, Path)
+        +load(Path) Village
+    }
+
+    CoreGameFacade --&gt; GameController
+    GameController --&gt; PlacementService
+    GameController --&gt; SimulationEngine
+    GameController --&gt; VillagePersistenceService
+    CoreGameFacade --&gt; VillageSnapshot
+    CoreGameFacade --&gt; CellViewModel
+    CoreGameFacade --&gt; DashboardViewModel
+    SimulationEngine --&gt; TickResult
+    VillageSnapshot *-- CellViewModel
+    VillageSnapshot *-- DashboardViewModel
+    CellViewModel *-- BuildingViewModel
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">classDiagram
+    class CoreGameFacade {
+        +startNewVillage(width, height) VillageSnapshot
+        +placeBuilding(type, position) PlacementResult
+        +advanceTick() TickResult
+        +activatePolicy(policyType) PolicyActivationResult
+        +inspectCell(position) CellViewModel
+        +getSnapshot() VillageSnapshot
+        +save(path) SaveResult
+        +load(path) VillageSnapshot
+    }
+
+    class GameController {
+        +startNewVillage(width, height)
+        +constructBuilding(type, position)
+        +advanceTick()
+        +activatePolicy(policyType)
+        +save(path)
+        +load(path)
+    }
+
+    class SimulationEngine {
+        +advanceTick(Village) TickResult
+    }
+
+    class Village {
+        -Grid grid
+        -VillageState state
+        -List~Villager~ villagers
+        -PolicyManager policyManager
+        +construct(Building, Position)
+        +getState()
+    }
+
+    class TickResult {
+        VillageState beforeState
+        VillageState afterState
+        List~BuildingEffect~ buildingEffects
+        List~EventEffect~ eventEffects
+        String activePolicyName
+    }
+
+    class VillageSnapshot {
+        &lt;&lt;immutable&gt;&gt;
+        int width
+        int height
+        List~CellViewModel~ cells
+        DashboardViewModel dashboard
+    }
+
+    class CellViewModel {
+        &lt;&lt;immutable&gt;&gt;
+        Position position
+        NaturalFeature feature
+        BuildingViewModel building
+    }
+
+    class BuildingViewModel {
+        &lt;&lt;immutable&gt;&gt;
+        BuildingType type
+        int workers
+        int jobSlots
+        String productionSummary
+    }
+
+    class DashboardViewModel {
+        &lt;&lt;immutable&gt;&gt;
+        ResourceViewModel resources
+        PopulationViewModel population
+        PolicyViewModel policy
+        EventLogViewModel eventLog
+    }
+
+    class VillagePersistenceService {
+        +save(Village, Path)
+        +load(Path) Village
+    }
+
+    CoreGameFacade --&gt; GameController
+    GameController --&gt; PlacementService
+    GameController --&gt; SimulationEngine
+    GameController --&gt; VillagePersistenceService
+    CoreGameFacade --&gt; VillageSnapshot
+    CoreGameFacade --&gt; CellViewModel
+    CoreGameFacade --&gt; DashboardViewModel
+    SimulationEngine --&gt; TickResult
+    VillageSnapshot *-- CellViewModel
+    VillageSnapshot *-- DashboardViewModel
+    CellViewModel *-- BuildingViewModel
+</code></pre>
+  </details>
+</section>
+<h3 id="4-2-building-hierarchy-and-interfaces"><a class="heading-link" href="#4-2-building-hierarchy-and-interfaces" aria-label="Link to section">#</a>4.2 Building hierarchy and interfaces</h3>
+
+<section class="diagram-card" data-diagram="8">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 8</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 8">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>classDiagram
+    class Building {
+        &lt;&lt;abstract&gt;&gt;
+        -BuildingType type
+        -int timberCost
+        +getType() BuildingType
+        +getTimberCost() int
+        +getPlacementRules() List~PlacementRule~
+    }
+
+    class JobProvider {
+        &lt;&lt;interface&gt;&gt;
+        +getRole() Role
+        +getJobSlots() int
+    }
+
+    class ResourceProducer {
+        &lt;&lt;interface&gt;&gt;
+        +produce(Village, TickContext) BuildingEffect
+    }
+
+    class ResourceConsumer {
+        &lt;&lt;interface&gt;&gt;
+        +consume(Village, TickContext) ConsumptionPlan
+    }
+
+    class Dwelling {
+        +getHousingCapacity() int
+    }
+
+    class RiceFarm
+    class RicePaddy
+    class WoodcuttersHut
+    class Mine
+    class Smithy
+    class Workshop
+    class Market
+    class GuardPost
+    class Temple
+
+    Building &lt;|-- Dwelling
+    Building &lt;|-- RiceFarm
+    Building &lt;|-- RicePaddy
+    Building &lt;|-- WoodcuttersHut
+    Building &lt;|-- Mine
+    Building &lt;|-- Smithy
+    Building &lt;|-- Workshop
+    Building &lt;|-- Market
+    Building &lt;|-- GuardPost
+    Building &lt;|-- Temple
+
+    JobProvider &lt;|.. RiceFarm
+    JobProvider &lt;|.. WoodcuttersHut
+    JobProvider &lt;|.. Smithy
+    JobProvider &lt;|.. Workshop
+    JobProvider &lt;|.. Market
+    JobProvider &lt;|.. GuardPost
+    JobProvider &lt;|.. Temple
+
+    ResourceProducer &lt;|.. RicePaddy
+    ResourceProducer &lt;|.. WoodcuttersHut
+    ResourceProducer &lt;|.. Smithy
+    ResourceProducer &lt;|.. Workshop
+
+    ResourceConsumer &lt;|.. RicePaddy
+    ResourceConsumer &lt;|.. GuardPost
+    ResourceConsumer &lt;|.. Temple
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">classDiagram
+    class Building {
+        &lt;&lt;abstract&gt;&gt;
+        -BuildingType type
+        -int timberCost
+        +getType() BuildingType
+        +getTimberCost() int
+        +getPlacementRules() List~PlacementRule~
+    }
+
+    class JobProvider {
+        &lt;&lt;interface&gt;&gt;
+        +getRole() Role
+        +getJobSlots() int
+    }
+
+    class ResourceProducer {
+        &lt;&lt;interface&gt;&gt;
+        +produce(Village, TickContext) BuildingEffect
+    }
+
+    class ResourceConsumer {
+        &lt;&lt;interface&gt;&gt;
+        +consume(Village, TickContext) ConsumptionPlan
+    }
+
+    class Dwelling {
+        +getHousingCapacity() int
+    }
+
+    class RiceFarm
+    class RicePaddy
+    class WoodcuttersHut
+    class Mine
+    class Smithy
+    class Workshop
+    class Market
+    class GuardPost
+    class Temple
+
+    Building &lt;|-- Dwelling
+    Building &lt;|-- RiceFarm
+    Building &lt;|-- RicePaddy
+    Building &lt;|-- WoodcuttersHut
+    Building &lt;|-- Mine
+    Building &lt;|-- Smithy
+    Building &lt;|-- Workshop
+    Building &lt;|-- Market
+    Building &lt;|-- GuardPost
+    Building &lt;|-- Temple
+
+    JobProvider &lt;|.. RiceFarm
+    JobProvider &lt;|.. WoodcuttersHut
+    JobProvider &lt;|.. Smithy
+    JobProvider &lt;|.. Workshop
+    JobProvider &lt;|.. Market
+    JobProvider &lt;|.. GuardPost
+    JobProvider &lt;|.. Temple
+
+    ResourceProducer &lt;|.. RicePaddy
+    ResourceProducer &lt;|.. WoodcuttersHut
+    ResourceProducer &lt;|.. Smithy
+    ResourceProducer &lt;|.. Workshop
+
+    ResourceConsumer &lt;|.. RicePaddy
+    ResourceConsumer &lt;|.. GuardPost
+    ResourceConsumer &lt;|.. Temple
+</code></pre>
+  </details>
+</section>
+<h3 id="4-3-strategy-policies"><a class="heading-link" href="#4-3-strategy-policies" aria-label="Link to section">#</a>4.3 Strategy policies</h3>
+
+<section class="diagram-card" data-diagram="9">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 9</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 9">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>classDiagram
+    class PolicyStrategy {
+        &lt;&lt;interface&gt;&gt;
+        +getName() String
+        +modifyProduction(BuildingEffect) BuildingEffect
+        +modifyConsumption(ConsumptionPlan) ConsumptionPlan
+        +modifyProtection(int) int
+    }
+
+    class NoPolicy
+    class AgriculturalExpansionPolicy
+    class MilitaryProtectionPolicy
+    class CraftsmenProductionPolicy
+
+    PolicyStrategy &lt;|.. NoPolicy
+    PolicyStrategy &lt;|.. AgriculturalExpansionPolicy
+    PolicyStrategy &lt;|.. MilitaryProtectionPolicy
+    PolicyStrategy &lt;|.. CraftsmenProductionPolicy
+
+    class PolicyManager {
+        -PolicyStrategy activePolicy
+        -int remainingTicks
+        -int cooldownTicks
+        +activate(PolicyType)
+        +canActivate(PolicyType) boolean
+        +updateDurationAndCooldown()
+        +getActivePolicy() PolicyStrategy
+    }
+
+    PolicyManager --&gt; PolicyStrategy
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">classDiagram
+    class PolicyStrategy {
+        &lt;&lt;interface&gt;&gt;
+        +getName() String
+        +modifyProduction(BuildingEffect) BuildingEffect
+        +modifyConsumption(ConsumptionPlan) ConsumptionPlan
+        +modifyProtection(int) int
+    }
+
+    class NoPolicy
+    class AgriculturalExpansionPolicy
+    class MilitaryProtectionPolicy
+    class CraftsmenProductionPolicy
+
+    PolicyStrategy &lt;|.. NoPolicy
+    PolicyStrategy &lt;|.. AgriculturalExpansionPolicy
+    PolicyStrategy &lt;|.. MilitaryProtectionPolicy
+    PolicyStrategy &lt;|.. CraftsmenProductionPolicy
+
+    class PolicyManager {
+        -PolicyStrategy activePolicy
+        -int remainingTicks
+        -int cooldownTicks
+        +activate(PolicyType)
+        +canActivate(PolicyType) boolean
+        +updateDurationAndCooldown()
+        +getActivePolicy() PolicyStrategy
+    }
+
+    PolicyManager --&gt; PolicyStrategy
+</code></pre>
+  </details>
+</section>
+<p>Policy behavior:</p>
+<table>
+<thead>
+<tr>
+  <th>Policy</th>
+  <th>Production effect</th>
+  <th>Consumption / cost effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>AgriculturalExpansionPolicy</code></td>
+  <td>Rice Paddy production x1.5</td>
+  <td>Tool consumption by agriculture x1.5</td>
+</tr>
+<tr>
+  <td><code>MilitaryProtectionPolicy</code></td>
+  <td>Protection value from Samurai x1.5</td>
+  <td>Samurai consume x1.5 Tools and Luxury Goods</td>
+</tr>
+<tr>
+  <td><code>CraftsmenProductionPolicy</code></td>
+  <td>Timber, Tools, and Luxury Goods production x1.5</td>
+  <td>Craftsmen consume x1.5 Rice</td>
+</tr>
+</tbody>
+</table>
+<h3 id="4-4-libgdx-application-structure"><a class="heading-link" href="#4-4-libgdx-application-structure" aria-label="Link to section">#</a>4.4 libGDX application structure</h3>
+
+<section class="diagram-card" data-diagram="10">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 10</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 10">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>classDiagram
+    class DaimyoSimulatorGame {
+        +create()
+        +setScreen(Screen)
+        +dispose()
+    }
+
+    class LoadingScreen {
+        +show()
+        +render(delta)
+    }
+
+    class VillageScreen {
+        -SpriteBatch batch
+        -OrthographicCamera camera
+        -Stage hudStage
+        -WorldRenderer worldRenderer
+        -DashboardHud dashboardHud
+        -GameInputProcessor inputProcessor
+        +render(delta)
+        +resize(width, height)
+        +dispose()
+    }
+
+    class WorldRenderer {
+        +render(VillageSnapshot, OrthographicCamera)
+    }
+
+    class HudStageFactory {
+        +create(controller) Stage
+    }
+
+    class GameAssetManager {
+        +loadAll()
+        +getRegion(assetKey) TextureRegion
+        +dispose()
+    }
+
+    DaimyoSimulatorGame --&gt; LoadingScreen
+    DaimyoSimulatorGame --&gt; VillageScreen
+    LoadingScreen --&gt; GameAssetManager
+    VillageScreen --&gt; WorldRenderer
+    VillageScreen --&gt; HudStageFactory
+    VillageScreen --&gt; GameAssetManager
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">classDiagram
+    class DaimyoSimulatorGame {
+        +create()
+        +setScreen(Screen)
+        +dispose()
+    }
+
+    class LoadingScreen {
+        +show()
+        +render(delta)
+    }
+
+    class VillageScreen {
+        -SpriteBatch batch
+        -OrthographicCamera camera
+        -Stage hudStage
+        -WorldRenderer worldRenderer
+        -DashboardHud dashboardHud
+        -GameInputProcessor inputProcessor
+        +render(delta)
+        +resize(width, height)
+        +dispose()
+    }
+
+    class WorldRenderer {
+        +render(VillageSnapshot, OrthographicCamera)
+    }
+
+    class HudStageFactory {
+        +create(controller) Stage
+    }
+
+    class GameAssetManager {
+        +loadAll()
+        +getRegion(assetKey) TextureRegion
+        +dispose()
+    }
+
+    DaimyoSimulatorGame --&gt; LoadingScreen
+    DaimyoSimulatorGame --&gt; VillageScreen
+    LoadingScreen --&gt; GameAssetManager
+    VillageScreen --&gt; WorldRenderer
+    VillageScreen --&gt; HudStageFactory
+    VillageScreen --&gt; GameAssetManager
+</code></pre>
+  </details>
+</section>
+<h3 id="4-5-worldrenderer-and-uihud-collaboration"><a class="heading-link" href="#4-5-worldrenderer-and-uihud-collaboration" aria-label="Link to section">#</a>4.5 WorldRenderer and UI/HUD collaboration</h3>
+
+<section class="diagram-card" data-diagram="11">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 11</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 11">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>classDiagram
+    class WorldRenderer {
+        +render(snapshot, camera)
+    }
+
+    class TileRenderer {
+        +renderTiles(snapshot)
+    }
+
+    class NaturalFeatureRenderer {
+        +renderFeatures(snapshot)
+    }
+
+    class BuildingRenderer {
+        +renderBuildings(snapshot)
+    }
+
+    class AnimationRenderer {
+        +renderAnimations(snapshot, delta)
+    }
+
+    class DashboardHud {
+        +refresh(DashboardViewModel)
+        +showCell(CellViewModel)
+        +showMessage(String)
+    }
+
+    class BuildMenu {
+        +setBuildMode(BuildingType)
+    }
+
+    class ResourcePanel {
+        +refresh(ResourceViewModel)
+    }
+
+    class PopulationPanel {
+        +refresh(PopulationViewModel)
+    }
+
+    class SelectedBuildingPanel {
+        +show(CellViewModel)
+    }
+
+    class SpeedControlPanel {
+        +pause()
+        +resume()
+        +nextTick()
+        +setSpeed(multiplier)
+    }
+
+    class PolicyPanel {
+        +activatePolicy(PolicyType)
+    }
+
+    WorldRenderer --&gt; TileRenderer
+    WorldRenderer --&gt; NaturalFeatureRenderer
+    WorldRenderer --&gt; BuildingRenderer
+    WorldRenderer --&gt; AnimationRenderer
+    DashboardHud --&gt; BuildMenu
+    DashboardHud --&gt; ResourcePanel
+    DashboardHud --&gt; PopulationPanel
+    DashboardHud --&gt; SelectedBuildingPanel
+    DashboardHud --&gt; SpeedControlPanel
+    DashboardHud --&gt; PolicyPanel
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">classDiagram
+    class WorldRenderer {
+        +render(snapshot, camera)
+    }
+
+    class TileRenderer {
+        +renderTiles(snapshot)
+    }
+
+    class NaturalFeatureRenderer {
+        +renderFeatures(snapshot)
+    }
+
+    class BuildingRenderer {
+        +renderBuildings(snapshot)
+    }
+
+    class AnimationRenderer {
+        +renderAnimations(snapshot, delta)
+    }
+
+    class DashboardHud {
+        +refresh(DashboardViewModel)
+        +showCell(CellViewModel)
+        +showMessage(String)
+    }
+
+    class BuildMenu {
+        +setBuildMode(BuildingType)
+    }
+
+    class ResourcePanel {
+        +refresh(ResourceViewModel)
+    }
+
+    class PopulationPanel {
+        +refresh(PopulationViewModel)
+    }
+
+    class SelectedBuildingPanel {
+        +show(CellViewModel)
+    }
+
+    class SpeedControlPanel {
+        +pause()
+        +resume()
+        +nextTick()
+        +setSpeed(multiplier)
+    }
+
+    class PolicyPanel {
+        +activatePolicy(PolicyType)
+    }
+
+    WorldRenderer --&gt; TileRenderer
+    WorldRenderer --&gt; NaturalFeatureRenderer
+    WorldRenderer --&gt; BuildingRenderer
+    WorldRenderer --&gt; AnimationRenderer
+    DashboardHud --&gt; BuildMenu
+    DashboardHud --&gt; ResourcePanel
+    DashboardHud --&gt; PopulationPanel
+    DashboardHud --&gt; SelectedBuildingPanel
+    DashboardHud --&gt; SpeedControlPanel
+    DashboardHud --&gt; PolicyPanel
+</code></pre>
+  </details>
+</section>
+<h3 id="4-6-boundary-between-libgdx-and-pure-java-core"><a class="heading-link" href="#4-6-boundary-between-libgdx-and-pure-java-core" aria-label="Link to section">#</a>4.6 Boundary between libGDX and pure Java core</h3>
+
+<section class="diagram-card" data-diagram="12">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 12</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 12">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>classDiagram
+    namespace Pure_Java_Core {
+        class CoreGameFacade
+        class GameController
+        class VillageSnapshot
+        class CellViewModel
+        class BuildingViewModel
+        class DashboardViewModel
+        class SimulationEngine
+        class Village
+    }
+
+    namespace LibGDX_Presentation {
+        class VillageScreen
+        class WorldRenderer
+        class DashboardHud
+        class GameInputProcessor
+        class CameraController
+    }
+
+    VillageScreen --&gt; CoreGameFacade
+    WorldRenderer --&gt; VillageSnapshot
+    DashboardHud --&gt; DashboardViewModel
+    DashboardHud --&gt; CoreGameFacade
+    GameInputProcessor --&gt; CoreGameFacade
+    GameInputProcessor --&gt; CameraController
+    CoreGameFacade --&gt; GameController
+    GameController --&gt; SimulationEngine
+    SimulationEngine --&gt; Village
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">classDiagram
+    namespace Pure_Java_Core {
+        class CoreGameFacade
+        class GameController
+        class VillageSnapshot
+        class CellViewModel
+        class BuildingViewModel
+        class DashboardViewModel
+        class SimulationEngine
+        class Village
+    }
+
+    namespace LibGDX_Presentation {
+        class VillageScreen
+        class WorldRenderer
+        class DashboardHud
+        class GameInputProcessor
+        class CameraController
+    }
+
+    VillageScreen --&gt; CoreGameFacade
+    WorldRenderer --&gt; VillageSnapshot
+    DashboardHud --&gt; DashboardViewModel
+    DashboardHud --&gt; CoreGameFacade
+    GameInputProcessor --&gt; CoreGameFacade
+    GameInputProcessor --&gt; CameraController
+    CoreGameFacade --&gt; GameController
+    GameController --&gt; SimulationEngine
+    SimulationEngine --&gt; Village
+</code></pre>
+  </details>
+</section>
+<hr />
+<h2 id="5-internal-sequence-diagrams"><a class="heading-link" href="#5-internal-sequence-diagrams" aria-label="Link to section">#</a>5. Internal Sequence Diagrams</h2>
+<p>The following diagrams show the internal object collaboration for the most significant operations.</p>
+<h3 id="5-1-internal-sequence-construct-a-building-in-the-core"><a class="heading-link" href="#5-1-internal-sequence-construct-a-building-in-the-core" aria-label="Link to section">#</a>5.1 Internal sequence — Construct a building in the core</h3>
+
+<section class="diagram-card" data-diagram="13">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 13</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 13">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>sequenceDiagram
+    actor Player
+    participant UI as libGDX HUD/Input
+    participant C as CoreGameFacade
+    participant PS as PlacementService
+    participant BF as BuildingFactory
+    participant RS as ResourceStock
+    participant Rules as PlacementRules
+    participant V as Village
+    participant G as Grid
+
+    Player-&gt;&gt;UI: choose building type and position
+    UI-&gt;&gt;C: placeBuilding(type, position)
+    C-&gt;&gt;PS: placeBuilding(village, type, position)
+    PS-&gt;&gt;BF: create(type)
+    BF--&gt;&gt;PS: building
+    PS-&gt;&gt;G: getCell(position)
+    G--&gt;&gt;PS: cell
+    PS-&gt;&gt;RS: has(TIMBER, building.cost)
+    RS--&gt;&gt;PS: true/false
+    PS-&gt;&gt;Rules: validate(village, building, position)
+    Rules--&gt;&gt;PS: valid/invalid
+    alt valid placement and enough timber
+        PS-&gt;&gt;RS: consume(TIMBER, building.cost)
+        PS-&gt;&gt;V: construct(building, position)
+        V-&gt;&gt;G: place(building, position)
+        PS--&gt;&gt;C: PlacementResult(success)
+    else invalid placement
+        PS--&gt;&gt;C: PlacementResult(failure, reason)
+    end
+    C--&gt;&gt;UI: placement result and updated snapshot
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">sequenceDiagram
+    actor Player
+    participant UI as libGDX HUD/Input
+    participant C as CoreGameFacade
+    participant PS as PlacementService
+    participant BF as BuildingFactory
+    participant RS as ResourceStock
+    participant Rules as PlacementRules
+    participant V as Village
+    participant G as Grid
+
+    Player-&gt;&gt;UI: choose building type and position
+    UI-&gt;&gt;C: placeBuilding(type, position)
+    C-&gt;&gt;PS: placeBuilding(village, type, position)
+    PS-&gt;&gt;BF: create(type)
+    BF--&gt;&gt;PS: building
+    PS-&gt;&gt;G: getCell(position)
+    G--&gt;&gt;PS: cell
+    PS-&gt;&gt;RS: has(TIMBER, building.cost)
+    RS--&gt;&gt;PS: true/false
+    PS-&gt;&gt;Rules: validate(village, building, position)
+    Rules--&gt;&gt;PS: valid/invalid
+    alt valid placement and enough timber
+        PS-&gt;&gt;RS: consume(TIMBER, building.cost)
+        PS-&gt;&gt;V: construct(building, position)
+        V-&gt;&gt;G: place(building, position)
+        PS--&gt;&gt;C: PlacementResult(success)
+    else invalid placement
+        PS--&gt;&gt;C: PlacementResult(failure, reason)
+    end
+    C--&gt;&gt;UI: placement result and updated snapshot
+</code></pre>
+  </details>
+</section>
+<h3 id="5-2-internal-sequence-advance-one-tick-in-the-core"><a class="heading-link" href="#5-2-internal-sequence-advance-one-tick-in-the-core" aria-label="Link to section">#</a>5.2 Internal sequence — Advance one tick in the core</h3>
+
+<section class="diagram-card" data-diagram="14">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 14</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 14">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>sequenceDiagram
+    actor Player
+    participant C as CoreGameFacade
+    participant E as SimulationEngine
+    participant PM as PolicyManager
+    participant JR as JobAssignmentService
+    participant PR as ProductionService
+    participant CS as ConsumptionService
+    participant RC as ResourceStock
+    participant PC as ParameterCalculator
+    participant BD as BirthDeathService
+    participant REM as RandomEventManager
+    participant VM as SnapshotMapper
+
+    Player-&gt;&gt;C: advanceTick()
+    C-&gt;&gt;E: advanceTick(village)
+    E-&gt;&gt;E: snapshot beforeState
+    E-&gt;&gt;PM: updateDurationAndCooldown()
+    E-&gt;&gt;JR: assignIdleVillagers(village)
+    E-&gt;&gt;PR: produce(village, activePolicy)
+    PR-&gt;&gt;PM: getActivePolicy()
+    PM--&gt;&gt;PR: PolicyStrategy
+    PR-&gt;&gt;RC: add produced resources
+    E-&gt;&gt;CS: consume(village, activePolicy)
+    CS-&gt;&gt;PM: getActivePolicy()
+    PM--&gt;&gt;CS: PolicyStrategy
+    CS-&gt;&gt;RC: consume required resources
+    E-&gt;&gt;PC: recalculate parameters
+    E-&gt;&gt;BD: processBirthsAndDeaths(village)
+    E-&gt;&gt;REM: evaluateEvents(village)
+    REM--&gt;&gt;E: event effects
+    E-&gt;&gt;E: build TickResult
+    E--&gt;&gt;C: TickResult
+    C-&gt;&gt;VM: toVillageSnapshot(village, tickResult)
+    VM--&gt;&gt;C: VillageSnapshot
+    C--&gt;&gt;Player: TickResult and updated snapshot
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">sequenceDiagram
+    actor Player
+    participant C as CoreGameFacade
+    participant E as SimulationEngine
+    participant PM as PolicyManager
+    participant JR as JobAssignmentService
+    participant PR as ProductionService
+    participant CS as ConsumptionService
+    participant RC as ResourceStock
+    participant PC as ParameterCalculator
+    participant BD as BirthDeathService
+    participant REM as RandomEventManager
+    participant VM as SnapshotMapper
+
+    Player-&gt;&gt;C: advanceTick()
+    C-&gt;&gt;E: advanceTick(village)
+    E-&gt;&gt;E: snapshot beforeState
+    E-&gt;&gt;PM: updateDurationAndCooldown()
+    E-&gt;&gt;JR: assignIdleVillagers(village)
+    E-&gt;&gt;PR: produce(village, activePolicy)
+    PR-&gt;&gt;PM: getActivePolicy()
+    PM--&gt;&gt;PR: PolicyStrategy
+    PR-&gt;&gt;RC: add produced resources
+    E-&gt;&gt;CS: consume(village, activePolicy)
+    CS-&gt;&gt;PM: getActivePolicy()
+    PM--&gt;&gt;CS: PolicyStrategy
+    CS-&gt;&gt;RC: consume required resources
+    E-&gt;&gt;PC: recalculate parameters
+    E-&gt;&gt;BD: processBirthsAndDeaths(village)
+    E-&gt;&gt;REM: evaluateEvents(village)
+    REM--&gt;&gt;E: event effects
+    E-&gt;&gt;E: build TickResult
+    E--&gt;&gt;C: TickResult
+    C-&gt;&gt;VM: toVillageSnapshot(village, tickResult)
+    VM--&gt;&gt;C: VillageSnapshot
+    C--&gt;&gt;Player: TickResult and updated snapshot
+</code></pre>
+  </details>
+</section>
+<p>Tick order implemented by <code>SimulationEngine</code>:</p>
+<ol>
+<li>Advance tick counter.</li>
+<li>Update active policy duration and cooldown.</li>
+<li>Validate building rules.</li>
+<li>Assign idle villagers to available jobs.</li>
+<li>Produce resources.</li>
+<li>Consume resources.</li>
+<li>Apply shortages and penalties.</li>
+<li>Update village parameters.</li>
+<li>Recalculate happiness.</li>
+<li>Process births and deaths.</li>
+<li>Trigger random events if conditions are met.</li>
+<li>Build <code>TickResult</code> and updated immutable view models.</li>
+</ol>
+<h3 id="5-3-internal-sequence-activate-a-strategy-policy"><a class="heading-link" href="#5-3-internal-sequence-activate-a-strategy-policy" aria-label="Link to section">#</a>5.3 Internal sequence — Activate a strategy policy</h3>
+
+<section class="diagram-card" data-diagram="15">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 15</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 15">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>sequenceDiagram
+    actor Player
+    participant UI as PolicyPanel
+    participant C as CoreGameFacade
+    participant PM as PolicyManager
+    participant PF as PolicyFactory
+    participant V as Village
+
+    Player-&gt;&gt;UI: select policy
+    UI-&gt;&gt;C: activatePolicy(policyType)
+    C-&gt;&gt;PM: canActivate(policyType)
+    alt policy can be activated
+        PM-&gt;&gt;PF: create(policyType)
+        PF--&gt;&gt;PM: PolicyStrategy
+        PM-&gt;&gt;PM: set activePolicy and duration
+        PM-&gt;&gt;V: record active policy
+        PM--&gt;&gt;C: activation success
+    else policy is unavailable or on cooldown
+        PM--&gt;&gt;C: activation failure
+    end
+    C--&gt;&gt;UI: PolicyActivationResult and updated dashboard view model
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">sequenceDiagram
+    actor Player
+    participant UI as PolicyPanel
+    participant C as CoreGameFacade
+    participant PM as PolicyManager
+    participant PF as PolicyFactory
+    participant V as Village
+
+    Player-&gt;&gt;UI: select policy
+    UI-&gt;&gt;C: activatePolicy(policyType)
+    C-&gt;&gt;PM: canActivate(policyType)
+    alt policy can be activated
+        PM-&gt;&gt;PF: create(policyType)
+        PF--&gt;&gt;PM: PolicyStrategy
+        PM-&gt;&gt;PM: set activePolicy and duration
+        PM-&gt;&gt;V: record active policy
+        PM--&gt;&gt;C: activation success
+    else policy is unavailable or on cooldown
+        PM--&gt;&gt;C: activation failure
+    end
+    C--&gt;&gt;UI: PolicyActivationResult and updated dashboard view model
+</code></pre>
+  </details>
+</section>
+<h3 id="5-4-internal-sequence-save-and-load-village"><a class="heading-link" href="#5-4-internal-sequence-save-and-load-village" aria-label="Link to section">#</a>5.4 Internal sequence — Save and load village</h3>
+
+<section class="diagram-card" data-diagram="16">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 16</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 16">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>sequenceDiagram
+    actor Player
+    participant C as CoreGameFacade
+    participant P as VillagePersistenceService
+    participant M as VillageMapper
+    participant FS as FileSystem
+    participant V as Village
+
+    Player-&gt;&gt;C: save(path)
+    C-&gt;&gt;P: save(village, path)
+    P-&gt;&gt;M: toDTO(village)
+    M--&gt;&gt;P: VillageDTO
+    P-&gt;&gt;FS: write JSON file
+    FS--&gt;&gt;P: write result
+    P--&gt;&gt;C: SaveResult
+    C--&gt;&gt;Player: save message
+
+    Player-&gt;&gt;C: load(path)
+    C-&gt;&gt;P: load(path)
+    P-&gt;&gt;FS: read JSON file
+    FS--&gt;&gt;P: json data
+    P-&gt;&gt;M: fromDTO(json data)
+    M--&gt;&gt;P: Village
+    P--&gt;&gt;C: loaded Village
+    C--&gt;&gt;Player: load message and restored VillageSnapshot
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">sequenceDiagram
+    actor Player
+    participant C as CoreGameFacade
+    participant P as VillagePersistenceService
+    participant M as VillageMapper
+    participant FS as FileSystem
+    participant V as Village
+
+    Player-&gt;&gt;C: save(path)
+    C-&gt;&gt;P: save(village, path)
+    P-&gt;&gt;M: toDTO(village)
+    M--&gt;&gt;P: VillageDTO
+    P-&gt;&gt;FS: write JSON file
+    FS--&gt;&gt;P: write result
+    P--&gt;&gt;C: SaveResult
+    C--&gt;&gt;Player: save message
+
+    Player-&gt;&gt;C: load(path)
+    C-&gt;&gt;P: load(path)
+    P-&gt;&gt;FS: read JSON file
+    FS--&gt;&gt;P: json data
+    P-&gt;&gt;M: fromDTO(json data)
+    M--&gt;&gt;P: Village
+    P--&gt;&gt;C: loaded Village
+    C--&gt;&gt;Player: load message and restored VillageSnapshot
+</code></pre>
+  </details>
+</section>
+<h3 id="5-5-selecting-a-building-from-the-hud-and-placing-it-on-the-map"><a class="heading-link" href="#5-5-selecting-a-building-from-the-hud-and-placing-it-on-the-map" aria-label="Link to section">#</a>5.5 Selecting a building from the HUD and placing it on the map</h3>
+
+<section class="diagram-card" data-diagram="17">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 17</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 17">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>sequenceDiagram
+    actor Player
+    participant BuildMenu
+    participant BuildMode as BuildModeState
+    participant Input as GameInputProcessor
+    participant Mapper as ScreenToGridMapper
+    participant C as CoreGameFacade
+    participant HUD as DashboardHud
+    participant Screen as VillageScreen
+
+    Player-&gt;&gt;BuildMenu: click &quot;Dwelling&quot;
+    BuildMenu-&gt;&gt;BuildMode: selectedBuilding = DWELLING
+    Player-&gt;&gt;Input: click map cell
+    Input-&gt;&gt;Mapper: toGridPosition(screenX, screenY, camera)
+    Mapper--&gt;&gt;Input: Position(x, y)
+    Input-&gt;&gt;C: placeBuilding(DWELLING, position)
+    C--&gt;&gt;Input: PlacementResult and VillageSnapshot
+    Input-&gt;&gt;Screen: setSnapshot(snapshot)
+    Screen-&gt;&gt;HUD: refresh(snapshot.dashboard)
+    alt success
+        HUD-&gt;&gt;HUD: show &quot;Building placed&quot;
+    else failure
+        HUD-&gt;&gt;HUD: show placement error
+    end
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">sequenceDiagram
+    actor Player
+    participant BuildMenu
+    participant BuildMode as BuildModeState
+    participant Input as GameInputProcessor
+    participant Mapper as ScreenToGridMapper
+    participant C as CoreGameFacade
+    participant HUD as DashboardHud
+    participant Screen as VillageScreen
+
+    Player-&gt;&gt;BuildMenu: click &quot;Dwelling&quot;
+    BuildMenu-&gt;&gt;BuildMode: selectedBuilding = DWELLING
+    Player-&gt;&gt;Input: click map cell
+    Input-&gt;&gt;Mapper: toGridPosition(screenX, screenY, camera)
+    Mapper--&gt;&gt;Input: Position(x, y)
+    Input-&gt;&gt;C: placeBuilding(DWELLING, position)
+    C--&gt;&gt;Input: PlacementResult and VillageSnapshot
+    Input-&gt;&gt;Screen: setSnapshot(snapshot)
+    Screen-&gt;&gt;HUD: refresh(snapshot.dashboard)
+    alt success
+        HUD-&gt;&gt;HUD: show &quot;Building placed&quot;
+    else failure
+        HUD-&gt;&gt;HUD: show placement error
+    end
+</code></pre>
+  </details>
+</section>
+<h3 id="5-6-clicking-a-cell-and-opening-the-selected-building-panel"><a class="heading-link" href="#5-6-clicking-a-cell-and-opening-the-selected-building-panel" aria-label="Link to section">#</a>5.6 Clicking a cell and opening the selected building panel</h3>
+
+<section class="diagram-card" data-diagram="18">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 18</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 18">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>sequenceDiagram
+    actor Player
+    participant Input as GameInputProcessor
+    participant Mapper as ScreenToGridMapper
+    participant C as CoreGameFacade
+    participant HUD as DashboardHud
+    participant Panel as SelectedBuildingPanel
+
+    Player-&gt;&gt;Input: click map cell
+    Input-&gt;&gt;Mapper: toGridPosition(screenX, screenY, camera)
+    Mapper--&gt;&gt;Input: Position
+    Input-&gt;&gt;C: inspectCell(position)
+    C--&gt;&gt;Input: CellViewModel
+    Input-&gt;&gt;HUD: showCell(cellViewModel)
+    HUD-&gt;&gt;Panel: display building/feature/empty cell details
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">sequenceDiagram
+    actor Player
+    participant Input as GameInputProcessor
+    participant Mapper as ScreenToGridMapper
+    participant C as CoreGameFacade
+    participant HUD as DashboardHud
+    participant Panel as SelectedBuildingPanel
+
+    Player-&gt;&gt;Input: click map cell
+    Input-&gt;&gt;Mapper: toGridPosition(screenX, screenY, camera)
+    Mapper--&gt;&gt;Input: Position
+    Input-&gt;&gt;C: inspectCell(position)
+    C--&gt;&gt;Input: CellViewModel
+    Input-&gt;&gt;HUD: showCell(cellViewModel)
+    HUD-&gt;&gt;Panel: display building/feature/empty cell details
+</code></pre>
+  </details>
+</section>
+<h3 id="5-7-pressing-next-tick-pause-speed-controls"><a class="heading-link" href="#5-7-pressing-next-tick-pause-speed-controls" aria-label="Link to section">#</a>5.7 Pressing next tick / pause / speed controls</h3>
+
+<section class="diagram-card" data-diagram="19">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 19</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 19">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>sequenceDiagram
+    actor Player
+    participant SpeedPanel as SpeedControlPanel
+    participant Playback as TickPlaybackController
+    participant C as CoreGameFacade
+    participant HUD as DashboardHud
+    participant Screen as VillageScreen
+
+    alt next tick
+        Player-&gt;&gt;SpeedPanel: click Next Tick
+        SpeedPanel-&gt;&gt;C: advanceTick()
+        C--&gt;&gt;SpeedPanel: TickResult and VillageSnapshot
+        SpeedPanel-&gt;&gt;Screen: setSnapshot(snapshot)
+        Screen-&gt;&gt;HUD: refresh(snapshot.dashboard)
+    else pause
+        Player-&gt;&gt;SpeedPanel: click Pause
+        SpeedPanel-&gt;&gt;Playback: setPaused(true)
+    else speed change
+        Player-&gt;&gt;SpeedPanel: click 2x / 4x
+        SpeedPanel-&gt;&gt;Playback: setSpeed(multiplier)
+    end
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">sequenceDiagram
+    actor Player
+    participant SpeedPanel as SpeedControlPanel
+    participant Playback as TickPlaybackController
+    participant C as CoreGameFacade
+    participant HUD as DashboardHud
+    participant Screen as VillageScreen
+
+    alt next tick
+        Player-&gt;&gt;SpeedPanel: click Next Tick
+        SpeedPanel-&gt;&gt;C: advanceTick()
+        C--&gt;&gt;SpeedPanel: TickResult and VillageSnapshot
+        SpeedPanel-&gt;&gt;Screen: setSnapshot(snapshot)
+        Screen-&gt;&gt;HUD: refresh(snapshot.dashboard)
+    else pause
+        Player-&gt;&gt;SpeedPanel: click Pause
+        SpeedPanel-&gt;&gt;Playback: setPaused(true)
+    else speed change
+        Player-&gt;&gt;SpeedPanel: click 2x / 4x
+        SpeedPanel-&gt;&gt;Playback: setSpeed(multiplier)
+    end
+</code></pre>
+  </details>
+</section>
+<h3 id="5-8-refreshing-the-hud-after-tickresult"><a class="heading-link" href="#5-8-refreshing-the-hud-after-tickresult" aria-label="Link to section">#</a>5.8 Refreshing the HUD after TickResult</h3>
+
+<section class="diagram-card" data-diagram="20">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 20</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 20">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>sequenceDiagram
+    participant C as CoreGameFacade
+    participant E as SimulationEngine
+    participant Adapter as HudViewModelAdapter
+    participant HUD as DashboardHud
+    participant Log as EventLogPanel
+
+    C-&gt;&gt;E: advanceTick(village)
+    E--&gt;&gt;C: TickResult
+    C-&gt;&gt;Adapter: buildDashboardViewModel(TickResult, Village)
+    Adapter--&gt;&gt;C: DashboardViewModel
+    C--&gt;&gt;HUD: updated snapshot/dashboard
+    HUD-&gt;&gt;HUD: refresh resources/population/parameters/policy
+    HUD-&gt;&gt;Log: append events from TickResult
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">sequenceDiagram
+    participant C as CoreGameFacade
+    participant E as SimulationEngine
+    participant Adapter as HudViewModelAdapter
+    participant HUD as DashboardHud
+    participant Log as EventLogPanel
+
+    C-&gt;&gt;E: advanceTick(village)
+    E--&gt;&gt;C: TickResult
+    C-&gt;&gt;Adapter: buildDashboardViewModel(TickResult, Village)
+    Adapter--&gt;&gt;C: DashboardViewModel
+    C--&gt;&gt;HUD: updated snapshot/dashboard
+    HUD-&gt;&gt;HUD: refresh resources/population/parameters/policy
+    HUD-&gt;&gt;Log: append events from TickResult
+</code></pre>
+  </details>
+</section>
+<h3 id="5-9-loading-texturesassets-at-application-startup"><a class="heading-link" href="#5-9-loading-texturesassets-at-application-startup" aria-label="Link to section">#</a>5.9 Loading textures/assets at application startup</h3>
+
+<section class="diagram-card" data-diagram="21">
+  <div class="diagram-toolbar" aria-label="Diagram controls">
+    <div class="diagram-title">UML / Mermaid diagram 21</div>
+    <div class="diagram-actions">
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+      <button type="button" data-action="reset" title="Fit whole diagram">Fit</button>
+      <button type="button" data-action="fullscreen" title="Open diagram in fullscreen">Full screen</button>
+    </div>
+  </div>
+  <div class="diagram-viewport" tabindex="0" role="img" aria-label="Interactive UML diagram 21">
+    <div class="diagram-render"></div>
+    <pre class="mermaid-source" hidden>sequenceDiagram
+    participant Game as DaimyoSimulatorGame
+    participant Loading as LoadingScreen
+    participant Assets as GameAssetManager
+    participant Registry as BuildingSpriteRegistry
+    participant Screen as VillageScreen
+
+    Game-&gt;&gt;Loading: setScreen(LoadingScreen)
+    Loading-&gt;&gt;Assets: queue TextureAtlas, UI skin, icons, placeholder
+    Assets-&gt;&gt;Assets: loadAll()
+    Assets--&gt;&gt;Loading: loaded
+    Loading-&gt;&gt;Registry: validate BuildingType/NaturalFeature mappings
+    alt all required mappings exist or fallback available
+        Loading-&gt;&gt;Game: setScreen(VillageScreen)
+        Game-&gt;&gt;Screen: show()
+    else fatal asset configuration error
+        Loading-&gt;&gt;Loading: show readable error
+    end
+</pre>
+  </div>
+  <details class="diagram-source-details">
+    <summary>Show Mermaid source</summary>
+    <pre><code class="language-mermaid">sequenceDiagram
+    participant Game as DaimyoSimulatorGame
+    participant Loading as LoadingScreen
+    participant Assets as GameAssetManager
+    participant Registry as BuildingSpriteRegistry
+    participant Screen as VillageScreen
+
+    Game-&gt;&gt;Loading: setScreen(LoadingScreen)
+    Loading-&gt;&gt;Assets: queue TextureAtlas, UI skin, icons, placeholder
+    Assets-&gt;&gt;Assets: loadAll()
+    Assets--&gt;&gt;Loading: loaded
+    Loading-&gt;&gt;Registry: validate BuildingType/NaturalFeature mappings
+    alt all required mappings exist or fallback available
+        Loading-&gt;&gt;Game: setScreen(VillageScreen)
+        Game-&gt;&gt;Screen: show()
+    else fatal asset configuration error
+        Loading-&gt;&gt;Loading: show readable error
+    end
+</code></pre>
+  </details>
+</section>
+<hr />
+<h2 id="6-rendering-flow"><a class="heading-link" href="#6-rendering-flow" aria-label="Link to section">#</a>6. Rendering Flow</h2>
+<p>The game screen is split into two layers:</p>
+<pre><code class="language-text">Screen
+|
+|-- World layer
+|   rendered with SpriteBatch and OrthographicCamera
+|
+|-- UI layer
+    rendered with Stage and Scene2D UI
+</code></pre>
+<p>Recommended <code>VillageScreen.render(delta)</code> flow:</p>
+<ol>
+<li>Read the latest immutable <code>VillageSnapshot</code> held by the screen or request it from <code>CoreGameFacade</code> after a command.</li>
+<li>Update camera position and zoom through <code>CameraController</code>.</li>
+<li>Clear the screen.</li>
+<li>Render the world layer through <code>WorldRenderer</code>:<ul>
+<li>ground tiles;</li>
+<li>forests and other natural features;</li>
+<li>placed buildings;</li>
+<li>grid or selection overlays;</li>
+<li>visual-only animations.</li>
+</ul>
+</li>
+<li>Call <code>hudStage.act(delta)</code> to update Scene2D UI behavior.</li>
+<li>Refresh <code>DashboardHud</code> only when the snapshot or <code>TickResult</code> changes.</li>
+<li>Call <code>hudStage.draw()</code> to render Scene2D UI.</li>
+</ol>
+<p><code>render(delta)</code> must never execute simulation rules. It must not calculate production, consumption, placement validity, job assignment, random events, births/deaths, policy effects, or persistence. Simulation state changes happen only when a command is sent to the controller/facade.</p>
+<hr />
+<h2 id="7-input-flow"><a class="heading-link" href="#7-input-flow" aria-label="Link to section">#</a>7. Input Flow</h2>
+<p>Use a libGDX <code>InputMultiplexer</code>:</p>
+<pre><code class="language-text">InputMultiplexer
+├── Stage input processor          // UI buttons first
+└── GameInputProcessor             // map/camera input if UI did not consume event
+</code></pre>
+<h3 id="7-1-camera-pan-and-zoom"><a class="heading-link" href="#7-1-camera-pan-and-zoom" aria-label="Link to section">#</a>7.1 Camera pan and zoom</h3>
+<p><code>CameraController</code> handles:</p>
+<ul>
+<li>keyboard pan with WASD or arrow keys;</li>
+<li>mouse drag or middle-button drag pan;</li>
+<li>mouse wheel or trackpad zoom;</li>
+<li>min/max zoom clamp;</li>
+<li>optional map bounds clamp.</li>
+</ul>
+<p>Camera movement is visual only and must not touch the core domain model.</p>
+<h3 id="7-2-build-mode-and-map-cell-selection"><a class="heading-link" href="#7-2-build-mode-and-map-cell-selection" aria-label="Link to section">#</a>7.2 Build mode and map cell selection</h3>
+<ol>
+<li>Player selects a building button in <code>BuildMenu</code>.</li>
+<li><code>BuildMenu</code> updates <code>BuildModeState</code>.</li>
+<li>Player clicks the world map.</li>
+<li><code>GameInputProcessor</code> calls <code>ScreenToGridMapper</code>.</li>
+<li><code>ScreenToGridMapper</code> uses <code>camera.unproject(screenX, screenY)</code>, then computes:<ul>
+<li><code>gridX = floor(worldX / TILE_SIZE)</code>;</li>
+<li><code>gridY = floor(worldY / TILE_SIZE)</code>.</li>
+</ul>
+</li>
+<li>The mapper returns a core <code>Position(gridX, gridY)</code>.</li>
+<li>If build mode is active, <code>GameInputProcessor</code> calls <code>CoreGameFacade.placeBuilding(buildingType, position)</code>.</li>
+<li>If build mode is not active, <code>GameInputProcessor</code> calls <code>CoreGameFacade.inspectCell(position)</code>.</li>
+<li>The HUD refreshes from returned <code>PlacementResult</code>, <code>CellViewModel</code>, or <code>VillageSnapshot</code>.</li>
+</ol>
+<h3 id="7-3-ui-button-events"><a class="heading-link" href="#7-3-ui-button-events" aria-label="Link to section">#</a>7.3 UI button events</h3>
+<table>
+<thead>
+<tr>
+  <th>UI action</th>
+  <th>libGDX component</th>
+  <th>Core call / effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Select build type</td>
+  <td><code>BuildMenu</code></td>
+  <td>Updates <code>BuildModeState</code>; no immediate domain mutation</td>
+</tr>
+<tr>
+  <td>Place building</td>
+  <td><code>GameInputProcessor</code></td>
+  <td><code>CoreGameFacade.placeBuilding(type, position)</code></td>
+</tr>
+<tr>
+  <td>Select cell</td>
+  <td><code>GameInputProcessor</code></td>
+  <td><code>CoreGameFacade.inspectCell(position)</code></td>
+</tr>
+<tr>
+  <td>Next tick</td>
+  <td><code>SpeedControlPanel</code></td>
+  <td><code>CoreGameFacade.advanceTick()</code></td>
+</tr>
+<tr>
+  <td>Pause/speed</td>
+  <td><code>SpeedControlPanel</code></td>
+  <td>Updates tick playback timing only</td>
+</tr>
+<tr>
+  <td>Activate policy</td>
+  <td><code>PolicyPanel</code></td>
+  <td><code>CoreGameFacade.activatePolicy(policyType)</code></td>
+</tr>
+<tr>
+  <td>Save/load</td>
+  <td><code>MenuOverlay</code></td>
+  <td><code>CoreGameFacade.save(path)</code> / <code>CoreGameFacade.load(path)</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="8-asset-pipeline"><a class="heading-link" href="#8-asset-pipeline" aria-label="Link to section">#</a>8. Asset Pipeline</h2>
+<h3 id="8-1-assets-folder-structure"><a class="heading-link" href="#8-1-assets-folder-structure" aria-label="Link to section">#</a>8.1 Assets folder structure</h3>
+<pre><code class="language-text">daimyosimulator-libgdx/src/main/resources/assets/
+├── atlases/
+│   ├── village.atlas
+│   └── ui.atlas
+├── textures/
+│   ├── tiles/
+│   │   ├── tile_grass.png
+│   │   ├── tile_dirt.png
+│   │   └── tile_selection.png
+│   ├── features/
+│   │   └── feature_forest.png
+│   ├── buildings/
+│   │   ├── building_dwelling.png
+│   │   ├── building_rice_farm.png
+│   │   ├── building_rice_paddy.png
+│   │   ├── building_woodcutters_hut.png
+│   │   ├── building_mine.png
+│   │   ├── building_smithy.png
+│   │   ├── building_workshop.png
+│   │   ├── building_market.png
+│   │   ├── building_guard_post.png
+│   │   └── building_temple.png
+│   ├── icons/
+│   │   ├── icon_resource_rice.png
+│   │   ├── icon_resource_timber.png
+│   │   ├── icon_resource_tools.png
+│   │   ├── icon_resource_luxury_goods.png
+│   │   ├── icon_policy_agricultural_expansion.png
+│   │   ├── icon_policy_military_protection.png
+│   │   └── icon_policy_craftsmen_production.png
+│   └── placeholders/
+│       └── missing_asset.png
+├── skins/
+│   ├── daimyo-ui.json
+│   └── daimyo-ui.atlas
+└── mapping/
+    └── sprite-map.json
+</code></pre>
+<h3 id="8-2-naming-convention"><a class="heading-link" href="#8-2-naming-convention" aria-label="Link to section">#</a>8.2 Naming convention</h3>
+<pre><code class="language-text">tile_&lt;terrain&gt;.png
+feature_&lt;feature_type&gt;.png
+building_&lt;building_type&gt;.png
+building_&lt;building_type&gt;_&lt;animation_state&gt;_&lt;frame&gt;.png
+icon_resource_&lt;resource_type&gt;.png
+icon_policy_&lt;policy_type&gt;.png
+ui_&lt;component&gt;.png
+</code></pre>
+<p>Examples:</p>
+<pre><code class="language-text">building_dwelling.png
+building_guard_post.png
+feature_forest.png
+icon_resource_rice.png
+icon_policy_agricultural_expansion.png
+</code></pre>
+<h3 id="8-3-textureatlas-and-individual-textures"><a class="heading-link" href="#8-3-textureatlas-and-individual-textures" aria-label="Link to section">#</a>8.3 TextureAtlas and individual textures</h3>
+<p>During early development, individual PNG files are acceptable because they are easier to replace manually. Before the final delivery, the project should pack stable sprites into <code>village.atlas</code> and access them through <code>TextureRegion</code> names.</p>
+<h3 id="8-4-buildingtype-to-sprite-mapping"><a class="heading-link" href="#8-4-buildingtype-to-sprite-mapping" aria-label="Link to section">#</a>8.4 BuildingType-to-sprite mapping</h3>
+<table>
+<thead>
+<tr>
+  <th>Core type</th>
+  <th>Asset key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>BuildingType.DWELLING</code></td>
+  <td><code>building_dwelling</code></td>
+</tr>
+<tr>
+  <td><code>BuildingType.RICE_FARM</code></td>
+  <td><code>building_rice_farm</code></td>
+</tr>
+<tr>
+  <td><code>BuildingType.RICE_PADDY</code></td>
+  <td><code>building_rice_paddy</code></td>
+</tr>
+<tr>
+  <td><code>BuildingType.WOODCUTTERS_HUT</code></td>
+  <td><code>building_woodcutters_hut</code></td>
+</tr>
+<tr>
+  <td><code>BuildingType.MINE</code></td>
+  <td><code>building_mine</code></td>
+</tr>
+<tr>
+  <td><code>BuildingType.SMITHY</code></td>
+  <td><code>building_smithy</code></td>
+</tr>
+<tr>
+  <td><code>BuildingType.WORKSHOP</code></td>
+  <td><code>building_workshop</code></td>
+</tr>
+<tr>
+  <td><code>BuildingType.MARKET</code></td>
+  <td><code>building_market</code></td>
+</tr>
+<tr>
+  <td><code>BuildingType.GUARD_POST</code></td>
+  <td><code>building_guard_post</code></td>
+</tr>
+<tr>
+  <td><code>BuildingType.TEMPLE</code></td>
+  <td><code>building_temple</code></td>
+</tr>
+<tr>
+  <td><code>NaturalFeature.FOREST</code></td>
+  <td><code>feature_forest</code></td>
+</tr>
+</tbody>
+</table>
+<p>The mapping is owned by the libGDX module. The core knows only domain enums and must not know file paths, texture names, <code>TextureRegion</code>, <code>Animation</code>, or <code>AssetManager</code>.</p>
+<h3 id="8-5-missing-asset-fallback"><a class="heading-link" href="#8-5-missing-asset-fallback" aria-label="Link to section">#</a>8.5 Missing asset fallback</h3>
+<p>During development:</p>
+<ol>
+<li><code>GameAssetManager</code> logs a warning such as <code>Missing sprite for BuildingType.SMITHY</code>.</li>
+<li><code>MissingAssetFallback</code> returns <code>missing_asset.png</code>.</li>
+<li>The game continues running.</li>
+<li>Final release validation can fail if required production assets are still missing.</li>
+</ol>
+<hr />
+<h2 id="9-design-decisions-and-pattern-mapping"><a class="heading-link" href="#9-design-decisions-and-pattern-mapping" aria-label="Link to section">#</a>9. Design Decisions and Pattern Mapping</h2>
+<table>
+<thead>
+<tr>
+  <th>Requirement / problem</th>
+  <th>Design decision</th>
+  <th>Pattern / principle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Different policies modify production and consumption</td>
+  <td>Represent each policy as a <code>PolicyStrategy</code></td>
+  <td>Strategy Pattern</td>
+</tr>
+<tr>
+  <td>Building creation should not be hardcoded inside the engine</td>
+  <td>Use <code>BuildingFactory</code> and <code>BuildingType</code></td>
+  <td>Factory Pattern</td>
+</tr>
+<tr>
+  <td>UI should not own the model</td>
+  <td>Scene2D HUD talks to <code>CoreGameFacade</code> and receives immutable view models</td>
+  <td>MVC / Clean Architecture</td>
+</tr>
+<tr>
+  <td>Renderer should not run rules</td>
+  <td><code>WorldRenderer</code> draws <code>VillageSnapshot</code> only</td>
+  <td>Single Responsibility</td>
+</tr>
+<tr>
+  <td>Save/load must not use a database</td>
+  <td>Use JSON DTOs through <code>VillagePersistenceService</code></td>
+  <td>DTO + Service</td>
+</tr>
+<tr>
+  <td>Simulation tick must remain understandable and testable</td>
+  <td>Split tick work into services: job assignment, production, consumption, parameters, birth/death, events</td>
+  <td>GRASP / Single Responsibility</td>
+</tr>
+<tr>
+  <td>Placement rules must be extensible</td>
+  <td>Implement separate <code>PlacementRule</code> classes</td>
+  <td>Open/Closed Principle</td>
+</tr>
+<tr>
+  <td>Building behavior must be polymorphic</td>
+  <td>Use abstract <code>Building</code> plus interfaces like <code>JobProvider</code> and <code>ResourceProducer</code></td>
+  <td>Inheritance + interfaces</td>
+</tr>
+<tr>
+  <td>Missing art during development should not block testing</td>
+  <td>Use placeholder sprite and warning</td>
+  <td>Fail-soft development workflow</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="10-testing-strategy"><a class="heading-link" href="#10-testing-strategy" aria-label="Link to section">#</a>10. Testing Strategy</h2>
+<h3 id="10-1-core-unit-tests"><a class="heading-link" href="#10-1-core-unit-tests" aria-label="Link to section">#</a>10.1 Core unit tests</h3>
+<p>Core logic remains pure JUnit and does not require libGDX initialization. Suggested tests:</p>
+<pre><code class="language-text">GridTest
+CellTest
+PositionTest
+BuildingFactoryTest
+PlacementRuleTest
+ConstructionServiceTest
+SimulationEngineTest
+TickProcessorOrderTest
+PolicyStrategyTest
+RandomEventManagerTest
+VillagePersistenceServiceTest
+VillageSnapshotMapperTest
+</code></pre>
+<h3 id="10-2-controllerfacade-tests"><a class="heading-link" href="#10-2-controllerfacade-tests" aria-label="Link to section">#</a>10.2 Controller/facade tests</h3>
+<p><code>CoreGameFacade</code> and <code>GameController</code> should be unit-tested with deterministic services or fake dependencies:</p>
+<ul>
+<li>placement delegates to <code>PlacementService</code>;</li>
+<li>invalid placement does not change the snapshot;</li>
+<li><code>advanceTick()</code> returns <code>TickResult</code> and updated <code>DashboardViewModel</code>;</li>
+<li>policy activation respects one active policy and cooldowns;</li>
+<li><code>inspectCell()</code> returns <code>CellViewModel</code>, not a mutable <code>Cell</code>.</li>
+</ul>
+<h3 id="10-3-rendererui-tests"><a class="heading-link" href="#10-3-rendererui-tests" aria-label="Link to section">#</a>10.3 Renderer/UI tests</h3>
+<p>Renderer and UI classes should stay thin and are mainly validated through integration, manual, and system tests:</p>
+<ul>
+<li>asset loading smoke test;</li>
+<li>missing asset fallback check;</li>
+<li>screen-to-grid coordinate mapping test;</li>
+<li>manual check for camera pan/zoom;</li>
+<li>manual check for HUD refresh after placement and ticks.</li>
+</ul>
+<p>Acceptance criteria must verify that UI actions go through the controller/facade and never mutate domain objects directly.</p>
+<hr />
+<h2 id="11-traceability-to-user-stories"><a class="heading-link" href="#11-traceability-to-user-stories" aria-label="Link to section">#</a>11. Traceability to User Stories</h2>
+<table>
+<thead>
+<tr>
+  <th>Design area</th>
+  <th>Related user stories</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Village initialization and grid</td>
+  <td>US-01</td>
+</tr>
+<tr>
+  <td>General building construction</td>
+  <td>US-02</td>
+</tr>
+<tr>
+  <td>Placement and prerequisite rules</td>
+  <td>US-03</td>
+</tr>
+<tr>
+  <td>Villagers and roles</td>
+  <td>US-04</td>
+</tr>
+<tr>
+  <td>Dwellings and housing</td>
+  <td>US-05</td>
+</tr>
+<tr>
+  <td>Automatic job assignment</td>
+  <td>US-06</td>
+</tr>
+<tr>
+  <td>Rice production and consumption</td>
+  <td>US-07</td>
+</tr>
+<tr>
+  <td>Timber, Tools, Luxury Goods production</td>
+  <td>US-08</td>
+</tr>
+<tr>
+  <td>Markets and resource exchange</td>
+  <td>US-09</td>
+</tr>
+<tr>
+  <td>Tick engine</td>
+  <td>US-10</td>
+</tr>
+<tr>
+  <td>Village parameters and happiness</td>
+  <td>US-11</td>
+</tr>
+<tr>
+  <td>Birth and death</td>
+  <td>US-12</td>
+</tr>
+<tr>
+  <td>Strategy policies</td>
+  <td>US-13</td>
+</tr>
+<tr>
+  <td>Random events</td>
+  <td>US-14</td>
+</tr>
+<tr>
+  <td>Save and load</td>
+  <td>US-15</td>
+</tr>
+<tr>
+  <td>libGDX renderer, HUD, and dashboard</td>
+  <td>US-16</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="12-notes-for-implementation"><a class="heading-link" href="#12-notes-for-implementation" aria-label="Link to section">#</a>12. Notes for Implementation</h2>
+<ul>
+<li>Keep domain logic independent from the UI and renderer.</li>
+<li>Do not create a single class that performs all calculations. <code>SimulationEngine</code> coordinates the tick, while specialized services calculate the details.</li>
+<li>Keep formulas simple and deterministic where possible. Random events should use a <code>RandomProvider</code> or fixed seed during unit tests.</li>
+<li>The <code>daimyosimulator-core</code> module must never import <code>com.badlogic.gdx.*</code>.</li>
+<li>The libGDX module may depend on the core, but it must use immutable snapshots/view models instead of mutable domain objects.</li>
+<li><code>WorldRenderer</code> must draw the world only. It must not enforce placement rules or run production/consumption logic.</li>
+<li><code>DashboardHud</code> and Scene2D panels must call <code>CoreGameFacade</code> or <code>GameController</code> for commands.</li>
+<li>All important rules should have unit tests: invalid placement, resource shortage, policy effects, rice production, death by starvation, birth with enough food/housing/happiness, and save/load integrity.</li>
+<li>Mermaid diagrams in this document can be copied directly into GitHub and rendered automatically.</li>
+</ul>
+
+      </article>
+    </main>
+  </div>
+  <div class="floating-tip" id="tip">
+    <button type="button" aria-label="Dismiss" onclick="document.getElementById('tip').remove()">×</button>
+    Each diagram opens fitted to its viewport. Drag to move, use the mouse wheel or +/− to zoom, and use Full screen for large UML schemes.
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    const ORIGINAL_MARKDOWN = "# DaimyoSimulator \u2014 Design Document\n\n**Project type:** Java rule-based simulation engine inspired by SimCity Lite  \n**Scenario:** Ancient Japan village management, around year 1200  \n**Main objective:** The player develops and balances a village by placing buildings, assigning villagers indirectly through the available job slots, managing resources, activating one strategy policy at a time, and advancing the simulation through ticks.\n\nThis document is written for the GitHub design deliverable. The diagrams use **Mermaid**, which is rendered directly by GitHub Markdown.\n\n---\n\n## 1. Domain Model\n\n### 1.1 Domain overview\n\nDaimyoSimulator is centered on a `Village`. A village contains a logical grid map, the current village state, the available villagers, placed buildings, resources, active policies, and event history. The player does not manually control each villager. Instead, the player constructs buildings, and the simulation assigns available villagers to roles according to the job slots created by those buildings.\n\nThe domain is intentionally independent from the graphical presentation. The same core simulation must be usable from unit tests, persistence services, or a future alternative UI without importing libGDX.\n\nThe main domain concepts are:\n\n- **Village**: aggregate root of the simulation.\n- **Grid**: a rectangular logical map, for example 20x20 cells.\n- **Cell**: one map position. It can contain one building or one natural feature.\n- **Natural Feature**: forest is generated randomly during map creation and is required by Woodcutter's Huts.\n- **Villager**: one person living in the village. A villager can be idle, unhoused, or employed.\n- **Role**: the current role assigned to a villager, such as Rice Farmer, Woodcutter, Blacksmith, Artisan, Trader, Samurai, or Monk.\n- **Building**: construction placed by the player using timber. Buildings create housing capacity, job slots, production, exchange, or parameter bonuses.\n- **Resources**: Rice, Timber, Tools, and Luxury Goods.\n- **Village Parameters**: Happiness, Protection, Food, Faith, Housing, and Craftsmanship.\n- **Strategy Policy**: one active temporary policy that modifies production, protection, or consumption.\n- **Random Event**: condition-based or probability-based event triggered during ticks.\n\n### 1.2 Domain model diagram\n\n```mermaid\nclassDiagram\n    class Village {\n        Grid grid\n        VillageState state\n        List~Villager~ villagers\n        PolicyManager policyManager\n        int tickNumber\n        construct(Building, Position)\n        getState()\n    }\n\n    class Grid {\n        int width\n        int height\n        getCell(Position)\n        getNeighbours(Position)\n    }\n\n    class Cell {\n        Position position\n        Building building\n        NaturalFeature feature\n        isEmpty()\n    }\n\n    class Position {\n        int x\n        int y\n    }\n\n    class NaturalFeature {\n        <<enumeration>>\n        FOREST\n    }\n\n    class VillageState {\n        ResourceStock resources\n        VillageParameters parameters\n        int birthProgress\n    }\n\n    class ResourceStock {\n        int rice\n        int timber\n        int tools\n        int luxuryGoods\n        has(ResourceType, int)\n        add(ResourceType, int)\n        consume(ResourceType, int)\n    }\n\n    class VillageParameters {\n        int happiness\n        int protection\n        int food\n        int faith\n        int housing\n        int craftsmanship\n    }\n\n    class Villager {\n        Role role\n        HousingStatus housingStatus\n    }\n\n    class Role {\n        <<enumeration>>\n        UNHOUSED\n        IDLE\n        RICE_FARMER\n        WOODCUTTER\n        BLACKSMITH\n        ARTISAN\n        TRADER\n        SAMURAI\n        MONK\n    }\n\n    class Building {\n        <<abstract>>\n        BuildingType type\n        int timberCost\n        getPlacementRules()\n    }\n\n    class PolicyStrategy {\n        <<interface>>\n        modifyProduction(BuildingEffect)\n        modifyConsumption(ConsumptionPlan)\n        modifyParameters(VillageParameters)\n    }\n\n    Village *-- Grid\n    Village *-- VillageState\n    Village *-- Villager\n    Village *-- PolicyManager\n    PolicyManager --> PolicyStrategy\n    Grid *-- Cell\n    Cell *-- Position\n    Cell o-- Building\n    Cell o-- NaturalFeature\n    VillageState *-- ResourceStock\n    VillageState *-- VillageParameters\n    Villager --> Role\n    Building <|-- Dwelling\n    Building <|-- RiceFarm\n    Building <|-- RicePaddy\n    Building <|-- WoodcuttersHut\n    Building <|-- Mine\n    Building <|-- Smithy\n    Building <|-- Workshop\n    Building <|-- Market\n    Building <|-- GuardPost\n    Building <|-- Temple\n```\n\n### 1.3 Buildings and responsibilities\n\n| Building | Main responsibility | Job slots / role | Rule enforcement |\n|---|---|---|---|\n| `Dwelling` | Provides housing capacity | none | Required to house villagers born in the village |\n| `RiceFarm` | Holds farmers | Rice Farmer | Needed near Rice Paddies |\n| `RicePaddy` | Produces rice | indirectly uses farmers from Rice Farm | Produces only if a Rice Farm is nearby and at least one farmer exists |\n| `WoodcuttersHut` | Produces timber | Woodcutter | Must be near forest |\n| `Mine` | Unlocks Smithy and Workshop | optional / none | At least one Mine must exist before Smithy or Workshop can be built |\n| `Smithy` | Produces tools | Blacksmith | Requires Mine |\n| `Workshop` | Produces luxury goods | Artisan | Requires Mine |\n| `Market` | Exchanges resources | Trader | Exchange amount and speed depend on traders |\n| `GuardPost` | Increases protection | Samurai | Consumes tools/luxury goods under policy effects |\n| `Temple` | Increases faith | Monk | Supports faith-based events and happiness |\n\n### 1.4 Resource and parameter model\n\nThe central resources are:\n\n- **Rice**: consumed every tick by living villagers. Produced by Rice Paddies.\n- **Timber**: consumed when constructing buildings. Produced by Woodcutter's Huts.\n- **Tools**: produced by Smithies. Consumed by rice farmers and samurai, especially under policies.\n- **Luxury Goods**: produced by Workshops. Consumed by monks and samurai, especially under policies.\n\nThe main village parameters are recalculated each tick:\n\n- **Happiness**: global indicator based on the whole village condition.\n- **Protection**: based mainly on the ratio between Samurai and villagers.\n- **Food**: based on rice stock and expected rice consumption.\n- **Faith**: based on monks and temples compared with total population.\n- **Housing**: based on housed villagers compared with total villagers.\n- **Craftsmanship**: based on available tools, craftsmen, smithies, and workshops.\n\nHappiness is not calculated manually by the player. It is derived from the other parameters by `HappinessCalculator`, so it stays testable and separated from `VillageState`.\n\n---\n\n## 2. System Sequence Diagrams\n\nThe following diagrams are **system sequence diagrams**. They show the external interaction between the player and the DaimyoSimulator system without exposing internal classes.\n\n### 2.1 SSD \u2014 Create a new village\n\n```mermaid\nsequenceDiagram\n    actor Player\n    participant System as DaimyoSimulator System\n\n    Player->>System: startNewVillage(width, height)\n    System-->>Player: villageCreated(initialState, generatedMap)\n    Player->>System: viewVillageSummary()\n    System-->>Player: villageSummary(resources, parameters, tickNumber)\n```\n\n### 2.2 SSD \u2014 Construct a building\n\n```mermaid\nsequenceDiagram\n    actor Player\n    participant System as DaimyoSimulator System\n\n    Player->>System: requestConstructBuilding(buildingType, position)\n    System-->>Player: constructionResult(success/failure, message)\n    Player->>System: viewCell(position)\n    System-->>Player: cellStatus(position, buildingOrFeature)\n```\n\n### 2.3 SSD \u2014 Advance one tick\n\n```mermaid\nsequenceDiagram\n    actor Player\n    participant System as DaimyoSimulator System\n\n    Player->>System: advanceTick()\n    System-->>Player: tickResult(beforeState, afterState, production, consumption, events)\n    Player->>System: viewDashboard()\n    System-->>Player: dashboardData(resources, parameters, villagers, activePolicy)\n```\n\n### 2.4 SSD \u2014 Activate a strategy policy\n\n```mermaid\nsequenceDiagram\n    actor Player\n    participant System as DaimyoSimulator System\n\n    Player->>System: activatePolicy(policyType)\n    System-->>Player: policyActivationResult(success/failure, activePolicy, cooldown)\n    Player->>System: advanceTick()\n    System-->>Player: tickResult(policyEffectsApplied)\n```\n\n### 2.5 SSD \u2014 Save and load village\n\n```mermaid\nsequenceDiagram\n    actor Player\n    participant System as DaimyoSimulator System\n\n    Player->>System: saveVillage(filePath)\n    System-->>Player: saveResult(success/failure, message)\n    Player->>System: loadVillage(filePath)\n    System-->>Player: loadResult(success/failure, restoredVillageState)\n```\n\n---\n\n## 3. Architectural Organization\n\n### 3.1 Three responsibility split\n\nDaimyoSimulator is separated into three responsibilities:\n\n| Responsibility | Technology | Owns | Must not own |\n|---|---|---|---|\n| Core Game Logic | Pure Java | Village simulation, logical grid, buildings, placement rules, villagers/jobs, economy/resources, policies, random events, save/load, tick engine | libGDX imports, rendering, Scene2D widgets, camera logic |\n| Game World Renderer | libGDX | Drawing the village map, tiles, buildings, forests, animations, SpriteBatch, OrthographicCamera, visual mapping from snapshots | Simulation rules, resource formulas, placement validation, persistence |\n| Game UI / HUD | libGDX Scene2D UI | Build buttons, resources, population, parameters, selected building panel, pause/speed/next-tick, policy buttons, event log, menus | Direct mutation of `Village`, `Cell`, `Building`, `ResourceStock`, or `Villager` |\n\nThe UI and renderer communicate with the core only through `GameController`, `CoreGameFacade`, application services, DTOs, immutable snapshots, or view models.\n\n### 3.2 Maven multi-module architecture\n\n```text\ndaimyosimulator/\n\u251c\u2500\u2500 pom.xml\n\u251c\u2500\u2500 daimyosimulator-core/\n\u2502   \u251c\u2500\u2500 pom.xml\n\u2502   \u2514\u2500\u2500 src/\n\u2502       \u251c\u2500\u2500 main/java/it/unipd/daimyosimulator/core/...\n\u2502       \u2514\u2500\u2500 test/java/it/unipd/daimyosimulator/core/...\n\u251c\u2500\u2500 daimyosimulator-libgdx/\n\u2502   \u251c\u2500\u2500 pom.xml\n\u2502   \u2514\u2500\u2500 src/\n\u2502       \u251c\u2500\u2500 main/java/it/unipd/daimyosimulator/gdx/...\n\u2502       \u2514\u2500\u2500 main/resources/assets/...\n\u2514\u2500\u2500 daimyosimulator-desktop/\n    \u251c\u2500\u2500 pom.xml\n    \u2514\u2500\u2500 src/main/java/it/unipd/daimyosimulator/desktop/DesktopLauncher.java\n```\n\nDependencies flow in one direction:\n\n```text\ndaimyosimulator-desktop\n        \u2193\ndaimyosimulator-libgdx\n        \u2193\ndaimyosimulator-core\n```\n\nThe forbidden direction is:\n\n```text\ndaimyosimulator-core \u274c must not depend on daimyosimulator-libgdx\n```\n\nThe core module must compile and run JUnit tests without any `com.badlogic.gdx.*` imports.\n\n### 3.3 Package architecture\n\n#### Core module packages\n\n```text\nit.unipd.daimyosimulator.core\n\u251c\u2500\u2500 application/\n\u2502   \u251c\u2500\u2500 CoreGameFacade.java\n\u2502   \u251c\u2500\u2500 GameController.java\n\u2502   \u251c\u2500\u2500 VillageInitializer.java\n\u2502   \u251c\u2500\u2500 BuildCommand.java\n\u2502   \u251c\u2500\u2500 TickCommand.java\n\u2502   \u251c\u2500\u2500 PlacementResult.java\n\u2502   \u251c\u2500\u2500 PolicyActivationResult.java\n\u2502   \u2514\u2500\u2500 TickResult.java\n\u251c\u2500\u2500 application/view/\n\u2502   \u251c\u2500\u2500 VillageSnapshot.java\n\u2502   \u251c\u2500\u2500 CellViewModel.java\n\u2502   \u251c\u2500\u2500 BuildingViewModel.java\n\u2502   \u251c\u2500\u2500 DashboardViewModel.java\n\u2502   \u251c\u2500\u2500 ResourceViewModel.java\n\u2502   \u251c\u2500\u2500 PopulationViewModel.java\n\u2502   \u251c\u2500\u2500 PolicyViewModel.java\n\u2502   \u2514\u2500\u2500 EventLogViewModel.java\n\u251c\u2500\u2500 domain/\n\u2502   \u251c\u2500\u2500 village/\n\u2502   \u251c\u2500\u2500 grid/\n\u2502   \u251c\u2500\u2500 building/\n\u2502   \u251c\u2500\u2500 villager/\n\u2502   \u251c\u2500\u2500 resource/\n\u2502   \u251c\u2500\u2500 policy/\n\u2502   \u251c\u2500\u2500 rule/\n\u2502   \u2514\u2500\u2500 event/\n\u251c\u2500\u2500 engine/\n\u2502   \u251c\u2500\u2500 SimulationEngine.java\n\u2502   \u251c\u2500\u2500 TickProcessor.java\n\u2502   \u251c\u2500\u2500 TickContext.java\n\u2502   \u251c\u2500\u2500 JobAssignmentService.java\n\u2502   \u251c\u2500\u2500 ProductionService.java\n\u2502   \u251c\u2500\u2500 ConsumptionService.java\n\u2502   \u251c\u2500\u2500 ShortageService.java\n\u2502   \u251c\u2500\u2500 BirthDeathService.java\n\u2502   \u251c\u2500\u2500 VillageParameterCalculator.java\n\u2502   \u2514\u2500\u2500 HappinessCalculator.java\n\u251c\u2500\u2500 factory/\n\u2502   \u251c\u2500\u2500 BuildingFactory.java\n\u2502   \u2514\u2500\u2500 PolicyFactory.java\n\u2514\u2500\u2500 persistence/\n    \u251c\u2500\u2500 VillagePersistenceService.java\n    \u251c\u2500\u2500 VillageMapper.java\n    \u251c\u2500\u2500 dto/\n    \u2514\u2500\u2500 json/\n```\n\n#### libGDX module packages\n\n```text\nit.unipd.daimyosimulator.gdx\n\u251c\u2500\u2500 app/\n\u2502   \u2514\u2500\u2500 DaimyoSimulatorGame.java\n\u251c\u2500\u2500 screen/\n\u2502   \u251c\u2500\u2500 LoadingScreen.java\n\u2502   \u251c\u2500\u2500 MainMenuScreen.java\n\u2502   \u2514\u2500\u2500 VillageScreen.java\n\u251c\u2500\u2500 render/\n\u2502   \u251c\u2500\u2500 WorldRenderer.java\n\u2502   \u251c\u2500\u2500 TileRenderer.java\n\u2502   \u251c\u2500\u2500 BuildingRenderer.java\n\u2502   \u251c\u2500\u2500 NaturalFeatureRenderer.java\n\u2502   \u251c\u2500\u2500 AnimationRenderer.java\n\u2502   \u251c\u2500\u2500 GridOverlayRenderer.java\n\u2502   \u2514\u2500\u2500 RenderConstants.java\n\u251c\u2500\u2500 ui/\n\u2502   \u251c\u2500\u2500 HudStageFactory.java\n\u2502   \u251c\u2500\u2500 DashboardHud.java\n\u2502   \u251c\u2500\u2500 BuildMenu.java\n\u2502   \u251c\u2500\u2500 ResourcePanel.java\n\u2502   \u251c\u2500\u2500 PopulationPanel.java\n\u2502   \u251c\u2500\u2500 VillageParameterPanel.java\n\u2502   \u251c\u2500\u2500 SelectedBuildingPanel.java\n\u2502   \u251c\u2500\u2500 SpeedControlPanel.java\n\u2502   \u251c\u2500\u2500 PolicyPanel.java\n\u2502   \u251c\u2500\u2500 EventLogPanel.java\n\u2502   \u2514\u2500\u2500 MenuOverlay.java\n\u251c\u2500\u2500 input/\n\u2502   \u251c\u2500\u2500 GameInputProcessor.java\n\u2502   \u251c\u2500\u2500 CameraController.java\n\u2502   \u251c\u2500\u2500 BuildModeState.java\n\u2502   \u251c\u2500\u2500 ScreenToGridMapper.java\n\u2502   \u2514\u2500\u2500 InputCommandRouter.java\n\u251c\u2500\u2500 asset/\n\u2502   \u251c\u2500\u2500 GameAssetManager.java\n\u2502   \u251c\u2500\u2500 AssetPaths.java\n\u2502   \u251c\u2500\u2500 BuildingSpriteRegistry.java\n\u2502   \u251c\u2500\u2500 TileSpriteRegistry.java\n\u2502   \u251c\u2500\u2500 IconRegistry.java\n\u2502   \u2514\u2500\u2500 MissingAssetFallback.java\n\u2514\u2500\u2500 adapter/\n    \u251c\u2500\u2500 SnapshotToRenderModelAdapter.java\n    \u251c\u2500\u2500 CellRenderModel.java\n    \u251c\u2500\u2500 BuildingRenderModel.java\n    \u2514\u2500\u2500 HudViewModelAdapter.java\n```\n\n#### desktop module package\n\n```text\nit.unipd.daimyosimulator.desktop\n\u2514\u2500\u2500 DesktopLauncher.java\n```\n\n---\n\n## 4. Design Class Model\n\n### 4.1 Controller/facade and core class diagram\n\n```mermaid\nclassDiagram\n    class CoreGameFacade {\n        +startNewVillage(width, height) VillageSnapshot\n        +placeBuilding(type, position) PlacementResult\n        +advanceTick() TickResult\n        +activatePolicy(policyType) PolicyActivationResult\n        +inspectCell(position) CellViewModel\n        +getSnapshot() VillageSnapshot\n        +save(path) SaveResult\n        +load(path) VillageSnapshot\n    }\n\n    class GameController {\n        +startNewVillage(width, height)\n        +constructBuilding(type, position)\n        +advanceTick()\n        +activatePolicy(policyType)\n        +save(path)\n        +load(path)\n    }\n\n    class SimulationEngine {\n        +advanceTick(Village) TickResult\n    }\n\n    class Village {\n        -Grid grid\n        -VillageState state\n        -List~Villager~ villagers\n        -PolicyManager policyManager\n        +construct(Building, Position)\n        +getState()\n    }\n\n    class TickResult {\n        VillageState beforeState\n        VillageState afterState\n        List~BuildingEffect~ buildingEffects\n        List~EventEffect~ eventEffects\n        String activePolicyName\n    }\n\n    class VillageSnapshot {\n        <<immutable>>\n        int width\n        int height\n        List~CellViewModel~ cells\n        DashboardViewModel dashboard\n    }\n\n    class CellViewModel {\n        <<immutable>>\n        Position position\n        NaturalFeature feature\n        BuildingViewModel building\n    }\n\n    class BuildingViewModel {\n        <<immutable>>\n        BuildingType type\n        int workers\n        int jobSlots\n        String productionSummary\n    }\n\n    class DashboardViewModel {\n        <<immutable>>\n        ResourceViewModel resources\n        PopulationViewModel population\n        PolicyViewModel policy\n        EventLogViewModel eventLog\n    }\n\n    class VillagePersistenceService {\n        +save(Village, Path)\n        +load(Path) Village\n    }\n\n    CoreGameFacade --> GameController\n    GameController --> PlacementService\n    GameController --> SimulationEngine\n    GameController --> VillagePersistenceService\n    CoreGameFacade --> VillageSnapshot\n    CoreGameFacade --> CellViewModel\n    CoreGameFacade --> DashboardViewModel\n    SimulationEngine --> TickResult\n    VillageSnapshot *-- CellViewModel\n    VillageSnapshot *-- DashboardViewModel\n    CellViewModel *-- BuildingViewModel\n```\n\n### 4.2 Building hierarchy and interfaces\n\n```mermaid\nclassDiagram\n    class Building {\n        <<abstract>>\n        -BuildingType type\n        -int timberCost\n        +getType() BuildingType\n        +getTimberCost() int\n        +getPlacementRules() List~PlacementRule~\n    }\n\n    class JobProvider {\n        <<interface>>\n        +getRole() Role\n        +getJobSlots() int\n    }\n\n    class ResourceProducer {\n        <<interface>>\n        +produce(Village, TickContext) BuildingEffect\n    }\n\n    class ResourceConsumer {\n        <<interface>>\n        +consume(Village, TickContext) ConsumptionPlan\n    }\n\n    class Dwelling {\n        +getHousingCapacity() int\n    }\n\n    class RiceFarm\n    class RicePaddy\n    class WoodcuttersHut\n    class Mine\n    class Smithy\n    class Workshop\n    class Market\n    class GuardPost\n    class Temple\n\n    Building <|-- Dwelling\n    Building <|-- RiceFarm\n    Building <|-- RicePaddy\n    Building <|-- WoodcuttersHut\n    Building <|-- Mine\n    Building <|-- Smithy\n    Building <|-- Workshop\n    Building <|-- Market\n    Building <|-- GuardPost\n    Building <|-- Temple\n\n    JobProvider <|.. RiceFarm\n    JobProvider <|.. WoodcuttersHut\n    JobProvider <|.. Smithy\n    JobProvider <|.. Workshop\n    JobProvider <|.. Market\n    JobProvider <|.. GuardPost\n    JobProvider <|.. Temple\n\n    ResourceProducer <|.. RicePaddy\n    ResourceProducer <|.. WoodcuttersHut\n    ResourceProducer <|.. Smithy\n    ResourceProducer <|.. Workshop\n\n    ResourceConsumer <|.. RicePaddy\n    ResourceConsumer <|.. GuardPost\n    ResourceConsumer <|.. Temple\n```\n\n### 4.3 Strategy policies\n\n```mermaid\nclassDiagram\n    class PolicyStrategy {\n        <<interface>>\n        +getName() String\n        +modifyProduction(BuildingEffect) BuildingEffect\n        +modifyConsumption(ConsumptionPlan) ConsumptionPlan\n        +modifyProtection(int) int\n    }\n\n    class NoPolicy\n    class AgriculturalExpansionPolicy\n    class MilitaryProtectionPolicy\n    class CraftsmenProductionPolicy\n\n    PolicyStrategy <|.. NoPolicy\n    PolicyStrategy <|.. AgriculturalExpansionPolicy\n    PolicyStrategy <|.. MilitaryProtectionPolicy\n    PolicyStrategy <|.. CraftsmenProductionPolicy\n\n    class PolicyManager {\n        -PolicyStrategy activePolicy\n        -int remainingTicks\n        -int cooldownTicks\n        +activate(PolicyType)\n        +canActivate(PolicyType) boolean\n        +updateDurationAndCooldown()\n        +getActivePolicy() PolicyStrategy\n    }\n\n    PolicyManager --> PolicyStrategy\n```\n\nPolicy behavior:\n\n| Policy | Production effect | Consumption / cost effect |\n|---|---|---|\n| `AgriculturalExpansionPolicy` | Rice Paddy production x1.5 | Tool consumption by agriculture x1.5 |\n| `MilitaryProtectionPolicy` | Protection value from Samurai x1.5 | Samurai consume x1.5 Tools and Luxury Goods |\n| `CraftsmenProductionPolicy` | Timber, Tools, and Luxury Goods production x1.5 | Craftsmen consume x1.5 Rice |\n\n### 4.4 libGDX application structure\n\n```mermaid\nclassDiagram\n    class DaimyoSimulatorGame {\n        +create()\n        +setScreen(Screen)\n        +dispose()\n    }\n\n    class LoadingScreen {\n        +show()\n        +render(delta)\n    }\n\n    class VillageScreen {\n        -SpriteBatch batch\n        -OrthographicCamera camera\n        -Stage hudStage\n        -WorldRenderer worldRenderer\n        -DashboardHud dashboardHud\n        -GameInputProcessor inputProcessor\n        +render(delta)\n        +resize(width, height)\n        +dispose()\n    }\n\n    class WorldRenderer {\n        +render(VillageSnapshot, OrthographicCamera)\n    }\n\n    class HudStageFactory {\n        +create(controller) Stage\n    }\n\n    class GameAssetManager {\n        +loadAll()\n        +getRegion(assetKey) TextureRegion\n        +dispose()\n    }\n\n    DaimyoSimulatorGame --> LoadingScreen\n    DaimyoSimulatorGame --> VillageScreen\n    LoadingScreen --> GameAssetManager\n    VillageScreen --> WorldRenderer\n    VillageScreen --> HudStageFactory\n    VillageScreen --> GameAssetManager\n```\n\n### 4.5 WorldRenderer and UI/HUD collaboration\n\n```mermaid\nclassDiagram\n    class WorldRenderer {\n        +render(snapshot, camera)\n    }\n\n    class TileRenderer {\n        +renderTiles(snapshot)\n    }\n\n    class NaturalFeatureRenderer {\n        +renderFeatures(snapshot)\n    }\n\n    class BuildingRenderer {\n        +renderBuildings(snapshot)\n    }\n\n    class AnimationRenderer {\n        +renderAnimations(snapshot, delta)\n    }\n\n    class DashboardHud {\n        +refresh(DashboardViewModel)\n        +showCell(CellViewModel)\n        +showMessage(String)\n    }\n\n    class BuildMenu {\n        +setBuildMode(BuildingType)\n    }\n\n    class ResourcePanel {\n        +refresh(ResourceViewModel)\n    }\n\n    class PopulationPanel {\n        +refresh(PopulationViewModel)\n    }\n\n    class SelectedBuildingPanel {\n        +show(CellViewModel)\n    }\n\n    class SpeedControlPanel {\n        +pause()\n        +resume()\n        +nextTick()\n        +setSpeed(multiplier)\n    }\n\n    class PolicyPanel {\n        +activatePolicy(PolicyType)\n    }\n\n    WorldRenderer --> TileRenderer\n    WorldRenderer --> NaturalFeatureRenderer\n    WorldRenderer --> BuildingRenderer\n    WorldRenderer --> AnimationRenderer\n    DashboardHud --> BuildMenu\n    DashboardHud --> ResourcePanel\n    DashboardHud --> PopulationPanel\n    DashboardHud --> SelectedBuildingPanel\n    DashboardHud --> SpeedControlPanel\n    DashboardHud --> PolicyPanel\n```\n\n### 4.6 Boundary between libGDX and pure Java core\n\n```mermaid\nclassDiagram\n    namespace Pure_Java_Core {\n        class CoreGameFacade\n        class GameController\n        class VillageSnapshot\n        class CellViewModel\n        class BuildingViewModel\n        class DashboardViewModel\n        class SimulationEngine\n        class Village\n    }\n\n    namespace LibGDX_Presentation {\n        class VillageScreen\n        class WorldRenderer\n        class DashboardHud\n        class GameInputProcessor\n        class CameraController\n    }\n\n    VillageScreen --> CoreGameFacade\n    WorldRenderer --> VillageSnapshot\n    DashboardHud --> DashboardViewModel\n    DashboardHud --> CoreGameFacade\n    GameInputProcessor --> CoreGameFacade\n    GameInputProcessor --> CameraController\n    CoreGameFacade --> GameController\n    GameController --> SimulationEngine\n    SimulationEngine --> Village\n```\n\n---\n\n## 5. Internal Sequence Diagrams\n\nThe following diagrams show the internal object collaboration for the most significant operations.\n\n### 5.1 Internal sequence \u2014 Construct a building in the core\n\n```mermaid\nsequenceDiagram\n    actor Player\n    participant UI as libGDX HUD/Input\n    participant C as CoreGameFacade\n    participant PS as PlacementService\n    participant BF as BuildingFactory\n    participant RS as ResourceStock\n    participant Rules as PlacementRules\n    participant V as Village\n    participant G as Grid\n\n    Player->>UI: choose building type and position\n    UI->>C: placeBuilding(type, position)\n    C->>PS: placeBuilding(village, type, position)\n    PS->>BF: create(type)\n    BF-->>PS: building\n    PS->>G: getCell(position)\n    G-->>PS: cell\n    PS->>RS: has(TIMBER, building.cost)\n    RS-->>PS: true/false\n    PS->>Rules: validate(village, building, position)\n    Rules-->>PS: valid/invalid\n    alt valid placement and enough timber\n        PS->>RS: consume(TIMBER, building.cost)\n        PS->>V: construct(building, position)\n        V->>G: place(building, position)\n        PS-->>C: PlacementResult(success)\n    else invalid placement\n        PS-->>C: PlacementResult(failure, reason)\n    end\n    C-->>UI: placement result and updated snapshot\n```\n\n### 5.2 Internal sequence \u2014 Advance one tick in the core\n\n```mermaid\nsequenceDiagram\n    actor Player\n    participant C as CoreGameFacade\n    participant E as SimulationEngine\n    participant PM as PolicyManager\n    participant JR as JobAssignmentService\n    participant PR as ProductionService\n    participant CS as ConsumptionService\n    participant RC as ResourceStock\n    participant PC as ParameterCalculator\n    participant BD as BirthDeathService\n    participant REM as RandomEventManager\n    participant VM as SnapshotMapper\n\n    Player->>C: advanceTick()\n    C->>E: advanceTick(village)\n    E->>E: snapshot beforeState\n    E->>PM: updateDurationAndCooldown()\n    E->>JR: assignIdleVillagers(village)\n    E->>PR: produce(village, activePolicy)\n    PR->>PM: getActivePolicy()\n    PM-->>PR: PolicyStrategy\n    PR->>RC: add produced resources\n    E->>CS: consume(village, activePolicy)\n    CS->>PM: getActivePolicy()\n    PM-->>CS: PolicyStrategy\n    CS->>RC: consume required resources\n    E->>PC: recalculate parameters\n    E->>BD: processBirthsAndDeaths(village)\n    E->>REM: evaluateEvents(village)\n    REM-->>E: event effects\n    E->>E: build TickResult\n    E-->>C: TickResult\n    C->>VM: toVillageSnapshot(village, tickResult)\n    VM-->>C: VillageSnapshot\n    C-->>Player: TickResult and updated snapshot\n```\n\nTick order implemented by `SimulationEngine`:\n\n1. Advance tick counter.\n2. Update active policy duration and cooldown.\n3. Validate building rules.\n4. Assign idle villagers to available jobs.\n5. Produce resources.\n6. Consume resources.\n7. Apply shortages and penalties.\n8. Update village parameters.\n9. Recalculate happiness.\n10. Process births and deaths.\n11. Trigger random events if conditions are met.\n12. Build `TickResult` and updated immutable view models.\n\n### 5.3 Internal sequence \u2014 Activate a strategy policy\n\n```mermaid\nsequenceDiagram\n    actor Player\n    participant UI as PolicyPanel\n    participant C as CoreGameFacade\n    participant PM as PolicyManager\n    participant PF as PolicyFactory\n    participant V as Village\n\n    Player->>UI: select policy\n    UI->>C: activatePolicy(policyType)\n    C->>PM: canActivate(policyType)\n    alt policy can be activated\n        PM->>PF: create(policyType)\n        PF-->>PM: PolicyStrategy\n        PM->>PM: set activePolicy and duration\n        PM->>V: record active policy\n        PM-->>C: activation success\n    else policy is unavailable or on cooldown\n        PM-->>C: activation failure\n    end\n    C-->>UI: PolicyActivationResult and updated dashboard view model\n```\n\n### 5.4 Internal sequence \u2014 Save and load village\n\n```mermaid\nsequenceDiagram\n    actor Player\n    participant C as CoreGameFacade\n    participant P as VillagePersistenceService\n    participant M as VillageMapper\n    participant FS as FileSystem\n    participant V as Village\n\n    Player->>C: save(path)\n    C->>P: save(village, path)\n    P->>M: toDTO(village)\n    M-->>P: VillageDTO\n    P->>FS: write JSON file\n    FS-->>P: write result\n    P-->>C: SaveResult\n    C-->>Player: save message\n\n    Player->>C: load(path)\n    C->>P: load(path)\n    P->>FS: read JSON file\n    FS-->>P: json data\n    P->>M: fromDTO(json data)\n    M-->>P: Village\n    P-->>C: loaded Village\n    C-->>Player: load message and restored VillageSnapshot\n```\n\n### 5.5 Selecting a building from the HUD and placing it on the map\n\n```mermaid\nsequenceDiagram\n    actor Player\n    participant BuildMenu\n    participant BuildMode as BuildModeState\n    participant Input as GameInputProcessor\n    participant Mapper as ScreenToGridMapper\n    participant C as CoreGameFacade\n    participant HUD as DashboardHud\n    participant Screen as VillageScreen\n\n    Player->>BuildMenu: click \"Dwelling\"\n    BuildMenu->>BuildMode: selectedBuilding = DWELLING\n    Player->>Input: click map cell\n    Input->>Mapper: toGridPosition(screenX, screenY, camera)\n    Mapper-->>Input: Position(x, y)\n    Input->>C: placeBuilding(DWELLING, position)\n    C-->>Input: PlacementResult and VillageSnapshot\n    Input->>Screen: setSnapshot(snapshot)\n    Screen->>HUD: refresh(snapshot.dashboard)\n    alt success\n        HUD->>HUD: show \"Building placed\"\n    else failure\n        HUD->>HUD: show placement error\n    end\n```\n\n### 5.6 Clicking a cell and opening the selected building panel\n\n```mermaid\nsequenceDiagram\n    actor Player\n    participant Input as GameInputProcessor\n    participant Mapper as ScreenToGridMapper\n    participant C as CoreGameFacade\n    participant HUD as DashboardHud\n    participant Panel as SelectedBuildingPanel\n\n    Player->>Input: click map cell\n    Input->>Mapper: toGridPosition(screenX, screenY, camera)\n    Mapper-->>Input: Position\n    Input->>C: inspectCell(position)\n    C-->>Input: CellViewModel\n    Input->>HUD: showCell(cellViewModel)\n    HUD->>Panel: display building/feature/empty cell details\n```\n\n### 5.7 Pressing next tick / pause / speed controls\n\n```mermaid\nsequenceDiagram\n    actor Player\n    participant SpeedPanel as SpeedControlPanel\n    participant Playback as TickPlaybackController\n    participant C as CoreGameFacade\n    participant HUD as DashboardHud\n    participant Screen as VillageScreen\n\n    alt next tick\n        Player->>SpeedPanel: click Next Tick\n        SpeedPanel->>C: advanceTick()\n        C-->>SpeedPanel: TickResult and VillageSnapshot\n        SpeedPanel->>Screen: setSnapshot(snapshot)\n        Screen->>HUD: refresh(snapshot.dashboard)\n    else pause\n        Player->>SpeedPanel: click Pause\n        SpeedPanel->>Playback: setPaused(true)\n    else speed change\n        Player->>SpeedPanel: click 2x / 4x\n        SpeedPanel->>Playback: setSpeed(multiplier)\n    end\n```\n\n### 5.8 Refreshing the HUD after TickResult\n\n```mermaid\nsequenceDiagram\n    participant C as CoreGameFacade\n    participant E as SimulationEngine\n    participant Adapter as HudViewModelAdapter\n    participant HUD as DashboardHud\n    participant Log as EventLogPanel\n\n    C->>E: advanceTick(village)\n    E-->>C: TickResult\n    C->>Adapter: buildDashboardViewModel(TickResult, Village)\n    Adapter-->>C: DashboardViewModel\n    C-->>HUD: updated snapshot/dashboard\n    HUD->>HUD: refresh resources/population/parameters/policy\n    HUD->>Log: append events from TickResult\n```\n\n### 5.9 Loading textures/assets at application startup\n\n```mermaid\nsequenceDiagram\n    participant Game as DaimyoSimulatorGame\n    participant Loading as LoadingScreen\n    participant Assets as GameAssetManager\n    participant Registry as BuildingSpriteRegistry\n    participant Screen as VillageScreen\n\n    Game->>Loading: setScreen(LoadingScreen)\n    Loading->>Assets: queue TextureAtlas, UI skin, icons, placeholder\n    Assets->>Assets: loadAll()\n    Assets-->>Loading: loaded\n    Loading->>Registry: validate BuildingType/NaturalFeature mappings\n    alt all required mappings exist or fallback available\n        Loading->>Game: setScreen(VillageScreen)\n        Game->>Screen: show()\n    else fatal asset configuration error\n        Loading->>Loading: show readable error\n    end\n```\n\n---\n\n## 6. Rendering Flow\n\nThe game screen is split into two layers:\n\n```text\nScreen\n|\n|-- World layer\n|   rendered with SpriteBatch and OrthographicCamera\n|\n|-- UI layer\n    rendered with Stage and Scene2D UI\n```\n\nRecommended `VillageScreen.render(delta)` flow:\n\n1. Read the latest immutable `VillageSnapshot` held by the screen or request it from `CoreGameFacade` after a command.\n2. Update camera position and zoom through `CameraController`.\n3. Clear the screen.\n4. Render the world layer through `WorldRenderer`:\n   - ground tiles;\n   - forests and other natural features;\n   - placed buildings;\n   - grid or selection overlays;\n   - visual-only animations.\n5. Call `hudStage.act(delta)` to update Scene2D UI behavior.\n6. Refresh `DashboardHud` only when the snapshot or `TickResult` changes.\n7. Call `hudStage.draw()` to render Scene2D UI.\n\n`render(delta)` must never execute simulation rules. It must not calculate production, consumption, placement validity, job assignment, random events, births/deaths, policy effects, or persistence. Simulation state changes happen only when a command is sent to the controller/facade.\n\n---\n\n## 7. Input Flow\n\nUse a libGDX `InputMultiplexer`:\n\n```text\nInputMultiplexer\n\u251c\u2500\u2500 Stage input processor          // UI buttons first\n\u2514\u2500\u2500 GameInputProcessor             // map/camera input if UI did not consume event\n```\n\n### 7.1 Camera pan and zoom\n\n`CameraController` handles:\n\n- keyboard pan with WASD or arrow keys;\n- mouse drag or middle-button drag pan;\n- mouse wheel or trackpad zoom;\n- min/max zoom clamp;\n- optional map bounds clamp.\n\nCamera movement is visual only and must not touch the core domain model.\n\n### 7.2 Build mode and map cell selection\n\n1. Player selects a building button in `BuildMenu`.\n2. `BuildMenu` updates `BuildModeState`.\n3. Player clicks the world map.\n4. `GameInputProcessor` calls `ScreenToGridMapper`.\n5. `ScreenToGridMapper` uses `camera.unproject(screenX, screenY)`, then computes:\n   - `gridX = floor(worldX / TILE_SIZE)`;\n   - `gridY = floor(worldY / TILE_SIZE)`.\n6. The mapper returns a core `Position(gridX, gridY)`.\n7. If build mode is active, `GameInputProcessor` calls `CoreGameFacade.placeBuilding(buildingType, position)`.\n8. If build mode is not active, `GameInputProcessor` calls `CoreGameFacade.inspectCell(position)`.\n9. The HUD refreshes from returned `PlacementResult`, `CellViewModel`, or `VillageSnapshot`.\n\n### 7.3 UI button events\n\n| UI action | libGDX component | Core call / effect |\n|---|---|---|\n| Select build type | `BuildMenu` | Updates `BuildModeState`; no immediate domain mutation |\n| Place building | `GameInputProcessor` | `CoreGameFacade.placeBuilding(type, position)` |\n| Select cell | `GameInputProcessor` | `CoreGameFacade.inspectCell(position)` |\n| Next tick | `SpeedControlPanel` | `CoreGameFacade.advanceTick()` |\n| Pause/speed | `SpeedControlPanel` | Updates tick playback timing only |\n| Activate policy | `PolicyPanel` | `CoreGameFacade.activatePolicy(policyType)` |\n| Save/load | `MenuOverlay` | `CoreGameFacade.save(path)` / `CoreGameFacade.load(path)` |\n\n---\n\n## 8. Asset Pipeline\n\n### 8.1 Assets folder structure\n\n```text\ndaimyosimulator-libgdx/src/main/resources/assets/\n\u251c\u2500\u2500 atlases/\n\u2502   \u251c\u2500\u2500 village.atlas\n\u2502   \u2514\u2500\u2500 ui.atlas\n\u251c\u2500\u2500 textures/\n\u2502   \u251c\u2500\u2500 tiles/\n\u2502   \u2502   \u251c\u2500\u2500 tile_grass.png\n\u2502   \u2502   \u251c\u2500\u2500 tile_dirt.png\n\u2502   \u2502   \u2514\u2500\u2500 tile_selection.png\n\u2502   \u251c\u2500\u2500 features/\n\u2502   \u2502   \u2514\u2500\u2500 feature_forest.png\n\u2502   \u251c\u2500\u2500 buildings/\n\u2502   \u2502   \u251c\u2500\u2500 building_dwelling.png\n\u2502   \u2502   \u251c\u2500\u2500 building_rice_farm.png\n\u2502   \u2502   \u251c\u2500\u2500 building_rice_paddy.png\n\u2502   \u2502   \u251c\u2500\u2500 building_woodcutters_hut.png\n\u2502   \u2502   \u251c\u2500\u2500 building_mine.png\n\u2502   \u2502   \u251c\u2500\u2500 building_smithy.png\n\u2502   \u2502   \u251c\u2500\u2500 building_workshop.png\n\u2502   \u2502   \u251c\u2500\u2500 building_market.png\n\u2502   \u2502   \u251c\u2500\u2500 building_guard_post.png\n\u2502   \u2502   \u2514\u2500\u2500 building_temple.png\n\u2502   \u251c\u2500\u2500 icons/\n\u2502   \u2502   \u251c\u2500\u2500 icon_resource_rice.png\n\u2502   \u2502   \u251c\u2500\u2500 icon_resource_timber.png\n\u2502   \u2502   \u251c\u2500\u2500 icon_resource_tools.png\n\u2502   \u2502   \u251c\u2500\u2500 icon_resource_luxury_goods.png\n\u2502   \u2502   \u251c\u2500\u2500 icon_policy_agricultural_expansion.png\n\u2502   \u2502   \u251c\u2500\u2500 icon_policy_military_protection.png\n\u2502   \u2502   \u2514\u2500\u2500 icon_policy_craftsmen_production.png\n\u2502   \u2514\u2500\u2500 placeholders/\n\u2502       \u2514\u2500\u2500 missing_asset.png\n\u251c\u2500\u2500 skins/\n\u2502   \u251c\u2500\u2500 daimyo-ui.json\n\u2502   \u2514\u2500\u2500 daimyo-ui.atlas\n\u2514\u2500\u2500 mapping/\n    \u2514\u2500\u2500 sprite-map.json\n```\n\n### 8.2 Naming convention\n\n```text\ntile_<terrain>.png\nfeature_<feature_type>.png\nbuilding_<building_type>.png\nbuilding_<building_type>_<animation_state>_<frame>.png\nicon_resource_<resource_type>.png\nicon_policy_<policy_type>.png\nui_<component>.png\n```\n\nExamples:\n\n```text\nbuilding_dwelling.png\nbuilding_guard_post.png\nfeature_forest.png\nicon_resource_rice.png\nicon_policy_agricultural_expansion.png\n```\n\n### 8.3 TextureAtlas and individual textures\n\nDuring early development, individual PNG files are acceptable because they are easier to replace manually. Before the final delivery, the project should pack stable sprites into `village.atlas` and access them through `TextureRegion` names.\n\n### 8.4 BuildingType-to-sprite mapping\n\n| Core type | Asset key |\n|---|---|\n| `BuildingType.DWELLING` | `building_dwelling` |\n| `BuildingType.RICE_FARM` | `building_rice_farm` |\n| `BuildingType.RICE_PADDY` | `building_rice_paddy` |\n| `BuildingType.WOODCUTTERS_HUT` | `building_woodcutters_hut` |\n| `BuildingType.MINE` | `building_mine` |\n| `BuildingType.SMITHY` | `building_smithy` |\n| `BuildingType.WORKSHOP` | `building_workshop` |\n| `BuildingType.MARKET` | `building_market` |\n| `BuildingType.GUARD_POST` | `building_guard_post` |\n| `BuildingType.TEMPLE` | `building_temple` |\n| `NaturalFeature.FOREST` | `feature_forest` |\n\nThe mapping is owned by the libGDX module. The core knows only domain enums and must not know file paths, texture names, `TextureRegion`, `Animation`, or `AssetManager`.\n\n### 8.5 Missing asset fallback\n\nDuring development:\n\n1. `GameAssetManager` logs a warning such as `Missing sprite for BuildingType.SMITHY`.\n2. `MissingAssetFallback` returns `missing_asset.png`.\n3. The game continues running.\n4. Final release validation can fail if required production assets are still missing.\n\n---\n\n## 9. Design Decisions and Pattern Mapping\n\n| Requirement / problem | Design decision | Pattern / principle |\n|---|---|---|\n| Different policies modify production and consumption | Represent each policy as a `PolicyStrategy` | Strategy Pattern |\n| Building creation should not be hardcoded inside the engine | Use `BuildingFactory` and `BuildingType` | Factory Pattern |\n| UI should not own the model | Scene2D HUD talks to `CoreGameFacade` and receives immutable view models | MVC / Clean Architecture |\n| Renderer should not run rules | `WorldRenderer` draws `VillageSnapshot` only | Single Responsibility |\n| Save/load must not use a database | Use JSON DTOs through `VillagePersistenceService` | DTO + Service |\n| Simulation tick must remain understandable and testable | Split tick work into services: job assignment, production, consumption, parameters, birth/death, events | GRASP / Single Responsibility |\n| Placement rules must be extensible | Implement separate `PlacementRule` classes | Open/Closed Principle |\n| Building behavior must be polymorphic | Use abstract `Building` plus interfaces like `JobProvider` and `ResourceProducer` | Inheritance + interfaces |\n| Missing art during development should not block testing | Use placeholder sprite and warning | Fail-soft development workflow |\n\n---\n\n## 10. Testing Strategy\n\n### 10.1 Core unit tests\n\nCore logic remains pure JUnit and does not require libGDX initialization. Suggested tests:\n\n```text\nGridTest\nCellTest\nPositionTest\nBuildingFactoryTest\nPlacementRuleTest\nConstructionServiceTest\nSimulationEngineTest\nTickProcessorOrderTest\nPolicyStrategyTest\nRandomEventManagerTest\nVillagePersistenceServiceTest\nVillageSnapshotMapperTest\n```\n\n### 10.2 Controller/facade tests\n\n`CoreGameFacade` and `GameController` should be unit-tested with deterministic services or fake dependencies:\n\n- placement delegates to `PlacementService`;\n- invalid placement does not change the snapshot;\n- `advanceTick()` returns `TickResult` and updated `DashboardViewModel`;\n- policy activation respects one active policy and cooldowns;\n- `inspectCell()` returns `CellViewModel`, not a mutable `Cell`.\n\n### 10.3 Renderer/UI tests\n\nRenderer and UI classes should stay thin and are mainly validated through integration, manual, and system tests:\n\n- asset loading smoke test;\n- missing asset fallback check;\n- screen-to-grid coordinate mapping test;\n- manual check for camera pan/zoom;\n- manual check for HUD refresh after placement and ticks.\n\nAcceptance criteria must verify that UI actions go through the controller/facade and never mutate domain objects directly.\n\n---\n\n## 11. Traceability to User Stories\n\n| Design area | Related user stories |\n|---|---|\n| Village initialization and grid | US-01 |\n| General building construction | US-02 |\n| Placement and prerequisite rules | US-03 |\n| Villagers and roles | US-04 |\n| Dwellings and housing | US-05 |\n| Automatic job assignment | US-06 |\n| Rice production and consumption | US-07 |\n| Timber, Tools, Luxury Goods production | US-08 |\n| Markets and resource exchange | US-09 |\n| Tick engine | US-10 |\n| Village parameters and happiness | US-11 |\n| Birth and death | US-12 |\n| Strategy policies | US-13 |\n| Random events | US-14 |\n| Save and load | US-15 |\n| libGDX renderer, HUD, and dashboard | US-16 |\n\n---\n\n## 12. Notes for Implementation\n\n- Keep domain logic independent from the UI and renderer.\n- Do not create a single class that performs all calculations. `SimulationEngine` coordinates the tick, while specialized services calculate the details.\n- Keep formulas simple and deterministic where possible. Random events should use a `RandomProvider` or fixed seed during unit tests.\n- The `daimyosimulator-core` module must never import `com.badlogic.gdx.*`.\n- The libGDX module may depend on the core, but it must use immutable snapshots/view models instead of mutable domain objects.\n- `WorldRenderer` must draw the world only. It must not enforce placement rules or run production/consumption logic.\n- `DashboardHud` and Scene2D panels must call `CoreGameFacade` or `GameController` for commands.\n- All important rules should have unit tests: invalid placement, resource shortage, policy effects, rice production, death by starvation, birth with enough food/housing/happiness, and save/load integrity.\n- Mermaid diagrams in this document can be copied directly into GitHub and rendered automatically.\n";
+
+    function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+
+    function initPanZoom(card) {
+      const viewport = card.querySelector('.diagram-viewport');
+      const render = card.querySelector('.diagram-render');
+      const state = { scale: 1, x: 0, y: 0, userModified: false };
+      const minScale = 0.06;
+      const maxScale = 6;
+      let dragging = false;
+      let startX = 0;
+      let startY = 0;
+      let startStateX = 0;
+      let startStateY = 0;
+
+      function apply() {
+        render.style.transform = `translate(${state.x}px, ${state.y}px) scale(${state.scale})`;
+      }
+
+      function measureContent() {
+        const svg = render.querySelector('svg');
+        if (!svg) return { width: 1, height: 1 };
+        const previousTransform = render.style.transform;
+        render.style.transform = 'translate(0px, 0px) scale(1)';
+        const rect = svg.getBoundingClientRect();
+        render.style.transform = previousTransform;
+        return {
+          width: Math.max(rect.width, 1),
+          height: Math.max(rect.height, 1)
+        };
+      }
+
+      function fitToViewport() {
+        const { width, height } = measureContent();
+        const viewportWidth = Math.max(viewport.clientWidth, 1);
+        const viewportHeight = Math.max(viewport.clientHeight, 1);
+        const margin = 28;
+        const availableWidth = Math.max(viewportWidth - margin * 2, 1);
+        const availableHeight = Math.max(viewportHeight - margin * 2, 1);
+        const nextScale = clamp(Math.min(availableWidth / width, availableHeight / height, 1), minScale, maxScale);
+        state.scale = nextScale;
+        state.x = (viewportWidth - width * nextScale) / 2;
+        state.y = (viewportHeight - height * nextScale) / 2;
+        state.userModified = false;
+        apply();
+      }
+
+      function zoomAt(factor, clientX, clientY) {
+        const rect = viewport.getBoundingClientRect();
+        const px = clientX - rect.left;
+        const py = clientY - rect.top;
+        const previousScale = state.scale;
+        const nextScale = clamp(previousScale * factor, minScale, maxScale);
+        const ratio = nextScale / previousScale;
+        state.x = px - (px - state.x) * ratio;
+        state.y = py - (py - state.y) * ratio;
+        state.scale = nextScale;
+        state.userModified = true;
+        apply();
+      }
+
+      function zoomCenter(factor) {
+        const rect = viewport.getBoundingClientRect();
+        zoomAt(factor, rect.left + rect.width / 2, rect.top + rect.height / 2);
+      }
+
+      card.querySelector('[data-action="zoom-in"]').addEventListener('click', () => zoomCenter(1.18));
+      card.querySelector('[data-action="zoom-out"]').addEventListener('click', () => zoomCenter(1 / 1.18));
+      card.querySelector('[data-action="reset"]').addEventListener('click', fitToViewport);
+      card.querySelector('[data-action="fullscreen"]').addEventListener('click', async () => {
+        if (!document.fullscreenElement) { await card.requestFullscreen?.(); }
+        else { await document.exitFullscreen?.(); }
+        setTimeout(fitToViewport, 80);
+      });
+
+      viewport.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        const factor = event.deltaY < 0 ? 1.12 : 1 / 1.12;
+        zoomAt(factor, event.clientX, event.clientY);
+      }, { passive: false });
+
+      viewport.addEventListener('pointerdown', (event) => {
+        dragging = true;
+        viewport.setPointerCapture(event.pointerId);
+        startX = event.clientX;
+        startY = event.clientY;
+        startStateX = state.x;
+        startStateY = state.y;
+      });
+      viewport.addEventListener('pointermove', (event) => {
+        if (!dragging) return;
+        state.x = startStateX + event.clientX - startX;
+        state.y = startStateY + event.clientY - startY;
+        state.userModified = true;
+        apply();
+      });
+      viewport.addEventListener('pointerup', () => { dragging = false; });
+      viewport.addEventListener('pointercancel', () => { dragging = false; });
+      viewport.addEventListener('keydown', (event) => {
+        if (event.key === '+' || event.key === '=') { zoomCenter(1.18); event.preventDefault(); }
+        if (event.key === '-' || event.key === '_') { zoomCenter(1 / 1.18); event.preventDefault(); }
+        if (event.key === '0') { fitToViewport(); event.preventDefault(); }
+      });
+
+      document.addEventListener('fullscreenchange', () => {
+        if (document.fullscreenElement === card || !document.fullscreenElement) {
+          setTimeout(fitToViewport, 80);
+        }
+      });
+
+      if ('ResizeObserver' in window) {
+        const observer = new ResizeObserver(() => {
+          if (!state.userModified) requestAnimationFrame(fitToViewport);
+        });
+        observer.observe(viewport);
+        card.__diagramResizeObserver = observer;
+      }
+
+      card.__resetDiagram = fitToViewport;
+      card.__fitDiagram = fitToViewport;
+      apply();
+      const ready = document.fonts?.ready || Promise.resolve();
+      ready.then(() => requestAnimationFrame(fitToViewport)).catch(() => requestAnimationFrame(fitToViewport));
+    }
+
+    async function renderMermaidDiagrams() {
+      if (!window.mermaid) {
+        document.querySelectorAll('.diagram-render').forEach(el => {
+          el.innerHTML = '<div class="diagram-error">Mermaid could not load. Check your internet connection, or open the Mermaid source below.</div>';
+        });
+        return;
+      }
+      mermaid.initialize({
+        startOnLoad: false,
+        securityLevel: 'loose',
+        theme: 'default',
+        themeVariables: { fontFamily: 'Inter, system-ui, sans-serif' },
+        flowchart: { useMaxWidth: false, htmlLabels: true },
+        sequence: { useMaxWidth: false, mirrorActors: false },
+        class: { useMaxWidth: false }
+      });
+      const cards = Array.from(document.querySelectorAll('.diagram-card'));
+      for (const [index, card] of cards.entries()) {
+        const source = card.querySelector('.mermaid-source').textContent;
+        const target = card.querySelector('.diagram-render');
+        try {
+          const id = `mermaid-diagram-${index + 1}-${Math.random().toString(36).slice(2)}`;
+          const result = await mermaid.render(id, source);
+          target.innerHTML = result.svg;
+          if (typeof result.bindFunctions === 'function') result.bindFunctions(target);
+          const svg = target.querySelector('svg');
+          if (svg) {
+            const box = svg.viewBox?.baseVal;
+            svg.removeAttribute('width');
+            svg.removeAttribute('height');
+            svg.style.maxWidth = 'none';
+            if (box && box.width && box.height) {
+              svg.style.width = `${box.width}px`;
+              svg.style.height = `${box.height}px`;
+            }
+          }
+          initPanZoom(card);
+        } catch (error) {
+          console.error(error);
+          target.innerHTML = `<div class="diagram-error">This diagram could not be rendered. Open “Show Mermaid source” below to inspect it.<br>${String(error).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}</div>`;
+        }
+      }
+    }
+
+    document.getElementById('expandAllDiagrams').addEventListener('click', () => {
+      document.querySelectorAll('.diagram-card').forEach(card => card.__resetDiagram?.());
+    });
+    document.getElementById('downloadMarkdown').addEventListener('click', () => {
+      const blob = new Blob([ORIGINAL_MARKDOWN], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'DesignDocument.md';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+    document.addEventListener('DOMContentLoaded', renderMermaidDiagrams);
+  </script>
+</body>
+</html>
