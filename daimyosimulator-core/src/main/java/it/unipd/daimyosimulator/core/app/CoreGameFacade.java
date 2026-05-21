@@ -48,6 +48,10 @@ public final class CoreGameFacade {
         return controller.constructBuilding(type, position);
     }
 
+    public PlacementResult demolishBuilding(Position position) {
+        return controller.demolishBuilding(position);
+    }
+
     public TickResult advanceTick() {
         return controller.advanceTick();
     }

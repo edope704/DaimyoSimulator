@@ -94,7 +94,11 @@ public final class VillageScreen extends ScreenAdapter {
             autoTickTimer = 0;
             var result = facade.advanceTick();
             setSnapshot(result.afterState());
-            hud.setStatus(result.messages().isEmpty() ? "Tick " + result.afterState().tick() : String.join(" | ", result.messages()));
+            hud.refreshAfterTick(result);
+            String status = result.messages().isEmpty()
+                    ? "Tick " + result.afterState().tick()
+                    : String.join(" | ", result.messages());
+            hud.setStatus(status);
         }
     }
 

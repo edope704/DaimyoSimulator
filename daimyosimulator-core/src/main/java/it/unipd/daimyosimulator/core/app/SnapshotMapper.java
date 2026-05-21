@@ -31,7 +31,9 @@ public final class SnapshotMapper {
                 toPopulationViewModel(village.getVillagers()),
                 toParametersViewModel(village.getParameters()),
                 toPolicyViewModel(village.getPolicyManager()),
-                latest(village.getEventHistory(), 10)
+                latest(village.getEventHistory(), 10),
+                village.getBuildsThisTick(),
+                village.getConfig().maxBuildsPerTick()
         );
     }
 

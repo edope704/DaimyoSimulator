@@ -77,6 +77,13 @@ public final class Grid {
         getCell(position).setNaturalFeature(feature);
     }
 
+    /** Removes the building at the given position. No-op if cell has no building or is outside grid. */
+    public void removeBuilding(Position position) {
+        if (isInside(position)) {
+            getCell(position).clearBuilding();
+        }
+    }
+
     public long countBuildings(BuildingType type) {
         return getCells().stream()
                 .flatMap(cell -> cell.getBuilding().stream())

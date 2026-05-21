@@ -9,7 +9,7 @@ public final class DesktopLauncher {
     }
 
     public static void main(String[] args) {
-        Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
+        org.lwjgl.system.Configuration.GLFW_CHECK_THREAD0.set(false);        Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
         config.setTitle("DaimyoSimulator");
         config.setWindowedMode(1280, 720);
         config.useVsync(true);

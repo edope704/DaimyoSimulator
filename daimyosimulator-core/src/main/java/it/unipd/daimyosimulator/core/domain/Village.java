@@ -24,6 +24,8 @@ public final class Village {
     private int birthProgress;
     private int starvationTicks;
     private long nextVillagerId;
+    /** Number of buildings placed since the last tick advance. Resets to 0 at start of each tick. */
+    private int buildsThisTick;
 
     public Village(
             Grid grid,
@@ -100,6 +102,18 @@ public final class Village {
 
     public void setStarvationTicks(int starvationTicks) {
         this.starvationTicks = Math.max(0, starvationTicks);
+    }
+
+    public int getBuildsThisTick() {
+        return buildsThisTick;
+    }
+
+    public void incrementBuildsThisTick() {
+        buildsThisTick++;
+    }
+
+    public void resetBuildsThisTick() {
+        buildsThisTick = 0;
     }
 
     public void addEvent(String event) {

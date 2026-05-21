@@ -14,7 +14,11 @@ public record VillageSnapshot(
         PopulationViewModel population,
         VillageParametersViewModel parameters,
         PolicyViewModel policy,
-        List<String> latestEvents
+        List<String> latestEvents,
+        /** Buildings placed since last tick advance. */
+        int buildsThisTick,
+        /** Max buildings allowed per tick (from GameConfig). */
+        int maxBuildsPerTick
 ) {
     public VillageSnapshot {
         cells = List.copyOf(cells);
@@ -23,5 +27,10 @@ public record VillageSnapshot(
 
     public Optional<CellViewModel> cellAt(Position position) {
         return cells.stream().filter(cell -> cell.position().equals(position)).findFirst();
+    }
+
+    /** Builds remaining this tick before the limit is hit. */
+    public int buildsRemaining() {
+        return Math.max(0, maxBuildsPerTick - buildsThisTick);
     }
 }

@@ -43,6 +43,18 @@ Default UI save/load path:
 
 The JSON save includes grid, buildings, natural features, villagers, roles, housing status, resources, parameters, tick number, policy state, cooldowns, birth progress, starvation timer, and event history.
 
+## Controls & Commands
+
+See [docs/COMMANDS.md](docs/COMMANDS.md) for the complete controls reference, balance constants, and building requirements.
+
+Quick summary:
+- **Left-click** a building button → enter build mode; **left-click** the grid to place.
+- **Right-click** / `Escape` → cancel build or demolish mode.
+- **Demolish** button (left panel) → click any building to remove it (no refund).
+- **?** button (top bar) → opens in-game tutorial.
+- Resource numbers turn **yellow** when stock ≤ 30, **red** when ≤ 10.
+- Build limit: **2 buildings per tick**; resets every tick advance.
+
 ## Notes
 
 Generated placeholder textures are used when individual PNG sprites are missing. The provided sprite sheet is included as a reference asset. AI-assisted code must be reviewed by the team before submission.

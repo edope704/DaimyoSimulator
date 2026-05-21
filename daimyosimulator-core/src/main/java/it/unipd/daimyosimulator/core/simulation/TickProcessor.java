@@ -49,6 +49,8 @@ public final class TickProcessor {
         List<String> policyEffects = new ArrayList<>();
 
         village.advanceTickCounter();
+        // Reset per-tick build quota so the player gets fresh build actions each tick.
+        village.resetBuildsThisTick();
 
         List<String> policyMessages = village.getPolicyManager().advanceTick(village.getConfig());
         policyEffects.addAll(policyMessages);

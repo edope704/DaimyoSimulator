@@ -86,6 +86,10 @@ public final class GameController {
         return constructionService.constructBuilding(currentVillage, type, position);
     }
 
+    public PlacementResult demolishBuilding(Position position) {
+        return constructionService.demolishBuilding(currentVillage, position);
+    }
+
     public TickResult advanceTick() {
         return simulationEngine.advanceTick(currentVillage);
     }

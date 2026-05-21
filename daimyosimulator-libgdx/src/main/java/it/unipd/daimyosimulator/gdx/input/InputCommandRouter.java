@@ -32,7 +32,24 @@ public final class InputCommandRouter {
         this.cellConsumer = cellConsumer;
     }
 
+    /** Right-click or Escape: cancel current build/demolish mode. */
+    public void handleCancel() {
+        if (buildModeState.isActive()) {
+            buildModeState.clear();
+            messageConsumer.accept("Mode cancelled");
+        }
+    }
+
     public void handleGridClick(Position position) {
+        if (buildModeState.isDemolishMode()) {
+            PlacementResult result = facade.demolishBuilding(position);
+            buildModeState.setLastPlacementValid(result.success());
+            messageConsumer.accept(result.message());
+            snapshotConsumer.accept(result.afterState());
+            // Stay in demolish mode so player can remove multiple buildings.
+            return;
+        }
+
         if (buildModeState.isActive()) {
             buildModeState.selectedType().ifPresent(type -> {
                 PlacementResult result = facade.constructBuilding(type, position);
@@ -51,6 +68,8 @@ public final class InputCommandRouter {
             });
             return;
         }
+
+        // Normal inspect mode.
         try {
             CellViewModel cell = facade.inspectCell(position);
             cellConsumer.accept(cell);

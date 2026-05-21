@@ -11,8 +11,8 @@ public final class GameInputProcessor extends InputAdapter {
     private final InputCommandRouter commandRouter;
     private final BuildModeState buildModeState;
 
-    public GameInputProcessor(OrthographicCamera camera, ScreenToGridMapper mapper, InputCommandRouter commandRouter,
-                              BuildModeState buildModeState) {
+    public GameInputProcessor(OrthographicCamera camera, ScreenToGridMapper mapper,
+                              InputCommandRouter commandRouter, BuildModeState buildModeState) {
         this.camera = camera;
         this.mapper = mapper;
         this.commandRouter = commandRouter;
@@ -21,11 +21,24 @@ public final class GameInputProcessor extends InputAdapter {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        if (button == Input.Buttons.RIGHT) {
+            commandRouter.handleCancel();
+            return true;
+        }
         if (button != Input.Buttons.LEFT) {
             return false;
         }
         commandRouter.handleGridClick(mapper.screenToGrid(camera, screenX, screenY, RenderConstants.TILE_SIZE));
         return true;
+    }
+
+    @Override
+    public boolean keyDown(int keycode) {
+        if (keycode == Input.Keys.ESCAPE) {
+            commandRouter.handleCancel();
+            return true;
+        }
+        return false;
     }
 
     @Override

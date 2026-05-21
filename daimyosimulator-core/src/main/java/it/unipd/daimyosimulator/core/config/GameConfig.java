@@ -24,7 +24,9 @@ public record GameConfig(
         boolean randomEventsEnabled,
         int tradeExchangeRate,
         int baseTradeCapacity,
-        int traderCapacityBonus
+        int traderCapacityBonus,
+        // Max buildings a player may place per tick (resets on tick advance).
+        int maxBuildsPerTick
 ) {
     public GameConfig {
         if (gridWidth <= 0 || gridHeight <= 0) {
@@ -50,34 +52,38 @@ public record GameConfig(
         if (tradeExchangeRate <= 0 || baseTradeCapacity < 0 || traderCapacityBonus < 0) {
             throw new IllegalArgumentException("Trade values must be positive or zero where applicable");
         }
+        if (maxBuildsPerTick <= 0) {
+            throw new IllegalArgumentException("maxBuildsPerTick must be positive");
+        }
     }
 
     public static GameConfig defaults() {
         return new GameConfig(
-                20,
-                20,
-                100,
-                100,
-                20,
-                10,
-                8,
-                0.10,
-                1,
-                1,
-                1,
-                80,
-                60,
-                60,
-                25,
-                20,
-                3,
-                5,
-                8,
-                3,
-                true,
-                2,
-                10,
-                10
+                20,   // gridWidth
+                20,   // gridHeight
+                100,  // initialRice
+                100,  // initialTimber
+                20,   // initialTools
+                10,   // initialLuxuryGoods
+                8,    // initialVillagers
+                0.10, // forestDensity
+                1,    // adjacencyRange
+                1,    // jobAssignmentIntervalTicks
+                2,    // ricePerVillagerPerTick  (was 1 – doubles food pressure)
+                70,   // birthFoodThreshold      (was 80 – slightly more achievable)
+                60,   // birthHousingThreshold
+                60,   // birthHappinessThreshold
+                15,   // birthRate               (was 25 – slower pop growth)
+                40,   // birthRiceCost           (was 20 – birth is expensive)
+                3,    // starvationDeathIntervalTicks
+                5,    // policyDurationTicks
+                8,    // policyCooldownTicks
+                3,    // workshopProductionIntervalTicks
+                true, // randomEventsEnabled
+                2,    // tradeExchangeRate
+                10,   // baseTradeCapacity
+                10,   // traderCapacityBonus
+                2     // maxBuildsPerTick
         );
     }
 
@@ -87,7 +93,7 @@ public record GameConfig(
                 ricePerVillagerPerTick, birthFoodThreshold, birthHousingThreshold, birthHappinessThreshold,
                 birthRate, birthRiceCost, starvationDeathIntervalTicks, policyDurationTicks,
                 policyCooldownTicks, workshopProductionIntervalTicks, randomEventsEnabled, tradeExchangeRate,
-                baseTradeCapacity, traderCapacityBonus);
+                baseTradeCapacity, traderCapacityBonus, maxBuildsPerTick);
     }
 
     public GameConfig withInitialResources(int rice, int timber, int tools, int luxuryGoods) {
@@ -96,7 +102,7 @@ public record GameConfig(
                 ricePerVillagerPerTick, birthFoodThreshold, birthHousingThreshold, birthHappinessThreshold,
                 birthRate, birthRiceCost, starvationDeathIntervalTicks, policyDurationTicks,
                 policyCooldownTicks, workshopProductionIntervalTicks, randomEventsEnabled, tradeExchangeRate,
-                baseTradeCapacity, traderCapacityBonus);
+                baseTradeCapacity, traderCapacityBonus, maxBuildsPerTick);
     }
 
     public GameConfig withInitialVillagers(int villagers) {
@@ -105,7 +111,7 @@ public record GameConfig(
                 ricePerVillagerPerTick, birthFoodThreshold, birthHousingThreshold, birthHappinessThreshold,
                 birthRate, birthRiceCost, starvationDeathIntervalTicks, policyDurationTicks,
                 policyCooldownTicks, workshopProductionIntervalTicks, randomEventsEnabled, tradeExchangeRate,
-                baseTradeCapacity, traderCapacityBonus);
+                baseTradeCapacity, traderCapacityBonus, maxBuildsPerTick);
     }
 
     public GameConfig withForestDensity(double density) {
@@ -114,7 +120,7 @@ public record GameConfig(
                 ricePerVillagerPerTick, birthFoodThreshold, birthHousingThreshold, birthHappinessThreshold,
                 birthRate, birthRiceCost, starvationDeathIntervalTicks, policyDurationTicks,
                 policyCooldownTicks, workshopProductionIntervalTicks, randomEventsEnabled, tradeExchangeRate,
-                baseTradeCapacity, traderCapacityBonus);
+                baseTradeCapacity, traderCapacityBonus, maxBuildsPerTick);
     }
 
     public GameConfig withRandomEventsEnabled(boolean enabled) {
@@ -123,6 +129,6 @@ public record GameConfig(
                 ricePerVillagerPerTick, birthFoodThreshold, birthHousingThreshold, birthHappinessThreshold,
                 birthRate, birthRiceCost, starvationDeathIntervalTicks, policyDurationTicks,
                 policyCooldownTicks, workshopProductionIntervalTicks, enabled, tradeExchangeRate,
-                baseTradeCapacity, traderCapacityBonus);
+                baseTradeCapacity, traderCapacityBonus, maxBuildsPerTick);
     }
 }
