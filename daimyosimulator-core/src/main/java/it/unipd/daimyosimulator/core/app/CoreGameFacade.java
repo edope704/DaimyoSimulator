@@ -68,15 +68,47 @@ public final class CoreGameFacade {
         return controller.saveVillage(path);
     }
 
+    public SaveResult saveVillage(int slot) {
+        return controller.saveVillage(slotPath(slot));
+    }
+
     public LoadResult loadVillage(Path path) {
         return controller.loadVillage(path);
+    }
+
+    public LoadResult loadVillage(int slot) {
+        return controller.loadVillage(slotPath(slot));
     }
 
     public TradeResult requestTrade(TradeRequest request) {
         return controller.requestTrade(request);
     }
 
+    // ── Save-slot helpers ─────────────────────────────────────────────────────
+
     public static Path defaultSavePath() {
-        return Path.of(System.getProperty("user.home"), ".daimyosimulator", "savegame.json");
+        return slotPath(1);
     }
+
+    public static Path saveDir() {
+        return Path.of(System.getProperty("user.home"), ".daimyosimulator");
+    }
+
+    public static Path slotPath(int slot) {
+        return saveDir().resolve("savegame_" + slot + ".json");
+    }
+
+    /** Returns info about all five save slots (exists flag + file label). */
+    public static java.util.List<SaveSlotInfo> listSaveSlots() {
+        java.util.List<SaveSlotInfo> slots = new java.util.ArrayList<>();
+        for (int i = 1; i <= 5; i++) {
+            Path p = slotPath(i);
+            boolean exists = java.nio.file.Files.exists(p);
+            String label = exists ? "Slot " + i + "  [saved]" : "Slot " + i + "  [empty]";
+            slots.add(new SaveSlotInfo(i, exists, label));
+        }
+        return slots;
+    }
+
+    public record SaveSlotInfo(int slot, boolean exists, String label) {}
 }

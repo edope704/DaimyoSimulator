@@ -7,6 +7,7 @@ import it.unipd.daimyosimulator.core.building.BuildingType;
 import it.unipd.daimyosimulator.core.domain.Cell;
 import it.unipd.daimyosimulator.core.domain.NaturalFeature;
 import it.unipd.daimyosimulator.core.domain.Village;
+import it.unipd.daimyosimulator.core.event.EventReport;
 import it.unipd.daimyosimulator.core.event.RandomEventManager;
 import it.unipd.daimyosimulator.core.service.*;
 
@@ -72,7 +73,8 @@ public final class TickProcessor {
             parameterCalculator.recalculate(village);
         }
 
-        List<String> randomEvents = randomEventManager.evaluate(village);
+        List<EventReport> eventReports = randomEventManager.evaluateFull(village);
+        List<String> randomEvents = eventReports.stream().map(EventReport::consequence).toList();
         messages.addAll(randomEvents);
 
         for (String message : messages) {
@@ -90,6 +92,7 @@ public final class TickProcessor {
                 birthDeathResult.deaths(),
                 shortages,
                 randomEvents,
+                eventReports,
                 messages
         );
     }

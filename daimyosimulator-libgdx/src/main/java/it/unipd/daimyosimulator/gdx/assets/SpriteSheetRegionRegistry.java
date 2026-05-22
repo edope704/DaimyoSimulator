@@ -18,8 +18,8 @@ public final class SpriteSheetRegionRegistry implements Disposable {
     }
 
     private static final RegionDefinition[] DEFINITIONS = {
-            new RegionDefinition("tile_grass", 17, 45, 103, 116, false),
-            new RegionDefinition("tile_dirt", 143, 45, 101, 116, false),
+            new RegionDefinition("tile_grass", 17, 45, 103, 116, true),
+            new RegionDefinition("tile_dirt", 143, 45, 101, 116, true),
             new RegionDefinition("overlay_select_yellow", 267, 42, 98, 118, true),
             new RegionDefinition("overlay_invalid_red", 385, 42, 100, 118, true),
             new RegionDefinition("overlay_valid_blue", 505, 42, 100, 118, true),
@@ -145,7 +145,15 @@ public final class SpriteSheetRegionRegistry implements Disposable {
         int alpha = rgba8888 & 0xff;
         int max = Math.max(red, Math.max(green, blue));
         int min = Math.min(red, Math.min(green, blue));
-        return alpha == 0 || (min >= 235 && max - min <= 12);
+        // Fully transparent → background.
+        if (alpha == 0) return true;
+        // Near-white solid (original white sprite-sheet background).
+        if (min >= 220 && max - min <= 20) return true;
+        // Mid-gray checkerboard squares (Photoshop/GIMP style: 170-205 range, near-neutral).
+        if (min >= 155 && max <= 215 && max - min <= 25 && alpha >= 240) return true;
+        // Semi-transparent near-white anti-aliasing fringe.
+        if (min >= 200 && max - min <= 25 && alpha < 220) return true;
+        return false;
     }
 
     @Override

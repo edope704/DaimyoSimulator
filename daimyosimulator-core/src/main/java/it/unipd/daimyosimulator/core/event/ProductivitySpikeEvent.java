@@ -11,6 +11,13 @@ public final class ProductivitySpikeEvent implements RandomEvent {
     }
 
     @Override
+    public String explain() {
+        return "Your Samurai kept order and inspired the workforce! "
+             + "High Protection (≥70) more than triples the chance of this bonus event. "
+             + "You received free Rice and Timber.";
+    }
+
+    @Override
     public String apply(Village village, RandomProvider randomProvider) {
         village.getResources().add(ResourceType.RICE, 5);
         village.getResources().add(ResourceType.TIMBER, 5);

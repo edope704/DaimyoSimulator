@@ -14,41 +14,47 @@ public final class RandomEventManager {
         this.randomProvider = randomProvider;
     }
 
+    /** Returns plain consequence strings (used by TickProcessor and existing tests). */
     public List<String> evaluate(Village village) {
-        List<String> events = new ArrayList<>();
+        return evaluateFull(village).stream().map(EventReport::consequence).toList();
+    }
+
+    /** Returns structured event reports for UI modal display. */
+    public List<EventReport> evaluateFull(Village village) {
+        List<EventReport> reports = new ArrayList<>();
         if (!village.getConfig().randomEventsEnabled()) {
-            return events;
+            return reports;
         }
 
         double theftProbability = 0.03
                 + (100 - village.getParameters().getProtection()) / 1000.0
                 + (100 - village.getParameters().getHousing()) / 1500.0;
         if (randomProvider.chance(theftProbability)) {
-            events.add(apply(village, new ResourceTheftEvent()));
+            reports.add(applyFull(village, new ResourceTheftEvent()));
         }
 
         double productivityProbability = village.getParameters().getProtection() >= 70 ? 0.06 : 0.02;
         if (randomProvider.chance(productivityProbability)) {
-            events.add(apply(village, new ProductivitySpikeEvent()));
+            reports.add(applyFull(village, new ProductivitySpikeEvent()));
         }
 
         if (village.getParameters().getFaith() >= 50 && randomProvider.chance(0.05)) {
-            events.add(apply(village, new ReligiousFestivalEvent()));
+            reports.add(applyFull(village, new ReligiousFestivalEvent()));
         }
 
         if (village.getParameters().getCraftsmanship() >= 50 && randomProvider.chance(0.05)) {
-            events.add(apply(village, new CraftsmanshipBreakthroughEvent()));
+            reports.add(applyFull(village, new CraftsmanshipBreakthroughEvent()));
         }
 
         if (village.getGrid().hasBuilding(BuildingType.WORKSHOP) && randomProvider.chance(0.03)) {
-            events.add(apply(village, new WorkshopAccidentEvent()));
+            reports.add(applyFull(village, new WorkshopAccidentEvent()));
         }
-        return events;
+        return reports;
     }
 
-    private String apply(Village village, RandomEvent event) {
-        String message = event.apply(village, randomProvider);
-        village.addEvent(message);
-        return message;
+    private EventReport applyFull(Village village, RandomEvent event) {
+        String consequence = event.apply(village, randomProvider);
+        village.addEvent(consequence);
+        return new EventReport(event.name(), event.explain(), consequence);
     }
 }

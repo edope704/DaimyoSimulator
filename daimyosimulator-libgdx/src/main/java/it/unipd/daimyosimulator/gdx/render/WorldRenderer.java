@@ -11,6 +11,7 @@ import it.unipd.daimyosimulator.gdx.input.BuildModeState;
 public final class WorldRenderer implements Disposable {
     private final SpriteBatch batch = new SpriteBatch();
     private final TileRenderer tileRenderer;
+    private final ForestBorderRenderer forestBorderRenderer;
     private final NaturalFeatureRenderer naturalFeatureRenderer;
     private final BuildingRenderer buildingRenderer;
     private final AnimationRenderer animationRenderer = new AnimationRenderer();
@@ -18,6 +19,7 @@ public final class WorldRenderer implements Disposable {
 
     public WorldRenderer(GameAssetManager assetManager) {
         this.tileRenderer = new TileRenderer(assetManager);
+        this.forestBorderRenderer = new ForestBorderRenderer(assetManager);
         this.naturalFeatureRenderer = new NaturalFeatureRenderer(assetManager);
         this.buildingRenderer = new BuildingRenderer(assetManager);
         this.gridOverlayRenderer = new GridOverlayRenderer(assetManager);
@@ -27,6 +29,7 @@ public final class WorldRenderer implements Disposable {
                        Position selected, float delta, boolean debug) {
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
+        forestBorderRenderer.render(batch, snapshot);
         tileRenderer.render(batch, snapshot);
         naturalFeatureRenderer.render(batch, snapshot);
         buildingRenderer.render(batch, snapshot);

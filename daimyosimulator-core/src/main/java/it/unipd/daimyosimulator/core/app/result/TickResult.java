@@ -2,6 +2,7 @@ package it.unipd.daimyosimulator.core.app.result;
 
 import it.unipd.daimyosimulator.core.app.view.ResourceViewModel;
 import it.unipd.daimyosimulator.core.app.view.VillageSnapshot;
+import it.unipd.daimyosimulator.core.event.EventReport;
 
 import java.util.List;
 
@@ -15,12 +16,14 @@ public record TickResult(
         int deaths,
         List<String> shortagePenalties,
         List<String> randomEvents,
+        List<EventReport> randomEventReports,
         List<String> messages
 ) {
     public TickResult {
         policyEffects = List.copyOf(policyEffects);
         shortagePenalties = List.copyOf(shortagePenalties);
         randomEvents = List.copyOf(randomEvents);
+        randomEventReports = List.copyOf(randomEventReports);
         messages = List.copyOf(messages);
     }
 }

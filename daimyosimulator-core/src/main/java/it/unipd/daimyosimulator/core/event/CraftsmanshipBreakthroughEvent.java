@@ -11,6 +11,13 @@ public final class CraftsmanshipBreakthroughEvent implements RandomEvent {
     }
 
     @Override
+    public String explain() {
+        return "Your Artisans made a technical discovery! "
+             + "Craftsmanship ≥50 is required. "
+             + "You gained bonus Tools and permanent Craftsmanship points.";
+    }
+
+    @Override
     public String apply(Village village, RandomProvider randomProvider) {
         village.getResources().add(ResourceType.TOOLS, 4);
         village.getParameters().setCraftsmanship(village.getParameters().getCraftsmanship() + 5);

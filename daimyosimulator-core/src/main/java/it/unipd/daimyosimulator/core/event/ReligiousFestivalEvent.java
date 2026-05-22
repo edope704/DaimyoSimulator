@@ -10,6 +10,13 @@ public final class ReligiousFestivalEvent implements RandomEvent {
     }
 
     @Override
+    public String explain() {
+        return "Your Temple's Monks organised a great festival! "
+             + "Faith ≥50 is required for this event to occur. "
+             + "Faith and Happiness both increased.";
+    }
+
+    @Override
     public String apply(Village village, RandomProvider randomProvider) {
         village.getParameters().setFaith(village.getParameters().getFaith() + 8);
         village.getParameters().setHappiness(village.getParameters().getHappiness() + 5);

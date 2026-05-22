@@ -11,12 +11,15 @@ import it.unipd.daimyosimulator.gdx.assets.GameAssetManager;
 import java.util.function.Consumer;
 
 public final class MenuOverlay extends Table {
-    public MenuOverlay(Skin skin, GameAssetManager assetManager, CoreGameFacade facade, Consumer<VillageSnapshot> snapshotConsumer,
+    public MenuOverlay(Skin skin, GameAssetManager assetManager, CoreGameFacade facade,
+                       Consumer<VillageSnapshot> snapshotConsumer,
                        Consumer<String> statusConsumer) {
         setBackground(skin.getDrawable("hud-panel"));
-        TextButton newButton = new TextButton("New", skin);
+
+        TextButton newButton  = new TextButton("New",  skin);
         TextButton saveButton = new TextButton("Save", skin);
         TextButton loadButton = new TextButton("Load", skin);
+
         newButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
@@ -24,22 +27,27 @@ public final class MenuOverlay extends Table {
                 statusConsumer.accept("New village created");
             }
         });
+
         saveButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                statusConsumer.accept(facade.saveVillage(CoreGameFacade.defaultSavePath()).message());
-            }
-        });
-        loadButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                var result = facade.loadVillage(CoreGameFacade.defaultSavePath());
-                statusConsumer.accept(result.message());
-                if (result.snapshot() != null) {
-                    snapshotConsumer.accept(result.snapshot());
+                if (getStage() != null) {
+                    new SaveLoadDialog(skin, facade, true, snapshotConsumer, statusConsumer)
+                            .show(getStage());
                 }
             }
         });
+
+        loadButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                if (getStage() != null) {
+                    new SaveLoadDialog(skin, facade, false, snapshotConsumer, statusConsumer)
+                            .show(getStage());
+                }
+            }
+        });
+
         defaults().pad(2);
         add(newButton).width(58);
         add(saveButton).width(58);

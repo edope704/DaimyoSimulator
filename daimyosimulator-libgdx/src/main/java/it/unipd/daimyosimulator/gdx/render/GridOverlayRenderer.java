@@ -11,8 +11,9 @@ import it.unipd.daimyosimulator.gdx.assets.GameAssetManager;
 import it.unipd.daimyosimulator.gdx.input.BuildModeState;
 
 public final class GridOverlayRenderer implements Disposable {
-    private static final float HOVER_ALPHA  = 0.50f; // semi-transparent hover overlay
-    private static final float BORDER_WIDTH = 3f;
+    private static final float HOVER_ALPHA        = 0.50f; // build/demolish preview
+    private static final float IDLE_HOVER_ALPHA   = 0.28f; // general mouse hover
+    private static final float BORDER_WIDTH       = 3f;
 
     private final SpriteBatch batch = new SpriteBatch();
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
@@ -33,13 +34,12 @@ public final class GridOverlayRenderer implements Disposable {
             drawOverlay(assetManager.ui().selectedOverlay(), selected);
         }
 
-        // Build or demolish preview – semi-transparent so the tile is visible.
         if (buildModeState.isActive() && buildModeState.previewPosition().isPresent()) {
+            // Build or demolish preview – semi-transparent so tile is visible.
             Position preview = buildModeState.previewPosition().orElseThrow();
             boolean isDemolish = buildModeState.isDemolishMode();
             String overlay;
             if (isDemolish) {
-                // Red overlay for demolish cursor.
                 overlay = assetManager.ui().invalidOverlay();
             } else {
                 overlay = buildModeState.lastPlacementValid()
@@ -48,6 +48,14 @@ public final class GridOverlayRenderer implements Disposable {
             }
             batch.setColor(1f, 1f, 1f, HOVER_ALPHA);
             drawOverlay(overlay, preview);
+        } else if (!buildModeState.isActive() && buildModeState.previewPosition().isPresent()) {
+            // General hover (no build mode) – subtle blue tint so player can see tile graphics.
+            Position hover = buildModeState.previewPosition().orElseThrow();
+            // Only draw hover when the position is different from the selected cell.
+            if (!hover.equals(selected) && isInsideGrid(hover, snapshot)) {
+                batch.setColor(0.55f, 0.85f, 1.0f, IDLE_HOVER_ALPHA);
+                drawOverlay(assetManager.ui().validOverlay(), hover);
+            }
         }
 
         batch.setColor(Color.WHITE); // reset
@@ -58,6 +66,11 @@ public final class GridOverlayRenderer implements Disposable {
         if (debug) {
             renderDebug(camera, snapshot);
         }
+    }
+
+    private static boolean isInsideGrid(Position p, VillageSnapshot snapshot) {
+        return p != null && p.x() >= 0 && p.x() < snapshot.width()
+                && p.y() >= 0 && p.y() < snapshot.height();
     }
 
     private void drawOverlay(String key, Position position) {

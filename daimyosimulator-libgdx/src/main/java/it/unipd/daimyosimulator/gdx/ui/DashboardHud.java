@@ -27,6 +27,7 @@ public final class DashboardHud extends Table {
     private final EventLogPanel eventLogPanel;
     private final PolicyPanel policyPanel;
     private final SpeedControlPanel speedControlPanel;
+    private final WarningPanel warningPanel;
     private Consumer<VillageSnapshot> snapshotConsumer = snapshot -> { };
     private Position selectedPosition;
 
@@ -34,51 +35,75 @@ public final class DashboardHud extends Table {
                         BuildModeState buildModeState) {
         this.skin = skin;
         this.facade = facade;
-        this.buildMenu = new BuildMenu(skin, assetManager, buildModeState, this::setStatus);
-        this.resourcePanel = new ResourcePanel(skin, assetManager);
-        this.populationPanel = new PopulationPanel(skin, assetManager);
-        this.parameterPanel = new VillageParameterPanel(skin, assetManager);
+        this.buildMenu            = new BuildMenu(skin, assetManager, buildModeState, this::setStatus);
+        this.resourcePanel        = new ResourcePanel(skin, assetManager);
+        this.populationPanel      = new PopulationPanel(skin, assetManager);
+        this.parameterPanel       = new VillageParameterPanel(skin, assetManager);
         this.selectedBuildingPanel = new SelectedBuildingPanel(skin, assetManager, this::openMarket);
-        this.eventLogPanel = new EventLogPanel(skin, assetManager);
-        this.speedControlPanel = new SpeedControlPanel(skin, assetManager, this::nextTick);
-        this.policyPanel = new PolicyPanel(skin, assetManager, facade, this::setStatus,
+        this.eventLogPanel        = new EventLogPanel(skin, assetManager);
+        this.speedControlPanel    = new SpeedControlPanel(skin, assetManager, this::nextTick);
+        this.policyPanel          = new PolicyPanel(skin, assetManager, facade, this::setStatus,
                 () -> refresh(facade.getCurrentSnapshot(), facade.getDashboard()));
+        this.warningPanel         = new WarningPanel(skin);
 
+        // ── Top bar ───────────────────────────────────────────────────────────
         TextButton helpButton = new TextButton("?", skin);
         helpButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+            @Override public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
                 openTutorial();
+            }
+        });
+
+        TextButton cmdButton = new TextButton("Cmd", skin);
+        cmdButton.addListener(new ChangeListener() {
+            @Override public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                openCommands();
             }
         });
 
         Table top = new Table();
         top.left();
-        top.add(new MenuOverlay(skin, assetManager, facade, snapshot -> {
-            snapshotConsumer.accept(snapshot);
-            refresh(snapshot, facade.getDashboard());
-        }, this::setStatus)).left().padRight(8);
+        top.add(new MenuOverlay(skin, assetManager, facade,
+                snapshot -> { snapshotConsumer.accept(snapshot); refresh(snapshot, facade.getDashboard()); },
+                this::setStatus)).left().padRight(8);
         top.add(resourcePanel).left().padRight(12);
         top.add(populationPanel).left().padRight(12);
         top.add(speedControlPanel).left().padRight(8);
+        top.add(cmdButton).size(42).padRight(4);
         top.add(helpButton).size(36).right();
 
-        Table side = new Table();
-        side.top().left();
-        side.add(buildMenu).left();
+        // ── Left side column: BuildMenu (top) + PolicyPanel (below) ───────────
+        Table leftCol = new Table();
+        leftCol.top().left();
+        leftCol.add(buildMenu).left();
+        leftCol.row().padTop(6);
+        leftCol.add(policyPanel).left().fillX();
 
+        // ── Right side: WarningPanel + parameters ─────────────────────────────
+        Table rightCol = new Table();
+        rightCol.top().right();
+        rightCol.add(warningPanel).right().width(172).padBottom(6);
+        rightCol.row();
+        rightCol.add(parameterPanel).right();
+
+        // ── Bottom bar ────────────────────────────────────────────────────────
         Table bottom = new Table();
         bottom.left();
-        bottom.add(policyPanel).left().padRight(8);
-        bottom.add(parameterPanel).left().padRight(8);
         bottom.add(selectedBuildingPanel).left().padRight(8);
         bottom.add(eventLogPanel).left();
 
+        // ── Root layout ───────────────────────────────────────────────────────
         setFillParent(true);
         top().left();
         add(top).expandX().height(58).fillX().left().top().pad(6);
         row();
-        add(side).width(180).expandY().left().top().padLeft(6);
+
+        Table middle = new Table();
+        middle.add(leftCol).width(180).expandY().left().top().padLeft(6);
+        middle.add(new Table()).expandX().expand();       // empty game viewport
+        middle.add(rightCol).width(180).expandY().right().top().padRight(6);
+
+        add(middle).expandX().expandY().fillX().fillY();
         row();
         add(bottom).expandX().height(108).fillX().left().bottom().pad(6);
     }
@@ -107,6 +132,7 @@ public final class DashboardHud extends Table {
         parameterPanel.refresh(result.afterState().parameters());
         policyPanel.refresh(result.afterState().policy());
         eventLogPanel.refresh(new EventLogViewModel(result.afterState().latestEvents()));
+        warningPanel.onTick(result.afterState().resources());
     }
 
     public void setStatus(String status) {
@@ -138,6 +164,7 @@ public final class DashboardHud extends Table {
         setStatus(status);
         snapshotConsumer.accept(result.afterState());
         refreshAfterTick(result);
+        EventModal.showIfAny(skin, result.randomEventReports(), getStage());
     }
 
     private void openMarket(CellViewModel cell) {
@@ -151,6 +178,12 @@ public final class DashboardHud extends Table {
     private void openTutorial() {
         if (getStage() != null) {
             new TutorialDialog(skin).show(getStage());
+        }
+    }
+
+    private void openCommands() {
+        if (getStage() != null) {
+            new CommandsDialog(skin).show(getStage());
         }
     }
 }

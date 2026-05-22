@@ -11,6 +11,12 @@ public final class ResourceTheftEvent implements RandomEvent {
     }
 
     @Override
+    public String explain() {
+        return "Bandits raided your village! Low Protection and poor Housing increase theft risk. "
+             + "Build Guard Posts and Dwellings to reduce future incidents.";
+    }
+
+    @Override
     public String apply(Village village, RandomProvider randomProvider) {
         ResourceType type = ResourceType.values()[randomProvider.nextInt(ResourceType.values().length)];
         int lost = village.getResources().consumeUpTo(type, 5);
