@@ -28,12 +28,6 @@ public final class GridOverlayRenderer implements Disposable {
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
 
-        // Selected cell (inspect mode) – full opacity yellow.
-        if (selected != null && !buildModeState.isActive()) {
-            batch.setColor(1f, 1f, 1f, 1f);
-            drawOverlay(assetManager.ui().selectedOverlay(), selected);
-        }
-
         if (buildModeState.isActive() && buildModeState.previewPosition().isPresent()) {
             // Build or demolish preview – semi-transparent so tile is visible.
             Position preview = buildModeState.previewPosition().orElseThrow();

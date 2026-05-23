@@ -36,7 +36,6 @@ public final class InputCommandRouter {
     public void handleCancel() {
         if (buildModeState.isActive()) {
             buildModeState.clear();
-            messageConsumer.accept("Mode cancelled");
         }
     }
 
@@ -73,7 +72,6 @@ public final class InputCommandRouter {
         try {
             CellViewModel cell = facade.inspectCell(position);
             cellConsumer.accept(cell);
-            messageConsumer.accept("Selected " + position);
         } catch (IllegalArgumentException e) {
             messageConsumer.accept(e.getMessage());
         }
