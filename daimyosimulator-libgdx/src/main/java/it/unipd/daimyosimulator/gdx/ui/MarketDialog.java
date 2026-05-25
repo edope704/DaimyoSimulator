@@ -1,5 +1,6 @@
 package it.unipd.daimyosimulator.gdx.ui;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -15,15 +16,21 @@ import java.util.function.Consumer;
 /**
  * Modal dialog for trading resources at the Market.
  * Exchange rate: 2 of the "from" resource for 1 of the "to" resource.
- * Requires a Market building on the grid and sufficient "from" stock.
  */
 public final class MarketDialog extends Dialog {
     private static final int[] AMOUNTS = {2, 4, 10};
+    private static final Color COLOR_SELECTED = new Color(0.98f, 0.82f, 0.35f, 1f);
+    private static final Color COLOR_NORMAL   = new Color(0.80f, 0.75f, 0.60f, 1f);
+    private static final Color COLOR_SUCCESS  = new Color(0.50f, 0.90f, 0.50f, 1f);
+    private static final Color COLOR_ERROR    = new Color(1.00f, 0.40f, 0.40f, 1f);
 
     private final CoreGameFacade facade;
     private final Consumer<String> statusConsumer;
     private final Runnable onTradeComplete;
     private final Label resultLabel;
+    private final Label fromSelLabel;
+    private final Label toSelLabel;
+    private final Label amtSelLabel;
     private final Skin skin;
 
     private ResourceType fromType = ResourceType.RICE;
@@ -32,32 +39,69 @@ public final class MarketDialog extends Dialog {
 
     public MarketDialog(Skin skin, CoreGameFacade facade, Consumer<String> statusConsumer,
                         Runnable onTradeComplete) {
-        super("Market Trade (rate 2:1)", skin);
+        super("", skin);
         this.facade = facade;
         this.statusConsumer = statusConsumer;
         this.onTradeComplete = onTradeComplete;
         this.skin = skin;
 
-        resultLabel = new Label("", skin);
+        resultLabel  = new Label("", skin);
+        fromSelLabel = new Label("", skin, "title");
+        toSelLabel   = new Label("", skin, "title");
+        amtSelLabel  = new Label("", skin, "title");
 
         Table content = getContentTable();
-        content.pad(12);
+        content.pad(16);
 
-        content.add(new Label("Give:", skin)).left();
-        content.add(resourceRow(true)).left().padLeft(8);
+        // Title
+        Label title = new Label("Market Trade", skin, "title");
+        title.setColor(new Color(0.98f, 0.82f, 0.35f, 1f));
+        content.add(title).colspan(2).center().padBottom(4);
+        content.row();
+        Label subtitle = new Label("Exchange rate: 2 : 1", skin, "dim");
+        subtitle.setColor(new Color(0.60f, 0.60f, 0.50f, 1f));
+        content.add(subtitle).colspan(2).center().padBottom(14);
+        content.row();
+
+        // Give row
+        Label giveLabel = new Label("Give:", skin);
+        giveLabel.setColor(new Color(0.80f, 0.75f, 0.60f, 1f));
+        content.add(giveLabel).right().padRight(8);
+        content.add(resourceRow(true)).left();
         content.row().padTop(6);
 
-        content.add(new Label("Receive:", skin)).left();
-        content.add(resourceRow(false)).left().padLeft(8);
+        content.add(new Label("", skin));
+        content.add(fromSelLabel).left().padBottom(6);
+        content.row();
+
+        // Receive row
+        Label receiveLabel = new Label("Receive:", skin);
+        receiveLabel.setColor(new Color(0.80f, 0.75f, 0.60f, 1f));
+        content.add(receiveLabel).right().padRight(8);
+        content.add(resourceRow(false)).left();
         content.row().padTop(6);
 
-        content.add(new Label("Amount (of 'Give'):", skin)).left();
-        content.add(amountRow()).left().padLeft(8);
-        content.row().padTop(8);
+        content.add(new Label("", skin));
+        content.add(toSelLabel).left().padBottom(6);
+        content.row();
 
-        content.add(resultLabel).colspan(2).left();
-        content.row().padTop(4);
+        // Amount row
+        Label amtLabel = new Label("Amount:", skin);
+        amtLabel.setColor(new Color(0.80f, 0.75f, 0.60f, 1f));
+        content.add(amtLabel).right().padRight(8);
+        content.add(amountRow()).left();
+        content.row().padTop(6);
 
+        content.add(new Label("", skin));
+        content.add(amtSelLabel).left().padBottom(8);
+        content.row();
+
+        // Result label
+        resultLabel.setWrap(true);
+        content.add(resultLabel).colspan(2).center().width(340).padBottom(6);
+        content.row();
+
+        // Trade button
         TextButton tradeButton = new TextButton("Execute Trade", skin);
         tradeButton.addListener(new ChangeListener() {
             @Override
@@ -70,6 +114,9 @@ public final class MarketDialog extends Dialog {
         button("Close");
         setMovable(true);
         setResizable(false);
+
+        // Show initial preview
+        updateResult();
     }
 
     private Table resourceRow(boolean isFrom) {
@@ -79,11 +126,8 @@ public final class MarketDialog extends Dialog {
             btn.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                    if (isFrom) {
-                        fromType = type;
-                    } else {
-                        toType = type;
-                    }
+                    if (isFrom) fromType = type;
+                    else         toType   = type;
                     updateResult();
                 }
             });
@@ -110,25 +154,34 @@ public final class MarketDialog extends Dialog {
 
     private void executeTrade() {
         if (fromType == toType) {
+            resultLabel.setColor(COLOR_ERROR);
             resultLabel.setText("Cannot trade a resource for itself!");
             return;
         }
         var result = facade.requestTrade(new TradeRequest(fromType, toType, amount));
+        resultLabel.setColor(result.success() ? COLOR_SUCCESS : COLOR_ERROR);
         resultLabel.setText(result.message());
         statusConsumer.accept(result.message());
-        if (result.success()) {
-            onTradeComplete.run();
-        }
+        if (result.success()) onTradeComplete.run();
     }
 
     private void updateResult() {
+        fromSelLabel.setText("Selected: " + displayName(fromType));
+        fromSelLabel.setColor(COLOR_SELECTED);
+        toSelLabel.setText("Selected: " + displayName(toType));
+        toSelLabel.setColor(COLOR_SELECTED);
+        amtSelLabel.setText("Selected: " + amount);
+        amtSelLabel.setColor(COLOR_SELECTED);
+
         if (fromType == toType) {
+            resultLabel.setColor(COLOR_ERROR);
             resultLabel.setText("Select different resources.");
-            return;
+        } else {
+            int received = Math.max(1, amount / 2);
+            resultLabel.setColor(COLOR_NORMAL);
+            resultLabel.setText("Give " + amount + " " + displayName(fromType)
+                    + "  →  receive " + received + " " + displayName(toType));
         }
-        int received = Math.max(1, amount / 2);
-        resultLabel.setText("Will give " + amount + " " + displayName(fromType)
-                + " → receive " + received + " " + displayName(toType));
     }
 
     private static String displayName(ResourceType type) {

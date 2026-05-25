@@ -1,5 +1,6 @@
 package it.unipd.daimyosimulator.gdx.ui;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -15,18 +16,30 @@ import it.unipd.daimyosimulator.gdx.assets.GameAssetManager;
 import java.util.function.Consumer;
 
 public final class PolicyPanel extends Table {
-    private final Label label;
+    private static final Color COLOR_ACTIVE = new Color(0.98f, 0.82f, 0.35f, 1f);
+    private static final Color COLOR_IDLE   = new Color(0.75f, 0.70f, 0.55f, 1f);
+
+    private final Label statusLabel;
 
     public PolicyPanel(Skin skin, GameAssetManager assetManager, CoreGameFacade facade,
                        Consumer<String> statusConsumer, Runnable refresh) {
         setBackground(skin.getDrawable("hud-panel"));
-        label = new Label("", skin);
+        pad(4);
         defaults().pad(2);
-        add(label).colspan(3).left();
+
+        Label header = new Label("POLICIES", skin, "title");
+        add(header).left().colspan(3).padBottom(4);
         row();
+
+        statusLabel = new Label("None active", skin, "dim");
+        statusLabel.setColor(new Color(0.60f, 0.60f, 0.50f, 1f));
+        add(statusLabel).colspan(3).left().padBottom(4);
+        row();
+
         for (PolicyType type : PolicyType.values()) {
+            Table cell = new Table();
+            cell.add(new Image(assetManager.getPolicyIcon(type))).size(22).padRight(3);
             TextButton button = new TextButton(shortName(type), skin);
-            button.add(new Image(assetManager.getPolicyIcon(type))).size(24).padRight(2);
             button.addListener(new TextTooltip(tooltipFor(type), skin));
             button.addListener(new ChangeListener() {
                 @Override
@@ -36,20 +49,25 @@ public final class PolicyPanel extends Table {
                     refresh.run();
                 }
             });
-            add(button).width(118);
+            cell.add(button);
+            add(cell).width(108);
         }
     }
 
     public void refresh(PolicyViewModel policy) {
-        label.setText("Policy " + policy.activeDisplayName()
-                + "  Remaining " + policy.activeRemainingTicks()
-                + "  Cooldowns " + policy.cooldowns());
+        if (policy.activePolicy() != null && policy.activeRemainingTicks() > 0) {
+            statusLabel.setText(policy.activeDisplayName() + "  (" + policy.activeRemainingTicks() + " left)");
+            statusLabel.setColor(COLOR_ACTIVE);
+        } else {
+            statusLabel.setText("None active");
+            statusLabel.setColor(new Color(0.60f, 0.60f, 0.50f, 1f));
+        }
     }
 
     private static String shortName(PolicyType type) {
         return switch (type) {
-            case AGRICULTURAL_EXPANSION -> "Agriculture";
-            case MILITARY_PROTECTION    -> "Military";
+            case AGRICULTURAL_EXPANSION -> "Agri";
+            case MILITARY_PROTECTION    -> "Mil";
             case CRAFTSMEN_PRODUCTION   -> "Craft";
         };
     }
@@ -57,16 +75,16 @@ public final class PolicyPanel extends Table {
     private static String tooltipFor(PolicyType type) {
         return switch (type) {
             case AGRICULTURAL_EXPANSION ->
-                "Agricultural Expansion – Duration: 5 ticks, Cooldown: 8 ticks\n"
-                + "Rice production ×1.5 from paddies.\n"
+                "Agricultural Expansion – 5 ticks  ·  Cooldown: 8 ticks\n"
+                + "Rice Paddy output ×1.5.\n"
                 + "Rice Farmer tool consumption ×1.5.";
             case MILITARY_PROTECTION ->
-                "Military Protection – Duration: 5 ticks, Cooldown: 8 ticks\n"
-                + "Protection multiplier ×1.5 (reduces theft).\n"
+                "Military Protection – 5 ticks  ·  Cooldown: 8 ticks\n"
+                + "Protection multiplier ×1.5 (reduces theft events).\n"
                 + "Samurai tool & luxury consumption ×1.5.";
             case CRAFTSMEN_PRODUCTION ->
-                "Craftsmen Production – Duration: 5 ticks, Cooldown: 8 ticks\n"
-                + "Timber, Tools, Luxury Goods production ×1.5.\n"
+                "Craftsmen Production – 5 ticks  ·  Cooldown: 8 ticks\n"
+                + "Timber, Tools, Luxury Goods output ×1.5.\n"
                 + "Blacksmith & Artisan rice consumption ×1.5.";
         };
     }

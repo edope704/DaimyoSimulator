@@ -28,25 +28,20 @@ public final class GridOverlayRenderer implements Disposable {
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
 
-        // Selected cell (inspect mode) – full opacity yellow.
-        if (selected != null && !buildModeState.isActive()) {
-            batch.setColor(1f, 1f, 1f, 1f);
-            drawOverlay(assetManager.ui().selectedOverlay(), selected);
-        }
-
         if (buildModeState.isActive() && buildModeState.previewPosition().isPresent()) {
             // Build or demolish preview – semi-transparent so tile is visible.
             Position preview = buildModeState.previewPosition().orElseThrow();
             boolean isDemolish = buildModeState.isDemolishMode();
-            String overlay;
-            if (isDemolish) {
-                overlay = assetManager.ui().invalidOverlay();
+            boolean placementValid = !isDemolish && buildModeState.lastPlacementValid().orElse(true);
+            String overlay = placementValid
+                    ? assetManager.ui().validOverlay()
+                    : assetManager.ui().invalidOverlay();
+            // Tint the dashed-border sprite green for valid, red for invalid/demolish.
+            if (placementValid) {
+                batch.setColor(0.30f, 1.0f, 0.30f, HOVER_ALPHA);
             } else {
-                overlay = buildModeState.lastPlacementValid()
-                        .map(valid -> valid ? assetManager.ui().validOverlay() : assetManager.ui().invalidOverlay())
-                        .orElse(assetManager.ui().validOverlay());
+                batch.setColor(1.0f, 0.30f, 0.30f, HOVER_ALPHA);
             }
-            batch.setColor(1f, 1f, 1f, HOVER_ALPHA);
             drawOverlay(overlay, preview);
         } else if (!buildModeState.isActive() && buildModeState.previewPosition().isPresent()) {
             // General hover (no build mode) – subtle blue tint so player can see tile graphics.
