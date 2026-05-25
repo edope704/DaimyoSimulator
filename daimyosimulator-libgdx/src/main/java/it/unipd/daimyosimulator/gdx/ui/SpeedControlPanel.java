@@ -1,5 +1,6 @@
 package it.unipd.daimyosimulator.gdx.ui;
 
+import com.badlogic.gdx.scenes.scene2d.ui.ProgressBar;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
@@ -11,6 +12,7 @@ public final class SpeedControlPanel extends Table {
     private int speedMultiplier = 1;
     private final TextButton pauseButton;
     private final TextButton speedButton;
+    private final ProgressBar tickProgress;
 
     public SpeedControlPanel(Skin skin, GameAssetManager assetManager, Runnable nextTick) {
         setBackground(skin.getDrawable("hud-panel"));
@@ -40,10 +42,14 @@ public final class SpeedControlPanel extends Table {
                 speedButton.setText(speedMultiplier + "x");
             }
         });
+        tickProgress = new ProgressBar(0, 1, 0.001f, false, skin);
+
         defaults().pad(2);
         add(nextButton).width(100);
         add(pauseButton).width(90);
         add(speedButton).width(60);
+        row();
+        add(tickProgress).colspan(3).fillX().height(6).padTop(1).padLeft(2).padRight(2);
     }
 
     public boolean isPaused() {
@@ -52,5 +58,9 @@ public final class SpeedControlPanel extends Table {
 
     public int getSpeedMultiplier() {
         return speedMultiplier;
+    }
+
+    public void updateProgress(float fraction) {
+        tickProgress.setValue(Math.max(0f, Math.min(1f, fraction)));
     }
 }

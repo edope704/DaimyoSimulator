@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.ProgressBar;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextTooltip;
@@ -62,7 +63,9 @@ public final class HudSkinFactory {
         buttonStyle.downFontColor = Color.WHITE;
         buttonStyle.up = skin.getDrawable("hud-panel");
         buttonStyle.down = skin.getDrawable("hud-panel-light");
-        buttonStyle.checked = skin.getDrawable("hud-panel-selected");
+        // No checked drawable → checked state is visually identical to idle.
+        // This prevents non-toggle action buttons from appearing stuck after click.
+        buttonStyle.checked = null;
         buttonStyle.over = skin.getDrawable("hud-panel-light");
         skin.add("default", buttonStyle);
 
@@ -95,6 +98,30 @@ public final class HudSkinFactory {
         windowStyle.background = roundedBorderedDrawable(0.10f, 0.08f, 0.05f, 0.97f,
                 0.38f, 0.28f, 0.12f, 1.0f, r);
         skin.add("default", windowStyle);
+
+        // ── Progress bar styles ────────────────────────────────────────────────
+        // Shared transparent knob (invisible position indicator).
+        Pixmap knobPm = new Pixmap(2, 2, Pixmap.Format.RGBA8888);
+        knobPm.setColor(0f, 0f, 0f, 0f);
+        knobPm.fill();
+        Texture knobTex = new Texture(knobPm);
+        knobPm.dispose();
+        ownedTextures.add(knobTex);
+        TextureRegionDrawable transparentKnob = new TextureRegionDrawable(new TextureRegion(knobTex));
+
+        // Speed panel mini progress bar (green fill).
+        ProgressBar.ProgressBarStyle pbStyle = new ProgressBar.ProgressBarStyle();
+        pbStyle.background  = solidDrawable(0.15f, 0.12f, 0.08f, 0.80f);
+        pbStyle.knobBefore  = solidDrawable(0.35f, 0.72f, 0.28f, 0.90f);
+        pbStyle.knob        = transparentKnob;
+        skin.add("default-horizontal", pbStyle);
+
+        // Full-width bottom tick timer bar (amber-gold pixel-art fill).
+        ProgressBar.ProgressBarStyle tickBarStyle = new ProgressBar.ProgressBarStyle();
+        tickBarStyle.background = solidDrawable(0.10f, 0.08f, 0.06f, 0.95f);
+        tickBarStyle.knobBefore = solidDrawable(0.90f, 0.65f, 0.15f, 1.00f);
+        tickBarStyle.knob       = transparentKnob;
+        skin.add("tick-bar-horizontal", tickBarStyle);
 
         return skin;
     }

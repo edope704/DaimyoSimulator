@@ -92,6 +92,10 @@ public final class VillageScreen extends ScreenAdapter {
             debugOverlay = !debugOverlay;
             hud.setStatus("Debug overlay " + (debugOverlay ? "on" : "off"));
         }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) && buildModeState.isActive()) {
+            buildModeState.clear();
+            hud.refresh(currentSnapshot, facade.getDashboard());
+        }
 
         cameraController.update(delta);
         processAutomaticTicks(delta);
@@ -110,10 +114,12 @@ public final class VillageScreen extends ScreenAdapter {
     private void processAutomaticTicks(float delta) {
         if (hud.isPaused()) {
             autoTickTimer = 0;
+            hud.updateTickProgress(0);
             return;
         }
         autoTickTimer += delta;
-        float interval = 1.2f / hud.getSpeedMultiplier();
+        float interval = 40f / hud.getSpeedMultiplier();
+        hud.updateTickProgress(autoTickTimer / interval);
         if (autoTickTimer >= interval) {
             autoTickTimer = 0;
             var result = facade.advanceTick();

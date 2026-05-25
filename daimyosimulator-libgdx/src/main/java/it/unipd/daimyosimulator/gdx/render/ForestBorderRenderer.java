@@ -19,6 +19,8 @@ public final class ForestBorderRenderer {
     private static final float BASE_SCALE        = 1.25f;
     private static final float SCALE_VARIATION   = 0.30f;
     private static final float Y_OFFSET_FRACTION = 0.12f;
+    // Pixels to push innermost-ring trees outward so they don't clip into the playable grid.
+    private static final float BORDER_INSET_PX   = 10f;
 
     private final GameAssetManager assetManager;
 
@@ -41,21 +43,26 @@ public final class ForestBorderRenderer {
         for (int cx = xMin; cx < xMax; cx++) {
             for (int cy = yMin; cy < yMax; cy++) {
                 if (cx >= 0 && cx < gridW && cy >= 0 && cy < gridH) continue;
-                drawBorderTree(batch, tree, cx, cy, ts);
+                drawBorderTree(batch, tree, cx, cy, ts, gridW, gridH);
             }
         }
         batch.setColor(Color.WHITE);
     }
 
-    private void drawBorderTree(SpriteBatch batch, TextureRegion tree, int cx, int cy, int ts) {
+    private void drawBorderTree(SpriteBatch batch, TextureRegion tree, int cx, int cy, int ts,
+                                int gridW, int gridH) {
         int h = hash(cx, cy);
 
         float scaleFactor = BASE_SCALE + ((h & 0xFF) / 255f - 0.5f) * SCALE_VARIATION;
         float w  = ts * scaleFactor;
         float ht = w * tree.getRegionHeight() / (float) tree.getRegionWidth();
 
-        float px    = cx * ts + (ts - w) / 2f + ((h >> 8 & 0xF) - 8) * 1.5f;
-        float py    = cy * ts + ts * Y_OFFSET_FRACTION;
+        // Push trees on each edge outward by BORDER_INSET_PX to prevent overlap with the grid.
+        float insetX = (cx < 0) ? -BORDER_INSET_PX : (cx >= gridW) ? BORDER_INSET_PX : 0f;
+        float insetY = (cy < 0) ? -BORDER_INSET_PX : (cy >= gridH) ? BORDER_INSET_PX : 0f;
+
+        float px    = cx * ts + (ts - w) / 2f + ((h >> 8 & 0xF) - 8) * 1.5f + insetX;
+        float py    = cy * ts + ts * Y_OFFSET_FRACTION + insetY;
         float alpha = 0.80f + ((h >> 16 & 0xF) / 15f) * 0.20f;
 
         batch.setColor(1f, 1f, 1f, alpha);

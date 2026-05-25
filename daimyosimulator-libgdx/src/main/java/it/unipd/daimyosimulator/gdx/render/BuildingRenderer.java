@@ -11,7 +11,7 @@ import java.util.Comparator;
 
 public final class BuildingRenderer {
     private static final int   RICE_ADJACENCY_RANGE = 1;
-    private static final float INACTIVE_ALPHA       = 0.40f;
+    private static final float INACTIVE_ALPHA       = 0.70f;
 
     private final GameAssetManager assetManager;
 
@@ -28,12 +28,11 @@ public final class BuildingRenderer {
             if (cell.building() != null) {
                 boolean dimmed = cell.building().type() == BuildingType.RICE_PADDY
                         && !hasNearbyFarm(snapshot, cell.position());
-                if (dimmed) batch.setColor(1f, 1f, 1f, INACTIVE_ALPHA);
+                if (dimmed) batch.setColor(0.72f, 0.72f, 0.80f, INACTIVE_ALPHA);
                 var region = assetManager.getBuilding(cell.building().type());
                 drawGroundAnchored(batch, region,
                         cell.position().x() * RenderConstants.TILE_SIZE,
-                        cell.position().y() * RenderConstants.TILE_SIZE,
-                        1.25f);
+                        cell.position().y() * RenderConstants.TILE_SIZE);
                 if (dimmed) batch.setColor(1f, 1f, 1f, 1f);
             }
         }
@@ -42,7 +41,7 @@ public final class BuildingRenderer {
     public void drawPreview(SpriteBatch batch, it.unipd.daimyosimulator.core.building.BuildingType type,
                             int gridX, int gridY) {
         drawGroundAnchored(batch, assetManager.getBuilding(type),
-                gridX * RenderConstants.TILE_SIZE, gridY * RenderConstants.TILE_SIZE, 1.25f);
+                gridX * RenderConstants.TILE_SIZE, gridY * RenderConstants.TILE_SIZE);
     }
 
     private boolean hasNearbyFarm(VillageSnapshot snapshot, Position pos) {
@@ -54,11 +53,16 @@ public final class BuildingRenderer {
     }
 
     private void drawGroundAnchored(SpriteBatch batch, com.badlogic.gdx.graphics.g2d.TextureRegion region,
-                                    float cellX, float cellY, float widthFactor) {
-        float width = RenderConstants.TILE_SIZE * widthFactor;
-        float height = width * region.getRegionHeight() / region.getRegionWidth();
-        float x = cellX + (RenderConstants.TILE_SIZE - width) / 2f;
-        float y = cellY + RenderConstants.TILE_SIZE * 0.08f;
+                                    float cellX, float cellY) {
+        float ts = RenderConstants.TILE_SIZE;
+        float sw = region.getRegionWidth();
+        float sh = region.getRegionHeight();
+        // Scale uniformly so the sprite fits within one tile cell (no horizontal bleed).
+        float scale = ts / Math.max(sw, sh);
+        float width  = sw * scale;
+        float height = sh * scale;
+        float x = cellX + (ts - width)  / 2f;
+        float y = cellY + (ts - height) / 2f;
         batch.draw(region, x, y, width, height);
     }
 }

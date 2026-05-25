@@ -77,8 +77,15 @@ public final class ConstructionService {
             return new PlacementResult(false, "Position outside grid: " + position, before, before);
         }
         var cell = village.getGrid().getCell(position);
-        if (cell.getBuilding().isEmpty()) {
-            return new PlacementResult(false, "No building at " + position + " to demolish", before, before);
+        if (cell.getBuilding().isEmpty() && cell.getNaturalFeature().isEmpty()) {
+            return new PlacementResult(false, "Nothing at " + position + " to demolish", before, before);
+        }
+        if (cell.getNaturalFeature().isPresent()) {
+            String featureName = cell.getNaturalFeature().get().name();
+            cell.clearNaturalFeature();
+            String message = featureName + " at " + position + " cleared";
+            village.addEvent(message);
+            return new PlacementResult(true, message, before, snapshotMapper.toSnapshot(village));
         }
         String name = cell.getBuilding().get().getDisplayName();
         // Unassign workers housed in this dwelling or working here.

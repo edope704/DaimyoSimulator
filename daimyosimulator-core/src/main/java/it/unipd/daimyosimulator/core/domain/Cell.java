@@ -58,4 +58,9 @@ public final class Cell {
     public void clearBuilding() {
         this.building = null;
     }
+
+    /** Removes the natural feature from this cell. No-op if cell has no natural feature. */
+    public void clearNaturalFeature() {
+        this.naturalFeature = null;
+    }
 }

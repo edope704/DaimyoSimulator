@@ -31,9 +31,11 @@ public final class BuildMenu extends Table {
     private final Label buildLimitLabel;
     private final Map<BuildingType, Label> countLabels = new EnumMap<>(BuildingType.class);
     private final TextButton demolishButton;
+    private final BuildModeState buildModeState;
 
     public BuildMenu(Skin skin, GameAssetManager assetManager, BuildModeState buildModeState,
                      Consumer<String> statusConsumer) {
+        this.buildModeState = buildModeState;
         setBackground(skin.getDrawable("hud-panel"));
         defaults().pad(1);
 
@@ -80,8 +82,13 @@ public final class BuildMenu extends Table {
         demolishButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                buildModeState.enterDemolish();
-                statusConsumer.accept("Demolish mode – click a building to remove it (no refund)");
+                if (((TextButton) actor).isChecked()) {
+                    buildModeState.enterDemolish();
+                    statusConsumer.accept("Demolish mode – click a building or forest to remove it");
+                } else {
+                    buildModeState.clear();
+                    statusConsumer.accept("Demolish mode cancelled");
+                }
             }
         });
         add(demolishButton).colspan(2).fillX().height(32).pad(1);
@@ -100,6 +107,9 @@ public final class BuildMenu extends Table {
                 lbl.setText("[" + count + "]");
             }
         }
+        demolishButton.setProgrammaticChangeEvents(false);
+        demolishButton.setChecked(buildModeState.isDemolishMode());
+        demolishButton.setProgrammaticChangeEvents(true);
     }
 
     private static String shortName(BuildingType type) {

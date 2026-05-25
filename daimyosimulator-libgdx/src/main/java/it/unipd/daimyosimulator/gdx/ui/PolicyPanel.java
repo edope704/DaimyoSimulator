@@ -28,12 +28,12 @@ public final class PolicyPanel extends Table {
         defaults().pad(2);
 
         Label header = new Label("POLICIES", skin, "title");
-        add(header).left().colspan(3).padBottom(4);
+        add(header).left().padBottom(4);
         row();
 
         statusLabel = new Label("None active", skin, "dim");
         statusLabel.setColor(new Color(0.60f, 0.60f, 0.50f, 1f));
-        add(statusLabel).colspan(3).left().padBottom(4);
+        add(statusLabel).left().padBottom(4);
         row();
 
         for (PolicyType type : PolicyType.values()) {
@@ -50,7 +50,8 @@ public final class PolicyPanel extends Table {
                 }
             });
             cell.add(button);
-            add(cell).width(108);
+            add(cell).fillX();
+            row();
         }
     }
 
@@ -66,9 +67,9 @@ public final class PolicyPanel extends Table {
 
     private static String shortName(PolicyType type) {
         return switch (type) {
-            case AGRICULTURAL_EXPANSION -> "Agri";
-            case MILITARY_PROTECTION    -> "Mil";
-            case CRAFTSMEN_PRODUCTION   -> "Craft";
+            case AGRICULTURAL_EXPANSION -> "Agriculture";
+            case MILITARY_PROTECTION    -> "Military";
+            case CRAFTSMEN_PRODUCTION   -> "Craftsmen";
         };
     }
 
