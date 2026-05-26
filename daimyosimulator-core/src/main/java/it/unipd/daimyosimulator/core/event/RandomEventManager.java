@@ -26,27 +26,27 @@ public final class RandomEventManager {
             return reports;
         }
 
-        double theftProbability = 0.03
-                + (100 - village.getParameters().getProtection()) / 1000.0
-                + (100 - village.getParameters().getHousing()) / 1500.0;
+        double theftProbability = 0.0075
+                + (100 - village.getParameters().getProtection()) / 4000.0
+                + (100 - village.getParameters().getHousing()) / 6000.0;
         if (randomProvider.chance(theftProbability)) {
             reports.add(applyFull(village, new ResourceTheftEvent()));
         }
 
-        double productivityProbability = village.getParameters().getProtection() >= 70 ? 0.06 : 0.02;
+        double productivityProbability = village.getParameters().getProtection() >= 70 ? 0.015 : 0.005;
         if (randomProvider.chance(productivityProbability)) {
             reports.add(applyFull(village, new ProductivitySpikeEvent()));
         }
 
-        if (village.getParameters().getFaith() >= 50 && randomProvider.chance(0.05)) {
+        if (village.getParameters().getFaith() >= 50 && randomProvider.chance(0.0125)) {
             reports.add(applyFull(village, new ReligiousFestivalEvent()));
         }
 
-        if (village.getParameters().getCraftsmanship() >= 50 && randomProvider.chance(0.05)) {
+        if (village.getParameters().getCraftsmanship() >= 50 && randomProvider.chance(0.0125)) {
             reports.add(applyFull(village, new CraftsmanshipBreakthroughEvent()));
         }
 
-        if (village.getGrid().hasBuilding(BuildingType.WORKSHOP) && randomProvider.chance(0.03)) {
+        if (village.getGrid().hasBuilding(BuildingType.WORKSHOP) && randomProvider.chance(0.0075)) {
             reports.add(applyFull(village, new WorkshopAccidentEvent()));
         }
         return reports;
