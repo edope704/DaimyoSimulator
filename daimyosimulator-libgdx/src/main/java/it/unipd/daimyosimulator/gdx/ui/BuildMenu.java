@@ -11,6 +11,7 @@ import it.unipd.daimyosimulator.core.building.BuildingType;
 import it.unipd.daimyosimulator.core.app.view.VillageSnapshot;
 import it.unipd.daimyosimulator.core.resource.ResourceType;
 import it.unipd.daimyosimulator.gdx.assets.GameAssetManager;
+import it.unipd.daimyosimulator.gdx.assets.GameSoundManager;
 import it.unipd.daimyosimulator.gdx.input.BuildModeState;
 
 import java.util.EnumMap;
@@ -34,9 +35,12 @@ public final class BuildMenu extends Table {
     private final TextButton demolishButton;
     private final BuildModeState buildModeState;
 
+    private final GameSoundManager soundManager;
+
     public BuildMenu(Skin skin, GameAssetManager assetManager, BuildModeState buildModeState,
-                     Consumer<String> statusConsumer) {
+                     Consumer<String> statusConsumer, GameSoundManager soundManager) {
         this.buildModeState = buildModeState;
+        this.soundManager = soundManager;
         setBackground(skin.getDrawable("hud-panel"));
         defaults().pad(1);
 
@@ -57,6 +61,7 @@ public final class BuildMenu extends Table {
             button.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                    soundManager.playClick();
                     buildModeState.enter(type);
                     statusConsumer.accept("Build mode: " + shortName(type) + " – click grid to place");
                 }
@@ -80,6 +85,7 @@ public final class BuildMenu extends Table {
         demolishButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                soundManager.playClick();
                 if (((TextButton) actor).isChecked()) {
                     buildModeState.enterDemolish();
                     statusConsumer.accept("Demolish mode – click a building or forest to remove it");

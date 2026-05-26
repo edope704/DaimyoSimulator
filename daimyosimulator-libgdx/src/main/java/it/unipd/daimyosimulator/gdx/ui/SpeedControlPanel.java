@@ -10,6 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import it.unipd.daimyosimulator.gdx.assets.GameAssetManager;
+import it.unipd.daimyosimulator.gdx.assets.GameSoundManager;
 
 public final class SpeedControlPanel extends Table {
     private boolean paused = false;
@@ -21,8 +22,12 @@ public final class SpeedControlPanel extends Table {
     private final Image pauseIcon;
     private final GameAssetManager assetManager;
 
-    public SpeedControlPanel(Skin skin, GameAssetManager assetManager, Runnable nextTick) {
+    private final GameSoundManager soundManager;
+
+    public SpeedControlPanel(Skin skin, GameAssetManager assetManager, Runnable nextTick,
+                             GameSoundManager soundManager) {
         this.assetManager = assetManager;
+        this.soundManager = soundManager;
         setBackground(skin.getDrawable("hud-panel"));
 
         TextButton nextButton = new TextButton("Next", skin);
@@ -38,12 +43,14 @@ public final class SpeedControlPanel extends Table {
         nextButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                soundManager.playClick();
                 nextTick.run();
             }
         });
         pauseButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                soundManager.playClick();
                 paused = !paused;
                 pauseButton.setText(paused ? "Resume" : "Pause");
                 pauseIcon.setDrawable(new TextureRegionDrawable(
@@ -55,6 +62,7 @@ public final class SpeedControlPanel extends Table {
         speedButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                soundManager.playClick();
                 speedMultiplier = speedMultiplier == 1 ? 2 : speedMultiplier == 2 ? 4 : 1;
                 speedButton.setText(speedMultiplier + "x");
             }

@@ -13,6 +13,7 @@ import it.unipd.daimyosimulator.core.app.view.EventLogViewModel;
 import it.unipd.daimyosimulator.core.app.view.VillageSnapshot;
 import it.unipd.daimyosimulator.core.domain.Position;
 import it.unipd.daimyosimulator.gdx.assets.GameAssetManager;
+import it.unipd.daimyosimulator.gdx.assets.GameSoundManager;
 import it.unipd.daimyosimulator.gdx.input.BuildModeState;
 
 import java.util.function.Consumer;
@@ -33,17 +34,20 @@ public final class DashboardHud extends Table {
     private Runnable onManualTickCallback = () -> { };
     private Position selectedPosition;
 
+    private final GameSoundManager soundManager;
+
     public DashboardHud(Skin skin, GameAssetManager assetManager, CoreGameFacade facade,
-                        BuildModeState buildModeState) {
+                        BuildModeState buildModeState, GameSoundManager soundManager) {
         this.skin = skin;
         this.facade = facade;
-        this.buildMenu            = new BuildMenu(skin, assetManager, buildModeState, this::setStatus);
+        this.soundManager = soundManager;
+        this.buildMenu            = new BuildMenu(skin, assetManager, buildModeState, this::setStatus, soundManager);
         this.resourcePanel        = new ResourcePanel(skin, assetManager);
         this.populationPanel      = new PopulationPanel(skin, assetManager);
         this.parameterPanel       = new VillageParameterPanel(skin, assetManager);
         this.selectedBuildingPanel = new SelectedBuildingPanel(skin, assetManager, this::openMarket);
         this.eventLogPanel        = new EventLogPanel(skin, assetManager);
-        this.speedControlPanel    = new SpeedControlPanel(skin, assetManager, this::nextTick);
+        this.speedControlPanel    = new SpeedControlPanel(skin, assetManager, this::nextTick, soundManager);
         this.policyPanel          = new PolicyPanel(skin, assetManager, facade, this::setStatus,
                 () -> refresh(facade.getCurrentSnapshot(), facade.getDashboard()));
         this.warningPanel         = new WarningPanel(skin);
@@ -52,6 +56,7 @@ public final class DashboardHud extends Table {
         TextButton helpButton = new TextButton("?", skin);
         helpButton.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                soundManager.playClick();
                 openTutorial();
             }
         });
@@ -59,6 +64,7 @@ public final class DashboardHud extends Table {
         TextButton cmdButton = new TextButton("Cmd", skin);
         cmdButton.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                soundManager.playClick();
                 openCommands();
             }
         });
