@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextTooltip;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import it.unipd.daimyosimulator.core.building.BuildingType;
 import it.unipd.daimyosimulator.core.app.view.VillageSnapshot;
+import it.unipd.daimyosimulator.core.resource.ResourceType;
 import it.unipd.daimyosimulator.gdx.assets.GameAssetManager;
 import it.unipd.daimyosimulator.gdx.input.BuildModeState;
 
@@ -47,9 +48,10 @@ public final class BuildMenu extends Table {
 
         for (BuildingType type : BuildingType.values()) {
             int cost = costFor(type);
-            String label = shortName(type) + " (" + cost + "■)";
+            String label = shortName(type) + " " + cost;
 
             TextButton button = new TextButton(label, skin);
+            button.add(new Image(assetManager.getResourceIcon(ResourceType.TIMBER))).size(16).padLeft(2).padRight(1);
             button.add(new Image(assetManager.getBuilding(type))).size(20).padRight(2);
             button.addListener(new TextTooltip(tooltipFor(type), skin));
             button.addListener(new ChangeListener() {
@@ -64,14 +66,10 @@ public final class BuildMenu extends Table {
             Label countLabel = new Label("[0]", skin, "dim");
             countLabels.put(type, countLabel);
 
-            add(button).width(134).height(32).left();
+            add(button).width(155).height(32).left();
             add(countLabel).width(22).right();
             row();
         }
-
-        // Separator.
-        add(new Label("──────────────────", skin, "dim")).colspan(2).left().padLeft(2);
-        row();
 
         // Demolish button.
         demolishButton = new TextButton("Demolish", skin, "demolish");
@@ -145,7 +143,7 @@ public final class BuildMenu extends Table {
     private static String tooltipFor(BuildingType type) {
         return switch (type) {
             case DWELLING ->
-                "Dwelling – Cost: 15 timber\n"
+                "Dwelling - Cost: 15 timber\n"
                 + "Houses 4 villagers. Unhoused villagers cannot work.\n"
                 + "Build more to allow population growth.";
             case RICE_FARM ->

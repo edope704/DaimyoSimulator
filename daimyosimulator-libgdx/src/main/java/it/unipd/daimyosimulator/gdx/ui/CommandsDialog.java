@@ -81,7 +81,7 @@ public final class CommandsDialog extends Dialog {
         cat.setColor(COLOR_CATEGORY);
         grid.add(cat).colspan(2).left().padTop(10).padBottom(2);
         grid.row();
-        Label sep = new Label("──────────────────────────────────────────────────────────────", skin, "dim");
+        Label sep = new Label("--------------------------------------------------------------", skin, "dim");
         sep.setColor(COLOR_DIVIDER);
         grid.add(sep).colspan(2).left().padBottom(2);
         grid.row();

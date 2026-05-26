@@ -11,7 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane.ScrollPaneStyle;
 public final class TutorialDialog extends Dialog {
     private static final String TEXT =
         "DAIMYO SIMULATOR – QUICK GUIDE\n"
-        + "═══════════════════════════════════════════\n\n"
+        + "==========================================\n\n"
         + "GOAL\n"
         + "Grow your village, feed your people, and survive random events.\n\n"
         + "CONTROLS\n"
@@ -32,17 +32,17 @@ public final class TutorialDialog extends Dialog {
         + "BUILD LIMIT\n"
         + "  You may only place 2 buildings per tick.\n"
         + "  The counter 'Builds: x/y' in the left panel resets each tick.\n\n"
-        + "BUILDINGS (cost in timber ■)\n"
-        + "  Dwelling  15■  – houses 4 villagers. Unhoused cannot work.\n"
-        + "  Farm      18■  – 3 Farmer slots. Needs adjacent Paddies.\n"
-        + "  Paddy      8■  – boosts adjacent Farm. +5 rice/tick per pair.\n"
-        + "  Woodcutter 20■ – 3 Woodcutter slots. MUST touch a Forest.\n"
-        + "  Mine       25■ – prerequisite for Smithy & Workshop.\n"
-        + "  Smithy     30■ – 2 Blacksmith slots → +2 Tools/tick.\n"
-        + "  Workshop   35■ – 2 Artisan slots → +2 Luxury/3 ticks.\n"
-        + "  Market     25■ – 2 Trader slots. Enables resource trading.\n"
-        + "  Guard Post 25■ – 2 Samurai slots → raises Protection.\n"
-        + "  Temple     30■ – 2 Monk slots → raises Faith & Happiness.\n\n"
+        + "BUILDINGS (cost in timber t)\n"
+        + "  Dwelling  15t  – houses 4 villagers. Unhoused cannot work.\n"
+        + "  Farm      18t  – 3 Farmer slots. Needs adjacent Paddies.\n"
+        + "  Paddy      8t  – boosts adjacent Farm. +5 rice/tick per pair.\n"
+        + "  Woodcutter 20t – 3 Woodcutter slots. MUST touch a Forest.\n"
+        + "  Mine       25t – prerequisite for Smithy & Workshop.\n"
+        + "  Smithy     30t – 2 Blacksmith slots → +2 Tools/tick.\n"
+        + "  Workshop   35t – 2 Artisan slots → +2 Luxury/3 ticks.\n"
+        + "  Market     25t – 2 Trader slots. Enables resource trading.\n"
+        + "  Guard Post 25t – 2 Samurai slots → raises Protection.\n"
+        + "  Temple     30t – 2 Monk slots → raises Faith & Happiness.\n\n"
         + "POPULATION\n"
         + "  All 8 start unhoused. Build Dwellings first!\n"
         + "  Idle villagers auto-fill job slots each tick.\n"
@@ -77,7 +77,8 @@ public final class TutorialDialog extends Dialog {
         ScrollPane scroll = new ScrollPane(content, new ScrollPaneStyle());
         scroll.setScrollingDisabled(true, false);
 
-        getContentTable().add(scroll).size(580, 420).pad(8);
+        getContentTable().pad(14);
+        getContentTable().add(scroll).size(580, 420);
 
         button("Close");
         setMovable(true);

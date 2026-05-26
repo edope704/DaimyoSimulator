@@ -34,9 +34,10 @@ public final class VillageScreen extends ScreenAdapter {
     private Stage stage;
     private Skin skin;
     private DashboardHud hud;
-    private float autoTickTimer;
+    private float autoTickFraction;   // 0..1 progress through current tick interval
     private boolean debugOverlay;
     private boolean tutorialShown = false;
+    private Runnable onManualTick;
 
     /** Called from MainMenuScreen when starting a brand-new village. */
     public VillageScreen(DaimyoSimulatorGame game, GameAssetManager assetManager, boolean showTutorial) {
@@ -62,8 +63,9 @@ public final class VillageScreen extends ScreenAdapter {
         currentSnapshot = facade.getCurrentSnapshot();
         camera = new OrthographicCamera();
         camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        camera.position.set(currentSnapshot.width() * RenderConstants.TILE_SIZE / 2f,
-                currentSnapshot.height() * RenderConstants.TILE_SIZE / 2f, 0);
+        float worldSize = RenderConstants.RENDER_GRID_SIZE * (float) RenderConstants.TILE_SIZE;
+        camera.position.set(worldSize / 2f, worldSize / 2f, 0);
+        camera.zoom = worldSize / Math.max(camera.viewportWidth, camera.viewportHeight);
         camera.update();
         cameraController = new CameraController(camera);
         worldRenderer = new WorldRenderer(assetManager);
@@ -72,6 +74,8 @@ public final class VillageScreen extends ScreenAdapter {
         skin  = new HudSkinFactory().create(assetManager);
         hud   = new DashboardHud(skin, assetManager, facade, buildModeState);
         hud.setSnapshotConsumer(this::setSnapshot);
+        onManualTick = () -> { autoTickFraction = 0f; hud.updateTickProgress(0f); };
+        hud.setOnManualTickCallback(onManualTick);
         hud.refresh(currentSnapshot, facade.getDashboard());
         stage.addActor(hud);
 
@@ -113,15 +117,13 @@ public final class VillageScreen extends ScreenAdapter {
 
     private void processAutomaticTicks(float delta) {
         if (hud.isPaused()) {
-            autoTickTimer = 0;
-            hud.updateTickProgress(0);
             return;
         }
-        autoTickTimer += delta;
         float interval = 40f / hud.getSpeedMultiplier();
-        hud.updateTickProgress(autoTickTimer / interval);
-        if (autoTickTimer >= interval) {
-            autoTickTimer = 0;
+        autoTickFraction += delta / interval;
+        hud.updateTickProgress(Math.min(1f, autoTickFraction));
+        if (autoTickFraction >= 1f) {
+            autoTickFraction = 0f;
             var result = facade.advanceTick();
             setSnapshot(result.afterState());
             hud.refreshAfterTick(result);

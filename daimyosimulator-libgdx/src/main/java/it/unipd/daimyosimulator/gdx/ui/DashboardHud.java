@@ -1,7 +1,6 @@
 package it.unipd.daimyosimulator.gdx.ui;
 
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.ProgressBar;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
@@ -30,9 +29,8 @@ public final class DashboardHud extends Table {
     private final PolicyPanel policyPanel;
     private final SpeedControlPanel speedControlPanel;
     private final WarningPanel warningPanel;
-    private final ProgressBar screenTickBar;
-    private final Label tickLabel;
     private Consumer<VillageSnapshot> snapshotConsumer = snapshot -> { };
+    private Runnable onManualTickCallback = () -> { };
     private Position selectedPosition;
 
     public DashboardHud(Skin skin, GameAssetManager assetManager, CoreGameFacade facade,
@@ -49,8 +47,6 @@ public final class DashboardHud extends Table {
         this.policyPanel          = new PolicyPanel(skin, assetManager, facade, this::setStatus,
                 () -> refresh(facade.getCurrentSnapshot(), facade.getDashboard()));
         this.warningPanel         = new WarningPanel(skin);
-        this.tickLabel            = new Label("Tick: 0", skin, "dim");
-        this.screenTickBar        = new ProgressBar(0, 1, 0.001f, false, skin, "tick-bar-horizontal");
 
         // ── Top bar ───────────────────────────────────────────────────────────
         TextButton helpButton = new TextButton("?", skin);
@@ -106,24 +102,21 @@ public final class DashboardHud extends Table {
         row();
 
         Table middle = new Table();
-        middle.add(leftCol).width(180).expandY().left().top().padLeft(6);
+        middle.add(leftCol).width(200).expandY().left().top().padLeft(6);
         middle.add(new Table()).expandX().expand();       // empty game viewport
         middle.add(rightCol).width(180).expandY().right().top().padRight(6);
 
         add(middle).expandX().expandY().fillX().fillY();
         row();
-        add(bottom).expandX().height(88).fillX().left().bottom().padLeft(6).padRight(6).padTop(6).padBottom(2);
-        row();
-        // ── Full-width pixel-art tick timer bar ───────────────────────────────
-        Table tickRow = new Table();
-        tickRow.setBackground(skin.getDrawable("hud-panel"));
-        tickRow.add(tickLabel).padLeft(10).padRight(6).width(72);
-        tickRow.add(screenTickBar).expandX().fillX().height(14).padRight(10);
-        add(tickRow).expandX().height(22).fillX().bottom().padLeft(4).padRight(4).padBottom(4);
+        add(bottom).expandX().height(88).fillX().left().bottom().padLeft(6).padRight(6).padTop(6).padBottom(6);
     }
 
     public void setSnapshotConsumer(Consumer<VillageSnapshot> snapshotConsumer) {
         this.snapshotConsumer = snapshotConsumer;
+    }
+
+    public void setOnManualTickCallback(Runnable callback) {
+        this.onManualTickCallback = callback;
     }
 
     public void refresh(VillageSnapshot snapshot, DashboardViewModel dashboard) {
@@ -133,7 +126,7 @@ public final class DashboardHud extends Table {
         policyPanel.refresh(dashboard.policy());
         eventLogPanel.refresh(new EventLogViewModel(snapshot.latestEvents()));
         buildMenu.refresh(snapshot);
-        tickLabel.setText("Tick: " + snapshot.tick());
+        speedControlPanel.updateTick(snapshot.tick());
     }
 
     /** Called after each tick advance; updates resource deltas and all panels. */
@@ -148,7 +141,7 @@ public final class DashboardHud extends Table {
         policyPanel.refresh(result.afterState().policy());
         eventLogPanel.refresh(new EventLogViewModel(result.afterState().latestEvents()));
         warningPanel.onTick(result.afterState().resources());
-        tickLabel.setText("Tick: " + result.afterState().tick());
+        speedControlPanel.updateTick(result.afterState().tick());
     }
 
     public void setStatus(String status) {
@@ -173,9 +166,7 @@ public final class DashboardHud extends Table {
     }
 
     public void updateTickProgress(float fraction) {
-        float clamped = Math.max(0f, Math.min(1f, fraction));
-        speedControlPanel.updateProgress(clamped);
-        screenTickBar.setValue(clamped);
+        speedControlPanel.updateProgress(Math.max(0f, Math.min(1f, fraction)));
     }
 
     private void nextTick() {
@@ -186,6 +177,7 @@ public final class DashboardHud extends Table {
         setStatus(status);
         snapshotConsumer.accept(result.afterState());
         refreshAfterTick(result);
+        onManualTickCallback.run();
         EventModal.showIfAny(skin, result.randomEventReports(), getStage());
     }
 

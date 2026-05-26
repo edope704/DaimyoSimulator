@@ -29,8 +29,8 @@ public final class WorldRenderer implements Disposable {
                        Position selected, float delta, boolean debug) {
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
-        forestBorderRenderer.render(batch, snapshot);
         tileRenderer.render(batch, snapshot);
+        forestBorderRenderer.render(batch, snapshot);
         naturalFeatureRenderer.render(batch, snapshot);
         buildingRenderer.render(batch, snapshot);
         if (buildModeState.isActive() && buildModeState.previewPosition().isPresent()) {

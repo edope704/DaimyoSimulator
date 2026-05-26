@@ -94,9 +94,9 @@ public final class HudSkinFactory {
         Window.WindowStyle windowStyle = new Window.WindowStyle();
         windowStyle.titleFont = font;
         windowStyle.titleFontColor = new Color(0.98f, 0.85f, 0.45f, 1f);
-        // Raised panel: dark fill with a warm border.
-        windowStyle.background = roundedBorderedDrawable(0.10f, 0.08f, 0.05f, 0.97f,
-                0.38f, 0.28f, 0.12f, 1.0f, r);
+        // Title bar needs enough top inset to fit the font (~20px at 1.1× scale).
+        windowStyle.background = windowBorderedDrawable(0.10f, 0.08f, 0.05f, 0.97f,
+                0.38f, 0.28f, 0.12f, 1.0f, r, 24);
         skin.add("default", windowStyle);
 
         // ── Progress bar styles ────────────────────────────────────────────────
@@ -174,6 +174,38 @@ public final class HudSkinFactory {
         pm.fillCircle(x + w - r - 1, y + r, r);
         pm.fillCircle(x + r, y + h - r - 1, r);
         pm.fillCircle(x + w - r - 1, y + h - r - 1, r);
+    }
+
+    /**
+     * Like roundedBorderedDrawable but with a separate (larger) top split so the
+     * Window title bar has enough vertical space to render without clipping.
+     */
+    private Drawable windowBorderedDrawable(
+            float fr, float fg, float fb, float fa,
+            float br, float bg, float bb, float ba,
+            int radius, int topInset) {
+
+        int size = Math.max(Math.max(radius * 2 + 6, topInset + radius + 4), 16);
+        Pixmap pm = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+        pm.setColor(0, 0, 0, 0);
+        pm.fill();
+
+        drawRoundedRect(pm, 0, 0, size, size, radius, new Color(br, bg, bb, ba));
+        if (radius > 1) {
+            drawRoundedRect(pm, 1, 1, size - 2, size - 2, radius - 1, new Color(fr, fg, fb, fa));
+        } else {
+            pm.setColor(fr, fg, fb, fa);
+            pm.fillRectangle(1, 1, size - 2, size - 2);
+        }
+
+        Texture tex = new Texture(pm);
+        tex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        pm.dispose();
+        ownedTextures.add(tex);
+
+        // top split uses topInset so the Window reserves enough height for the title bar.
+        NinePatch np = new NinePatch(tex, radius, radius, topInset, radius);
+        return new NinePatchDrawable(np);
     }
 
     /** Flat 2×2 drawable (kept for overlay uses that don't need rounded corners). */

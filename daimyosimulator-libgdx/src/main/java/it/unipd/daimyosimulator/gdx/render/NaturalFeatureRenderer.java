@@ -16,8 +16,8 @@ public final class NaturalFeatureRenderer {
             if (cell.naturalFeature() != null) {
                 var region = assetManager.getFeature(cell.naturalFeature());
                 drawGroundAnchored(batch, region,
-                        cell.position().x() * RenderConstants.TILE_SIZE,
-                        cell.position().y() * RenderConstants.TILE_SIZE);
+                        (cell.position().x() + RenderConstants.PLAYABLE_OFFSET) * RenderConstants.TILE_SIZE,
+                        (cell.position().y() + RenderConstants.PLAYABLE_OFFSET) * RenderConstants.TILE_SIZE);
             }
         }
     }

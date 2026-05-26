@@ -37,12 +37,12 @@ public final class EventLogPanel extends Table {
         setBackground(skin.getDrawable("hud-panel"));
         pad(4, 6, 4, 6);
 
-        TextButton expandBtn = new TextButton("▼", skin);
+        TextButton expandBtn = new TextButton("v", skin);
         expandBtn.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
                 expanded = !expanded;
-                expandBtn.setText(expanded ? "▲" : "▼");
+                expandBtn.setText(expanded ? "^" : "v");
                 scrollCell.height(expanded ? HEIGHT_EXPANDED : HEIGHT_COLLAPSED);
                 invalidateHierarchy();
             }
@@ -88,7 +88,7 @@ public final class EventLogPanel extends Table {
     private void redraw() {
         rows.clearChildren();
         for (Entry entry : entries) {
-            String bullet = entry.isGame() ? "◆ " : "· ";
+            String bullet = entry.isGame() ? "* " : ". ";
             Color  color  = entry.isGame() ? COLOR_GAME : COLOR_STATUS;
             Label  row    = new Label(bullet + entry.text(), skin, "dim");
             row.setColor(color);
