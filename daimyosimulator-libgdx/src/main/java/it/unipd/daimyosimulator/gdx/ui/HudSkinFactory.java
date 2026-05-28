@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ProgressBar;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextTooltip;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
@@ -34,14 +35,20 @@ public final class HudSkinFactory {
         Label.LabelStyle labelStyle = new Label.LabelStyle(font, Color.WHITE);
         skin.add("default", labelStyle);
 
-        Label.LabelStyle warningStyle = new Label.LabelStyle(font, new Color(1f, 0.35f, 0.25f, 1f));
+        // Vivid red — used for critical warnings and failed-action alerts.
+        Label.LabelStyle warningStyle = new Label.LabelStyle(font, new Color(1f, 0.20f, 0.08f, 1f));
         skin.add("warning", warningStyle);
 
-        Label.LabelStyle dimStyle = new Label.LabelStyle(font, new Color(0.6f, 0.6f, 0.6f, 1f));
+        Label.LabelStyle dimStyle = new Label.LabelStyle(font, new Color(0.62f, 0.62f, 0.62f, 1f));
         skin.add("dim", dimStyle);
 
-        Label.LabelStyle titleStyle = new Label.LabelStyle(font, new Color(0.98f, 0.82f, 0.35f, 1f));
+        // Sharp gold — section headers, key labels.
+        Label.LabelStyle titleStyle = new Label.LabelStyle(font, new Color(1f, 0.88f, 0.15f, 1f));
         skin.add("title", titleStyle);
+
+        // Warm amber — mid-priority hints, build costs, resource keys.
+        Label.LabelStyle hintStyle = new Label.LabelStyle(font, new Color(1f, 0.72f, 0.10f, 1f));
+        skin.add("hint", hintStyle);
 
         // ── Panel drawables (rounded) ─────────────────────────────────────────
         int r = 5; // corner radius for panels
@@ -122,6 +129,50 @@ public final class HudSkinFactory {
         tickBarStyle.knobBefore = solidDrawable(0.90f, 0.65f, 0.15f, 1.00f);
         tickBarStyle.knob       = transparentKnob;
         skin.add("tick-bar-horizontal", tickBarStyle);
+
+        // ── Slider style (used by AudioSettingsDialog) ─────────────────────────
+        // Track: 8px-tall dark bar that stretches horizontally.
+        Pixmap sliderTrackPm = new Pixmap(2, 8, Pixmap.Format.RGBA8888);
+        sliderTrackPm.setColor(0.18f, 0.14f, 0.08f, 1.0f);
+        sliderTrackPm.fill();
+        Texture sliderTrackTex = new Texture(sliderTrackPm);
+        sliderTrackPm.dispose();
+        ownedTextures.add(sliderTrackTex);
+        TextureRegionDrawable sliderTrack = new TextureRegionDrawable(new TextureRegion(sliderTrackTex));
+
+        // Fill before the knob: amber.
+        Pixmap sliderFillPm = new Pixmap(2, 8, Pixmap.Format.RGBA8888);
+        sliderFillPm.setColor(0.85f, 0.60f, 0.12f, 1.0f);
+        sliderFillPm.fill();
+        Texture sliderFillTex = new Texture(sliderFillPm);
+        sliderFillPm.dispose();
+        ownedTextures.add(sliderFillTex);
+        TextureRegionDrawable sliderFill = new TextureRegionDrawable(new TextureRegion(sliderFillTex));
+
+        // Knob: 14×14 gold circle rendered into a Pixmap for a crisp handle.
+        Pixmap knobCirclePm = new Pixmap(14, 14, Pixmap.Format.RGBA8888);
+        knobCirclePm.setColor(0f, 0f, 0f, 0f);
+        knobCirclePm.fill();
+        knobCirclePm.setColor(0.80f, 0.55f, 0.08f, 1f);  // dark-gold border ring
+        knobCirclePm.fillCircle(7, 7, 7);
+        knobCirclePm.setColor(1f, 0.88f, 0.22f, 1f);      // bright-gold centre
+        knobCirclePm.fillCircle(7, 7, 5);
+        Texture knobCircleTex = new Texture(knobCirclePm);
+        knobCirclePm.dispose();
+        ownedTextures.add(knobCircleTex);
+        TextureRegionDrawable sliderKnob = new TextureRegionDrawable(new TextureRegion(knobCircleTex));
+
+        Slider.SliderStyle sliderStyle = new Slider.SliderStyle();
+        sliderStyle.background = sliderTrack;
+        sliderStyle.knobBefore = sliderFill;
+        sliderStyle.knob       = sliderKnob;
+        skin.add("default-horizontal", sliderStyle);
+
+        // ── UI icon drawables ─────────────────────────────────────────────────
+        skin.add("icon-settings", new TextureRegionDrawable(assetManager.getRegion("settings_icon")),  Drawable.class);
+        skin.add("icon-sound",    new TextureRegionDrawable(assetManager.getRegion("sound_icon")),     Drawable.class);
+        skin.add("icon-question", new TextureRegionDrawable(assetManager.getRegion("question_icon")), Drawable.class);
+        skin.add("icon-alert",    new TextureRegionDrawable(assetManager.getRegion("icon_event_alert")), Drawable.class);
 
         return skin;
     }

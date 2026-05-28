@@ -16,7 +16,7 @@ public final class GameSoundManager implements Disposable {
     public GameSoundManager() {
         bgMusic = Gdx.audio.newMusic(Gdx.files.internal(AUDIO_DIR + "music_bg.mp3"));
         bgMusic.setLooping(true);
-        bgMusic.setVolume(0.5f);
+        bgMusic.setVolume(AudioSettings.getMusicVolume());
         bgMusic.play();
 
         clickSound    = Gdx.audio.newSound(Gdx.files.internal(AUDIO_DIR + "sfx_click.mp3"));
@@ -24,9 +24,24 @@ public final class GameSoundManager implements Disposable {
         demolishSound = Gdx.audio.newSound(Gdx.files.internal(AUDIO_DIR + "sfx_demolish.mp3"));
     }
 
-    public void playClick()    { clickSound.play(0.8f); }
-    public void playBuild()    { buildSound.play(1.0f); }
-    public void playDemolish() { demolishSound.play(1.0f); }
+    // ── Playback ──────────────────────────────────────────────────────────────
+
+    public void playClick()    { clickSound.play(AudioSettings.getSfxVolume() * 0.8f); }
+    public void playBuild()    { buildSound.play(AudioSettings.getSfxVolume()); }
+    public void playDemolish() { demolishSound.play(AudioSettings.getSfxVolume()); }
+
+    // ── Volume control (called by AudioSettingsDialog) ────────────────────────
+
+    /** Updates both AudioSettings and the live background music volume. */
+    public void setMusicVolume(float v) {
+        AudioSettings.setMusicVolume(v);
+        bgMusic.setVolume(AudioSettings.getMusicVolume());
+    }
+
+    /** Updates AudioSettings; the new SFX volume is read on the next play call. */
+    public void setSfxVolume(float v) {
+        AudioSettings.setSfxVolume(v);
+    }
 
     @Override
     public void dispose() {

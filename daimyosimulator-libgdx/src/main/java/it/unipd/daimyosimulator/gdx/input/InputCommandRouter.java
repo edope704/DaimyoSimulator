@@ -18,6 +18,7 @@ public final class InputCommandRouter {
     private final Consumer<String> messageConsumer;
     private final Consumer<CellViewModel> cellConsumer;
     private final GameSoundManager soundManager;
+    private final Consumer<String> alertConsumer;
     private final BuildingSpriteRegistry buildingSpriteRegistry = new BuildingSpriteRegistry();
 
     public InputCommandRouter(
@@ -26,7 +27,8 @@ public final class InputCommandRouter {
             Consumer<VillageSnapshot> snapshotConsumer,
             Consumer<String> messageConsumer,
             Consumer<CellViewModel> cellConsumer,
-            GameSoundManager soundManager
+            GameSoundManager soundManager,
+            Consumer<String> alertConsumer
     ) {
         this.facade = facade;
         this.buildModeState = buildModeState;
@@ -34,6 +36,7 @@ public final class InputCommandRouter {
         this.messageConsumer = messageConsumer;
         this.cellConsumer = cellConsumer;
         this.soundManager = soundManager;
+        this.alertConsumer = alertConsumer;
     }
 
     /** Right-click or Escape: cancel current build/demolish mode. */
@@ -71,6 +74,8 @@ public final class InputCommandRouter {
                 if (result.success()) {
                     soundManager.playBuild();
                     buildModeState.clear();
+                } else {
+                    alertConsumer.accept(result.message());
                 }
             });
             return;

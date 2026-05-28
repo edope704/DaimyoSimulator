@@ -15,6 +15,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import it.unipd.daimyosimulator.core.app.CoreGameFacade;
 import it.unipd.daimyosimulator.gdx.DaimyoSimulatorGame;
 import it.unipd.daimyosimulator.gdx.assets.GameAssetManager;
+import it.unipd.daimyosimulator.gdx.ui.AudioSettingsDialog;
 import it.unipd.daimyosimulator.gdx.ui.HudSkinFactory;
 import it.unipd.daimyosimulator.gdx.ui.SaveLoadDialog;
 
@@ -88,6 +89,16 @@ public final class MainMenuScreen extends ScreenAdapter {
             }
         });
         buttons.add(loadGame).width(200).height(44).padBottom(12);
+        buttons.row();
+
+        TextButton settings = new TextButton("Settings", skin);
+        settings.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                new AudioSettingsDialog(skin, null).show(stage);
+            }
+        });
+        buttons.add(settings).width(200).height(44).padBottom(12);
         buttons.row();
 
         root.add(buttons).expandX().expandY().bottom().padBottom(100);

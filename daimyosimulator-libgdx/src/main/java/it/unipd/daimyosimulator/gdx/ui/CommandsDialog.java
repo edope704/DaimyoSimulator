@@ -11,36 +11,39 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 /**
  * In-game reference card listing all keyboard / mouse controls, grouped by category.
  * Opened by the "Cmd" button in the top bar of the HUD.
+ *
+ * All strings use plain ASCII only (no arrows, middle-dots, or multiplication signs)
+ * to avoid glyph-missing squares with the default libGDX BitmapFont.
  */
 public final class CommandsDialog extends Dialog {
 
-    private static final Color COLOR_CATEGORY = new Color(0.98f, 0.82f, 0.35f, 1f);
+    private static final Color COLOR_CATEGORY = new Color(1f, 0.88f, 0.15f, 1f);
     private static final Color COLOR_ACTION   = new Color(0.92f, 0.88f, 0.72f, 1f);
-    private static final Color COLOR_KEY      = new Color(0.62f, 0.80f, 0.62f, 1f);
+    private static final Color COLOR_KEY      = new Color(0.50f, 0.90f, 0.55f, 1f);
     private static final Color COLOR_DIVIDER  = new Color(0.40f, 0.35f, 0.25f, 1f);
 
     private static final Object[] SECTIONS = {
         // A String header starts a new category; String[2] is an action row.
         "Map Navigation",
-        new String[]{ "Scroll / Pan map",   "Arrow keys  ·  WASD  ·  middle-drag" },
+        new String[]{ "Scroll / Pan map",   "Arrow keys - WASD - middle-drag" },
         new String[]{ "Zoom in / out",       "Scroll wheel" },
         "Building",
-        new String[]{ "Place a building",    "Click building button  →  click grid tile" },
-        new String[]{ "Cancel build mode",   "Right-click  or  Esc" },
-        new String[]{ "Demolish building",   "Demolish button  →  click target tile" },
-        new String[]{ "Inspect tile",        "Left-click tile  (outside build mode)" },
-        new String[]{ "Open Market",         "Inspect Market tile  →  'Open Market'" },
+        new String[]{ "Place a building",    "Click building button -> click grid tile" },
+        new String[]{ "Cancel build mode",   "Right-click or Esc" },
+        new String[]{ "Demolish building",   "Demolish button -> click target tile" },
+        new String[]{ "Inspect tile",        "Left-click tile (outside build mode)" },
+        new String[]{ "Open Market",         "Inspect Market tile -> 'Open Market'" },
         "Game Controls",
         new String[]{ "Advance one tick",    "NEXT button in speed panel" },
         new String[]{ "Pause / Resume",      "PAUSE button" },
-        new String[]{ "Change speed",        "SPEED button  (cycles 1×  2×  4×)" },
+        new String[]{ "Change speed",        "SPEED button  (cycles 1x  2x  4x)" },
         new String[]{ "Activate policy",     "Agriculture / Military / Craft button" },
         "Interface",
-        new String[]{ "Save game",           "Save button  →  choose a slot  (1–5)" },
-        new String[]{ "Load game",           "Load button  →  choose a slot  (1–5)" },
-        new String[]{ "New game",            "New button  (resets village)" },
-        new String[]{ "Help / Tutorial",     "? button  (top bar)" },
-        new String[]{ "This dialog",         "Cmd button  (top bar)" },
+        new String[]{ "Save game",           "Save button -> choose a slot (1-5)" },
+        new String[]{ "Load game",           "Load button -> choose a slot (1-5)" },
+        new String[]{ "New game",            "New button (resets village)" },
+        new String[]{ "Help / Tutorial",     "? button (top bar)" },
+        new String[]{ "This dialog",         "Cmd button (top bar)" },
         new String[]{ "Debug grid overlay",  "F3" },
     };
 
@@ -54,7 +57,6 @@ public final class CommandsDialog extends Dialog {
 
         for (Object entry : SECTIONS) {
             if (entry instanceof String header) {
-                // Category header row
                 addDivider(grid, skin, header);
             } else if (entry instanceof String[] row) {
                 Label action = new Label(row[0], skin);

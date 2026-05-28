@@ -36,6 +36,11 @@ public final class CoreGameFacade {
         return controller.startNewVillage(width, height);
     }
 
+    /** Places free starter buildings (1 WoodcuttersHut + 2 Dwellings) on a brand-new village. */
+    public VillageSnapshot applyStarterBuildings() {
+        return controller.placeStarterBuildings();
+    }
+
     public VillageSnapshot getCurrentSnapshot() {
         return controller.getCurrentSnapshot();
     }

@@ -1,9 +1,9 @@
 package it.unipd.daimyosimulator.gdx.ui;
 
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import it.unipd.daimyosimulator.core.app.CoreGameFacade;
 import it.unipd.daimyosimulator.core.app.result.TickResult;
@@ -52,33 +52,53 @@ public final class DashboardHud extends Table {
                 () -> refresh(facade.getCurrentSnapshot(), facade.getDashboard()));
         this.warningPanel         = new WarningPanel(skin);
 
-        // ── Top bar ───────────────────────────────────────────────────────────
-        TextButton helpButton = new TextButton("?", skin);
-        helpButton.addListener(new ChangeListener() {
+        // ── Top bar icon buttons ──────────────────────────────────────────────
+        Button.ButtonStyle iconBtnStyle = new Button.ButtonStyle();
+        iconBtnStyle.up   = skin.getDrawable("hud-panel");
+        iconBtnStyle.down = skin.getDrawable("hud-panel-light");
+        iconBtnStyle.over = skin.getDrawable("hud-panel-light");
+
+        Button gearBtn = new Button(iconBtnStyle);
+        gearBtn.add(new Image(skin.getDrawable("icon-settings"))).size(34);
+        gearBtn.addListener(new ChangeListener() {
+            @Override public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                soundManager.playClick();
+                openGameMenu();
+            }
+        });
+
+        Button soundBtn = new Button(iconBtnStyle);
+        soundBtn.add(new Image(skin.getDrawable("icon-sound"))).size(34);
+        soundBtn.addListener(new ChangeListener() {
+            @Override public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                soundManager.playClick();
+                openSettings();
+            }
+        });
+
+        Button helpBtn = new Button(iconBtnStyle);
+        helpBtn.add(new Image(skin.getDrawable("icon-question"))).size(34);
+        helpBtn.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
                 soundManager.playClick();
                 openTutorial();
             }
         });
 
-        TextButton cmdButton = new TextButton("Cmd", skin);
-        cmdButton.addListener(new ChangeListener() {
-            @Override public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                soundManager.playClick();
-                openCommands();
-            }
-        });
-
         Table top = new Table();
-        top.left();
-        top.add(new MenuOverlay(skin, assetManager, facade,
-                snapshot -> { snapshotConsumer.accept(snapshot); refresh(snapshot, facade.getDashboard()); },
-                this::setStatus)).left().padRight(8);
-        top.add(resourcePanel).left().padRight(12);
-        top.add(populationPanel).left().padRight(12);
-        top.add(speedControlPanel).left().padRight(8);
-        top.add(cmdButton).size(42).padRight(4);
-        top.add(helpButton).size(36).right();
+        // Left group: icon buttons
+        top.add(gearBtn).size(48).padRight(4);
+        top.add(soundBtn).size(48).padRight(4);
+        top.add(helpBtn).size(48).padRight(4);
+        // Spacer — pushes center content away from icons
+        top.add(new Table()).expandX();
+        // Center content: resources + population
+        top.add(resourcePanel).padRight(16);
+        top.add(populationPanel).padRight(16);
+        // Spacer — pushes speed panel to the right edge
+        top.add(new Table()).expandX();
+        // Right group: speed controls
+        top.add(speedControlPanel).padRight(4);
 
         // ── Left side column: BuildMenu (top) + PolicyPanel (below) ───────────
         Table leftCol = new Table();
@@ -104,7 +124,7 @@ public final class DashboardHud extends Table {
         // ── Root layout ───────────────────────────────────────────────────────
         setFillParent(true);
         top().left();
-        add(top).expandX().height(58).fillX().left().top().pad(6);
+        add(top).expandX().height(64).fillX().left().top().pad(6);
         row();
 
         Table middle = new Table();
@@ -176,6 +196,7 @@ public final class DashboardHud extends Table {
     }
 
     private void nextTick() {
+        EventModal.dismissAll(getStage());
         var result = facade.advanceTick();
         String status = result.messages().isEmpty()
                 ? "Tick " + result.afterState().tick()
@@ -185,6 +206,15 @@ public final class DashboardHud extends Table {
         refreshAfterTick(result);
         onManualTickCallback.run();
         EventModal.showIfAny(skin, result.randomEventReports(), getStage());
+    }
+
+    private void openGameMenu() {
+        if (getStage() != null) {
+            new SettingsDialog(skin, facade,
+                    snapshot -> { snapshotConsumer.accept(snapshot); refresh(snapshot, facade.getDashboard()); },
+                    this::setStatus, soundManager).show(getStage());
+            getStage().cancelTouchFocus();
+        }
     }
 
     private void openMarket(CellViewModel cell) {
@@ -203,9 +233,9 @@ public final class DashboardHud extends Table {
         }
     }
 
-    private void openCommands() {
+    private void openSettings() {
         if (getStage() != null) {
-            new CommandsDialog(skin).show(getStage());
+            new AudioSettingsDialog(skin, soundManager).show(getStage());
             getStage().cancelTouchFocus();
         }
     }

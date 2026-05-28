@@ -62,7 +62,9 @@ public final class VillageScreen extends ScreenAdapter {
 
     @Override
     public void show() {
-        currentSnapshot = facade.getCurrentSnapshot();
+        currentSnapshot = showTutorialOnStart
+                ? facade.applyStarterBuildings()
+                : facade.getCurrentSnapshot();
         camera = new OrthographicCamera();
         camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         float worldSize = RenderConstants.RENDER_GRID_SIZE * (float) RenderConstants.TILE_SIZE;
@@ -84,7 +86,8 @@ public final class VillageScreen extends ScreenAdapter {
 
         InputCommandRouter router = new InputCommandRouter(
                 facade, buildModeState, this::setSnapshot,
-                hud::setStatus, hud::setSelectedCell, soundManager);
+                hud::setStatus, hud::setSelectedCell, soundManager,
+                msg -> EventModal.showAlert(skin, "Action Failed", msg, stage));
         GameInputProcessor gameInputProcessor =
                 new GameInputProcessor(camera, new ScreenToGridMapper(), router, buildModeState);
         Gdx.input.setInputProcessor(new InputMultiplexer(stage, cameraController, gameInputProcessor));
@@ -127,6 +130,7 @@ public final class VillageScreen extends ScreenAdapter {
         hud.updateTickProgress(Math.min(1f, autoTickFraction));
         if (autoTickFraction >= 1f) {
             autoTickFraction = 0f;
+            EventModal.dismissAll(stage);
             var result = facade.advanceTick();
             setSnapshot(result.afterState());
             hud.refreshAfterTick(result);
