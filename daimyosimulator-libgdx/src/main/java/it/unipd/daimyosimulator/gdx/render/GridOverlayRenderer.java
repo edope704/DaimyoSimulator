@@ -11,8 +11,8 @@ import it.unipd.daimyosimulator.gdx.assets.GameAssetManager;
 import it.unipd.daimyosimulator.gdx.input.BuildModeState;
 
 public final class GridOverlayRenderer implements Disposable {
-    private static final float HOVER_ALPHA        = 0.50f; // build/demolish preview
-    private static final float IDLE_HOVER_ALPHA   = 0.28f; // general mouse hover
+    private static final float HOVER_ALPHA        = 1.0f; // build/demolish preview
+    private static final float IDLE_HOVER_ALPHA   = 1.0f; // general mouse hover
     private static final float BORDER_WIDTH       = 3f;
 
     private final SpriteBatch batch = new SpriteBatch();
@@ -70,26 +70,24 @@ public final class GridOverlayRenderer implements Disposable {
 
     private void drawOverlay(String key, Position position) {
         batch.draw(assetManager.getUi(key),
-                position.x() * RenderConstants.TILE_SIZE,
-                position.y() * RenderConstants.TILE_SIZE,
+                (position.x() + RenderConstants.PLAYABLE_OFFSET) * RenderConstants.TILE_SIZE,
+                (position.y() + RenderConstants.PLAYABLE_OFFSET) * RenderConstants.TILE_SIZE,
                 RenderConstants.TILE_SIZE, RenderConstants.TILE_SIZE);
     }
 
-    /** Draws a visible frame around the whole 20×20 grid. */
+    /** Draws a visible frame around the playable grid. */
     private void renderGridBorder(OrthographicCamera camera, VillageSnapshot snapshot) {
         shapeRenderer.setProjectionMatrix(camera.combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(0.25f, 0.20f, 0.12f, 1f);
-        float w = snapshot.width()  * RenderConstants.TILE_SIZE;
-        float h = snapshot.height() * RenderConstants.TILE_SIZE;
-        // Bottom
-        shapeRenderer.rect(-BORDER_WIDTH, -BORDER_WIDTH, w + BORDER_WIDTH * 2, BORDER_WIDTH);
-        // Top
-        shapeRenderer.rect(-BORDER_WIDTH, h, w + BORDER_WIDTH * 2, BORDER_WIDTH);
-        // Left
-        shapeRenderer.rect(-BORDER_WIDTH, 0, BORDER_WIDTH, h);
-        // Right
-        shapeRenderer.rect(w, 0, BORDER_WIDTH, h);
+        float ox = RenderConstants.PLAYABLE_OFFSET * (float) RenderConstants.TILE_SIZE;
+        float oy = RenderConstants.PLAYABLE_OFFSET * (float) RenderConstants.TILE_SIZE;
+        float w  = snapshot.width()  * RenderConstants.TILE_SIZE;
+        float h  = snapshot.height() * RenderConstants.TILE_SIZE;
+        shapeRenderer.rect(ox - BORDER_WIDTH, oy - BORDER_WIDTH, w + BORDER_WIDTH * 2, BORDER_WIDTH);
+        shapeRenderer.rect(ox - BORDER_WIDTH, oy + h, w + BORDER_WIDTH * 2, BORDER_WIDTH);
+        shapeRenderer.rect(ox - BORDER_WIDTH, oy, BORDER_WIDTH, h);
+        shapeRenderer.rect(ox + w, oy, BORDER_WIDTH, h);
         shapeRenderer.end();
     }
 
@@ -103,19 +101,23 @@ public final class GridOverlayRenderer implements Disposable {
         shapeRenderer.setProjectionMatrix(camera.combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(1f, 1f, 1f, 0.35f);
+        int off = RenderConstants.PLAYABLE_OFFSET;
+        float ox = off * (float) RenderConstants.TILE_SIZE;
+        float oy = off * (float) RenderConstants.TILE_SIZE;
         for (int x = 0; x <= snapshot.width(); x++) {
-            float px = x * RenderConstants.TILE_SIZE;
-            shapeRenderer.line(px, 0, px, snapshot.height() * RenderConstants.TILE_SIZE);
+            float px = ox + x * RenderConstants.TILE_SIZE;
+            shapeRenderer.line(px, oy, px, oy + snapshot.height() * RenderConstants.TILE_SIZE);
         }
         for (int y = 0; y <= snapshot.height(); y++) {
-            float py = y * RenderConstants.TILE_SIZE;
-            shapeRenderer.line(0, py, snapshot.width() * RenderConstants.TILE_SIZE, py);
+            float py = oy + y * RenderConstants.TILE_SIZE;
+            shapeRenderer.line(ox, py, ox + snapshot.width() * RenderConstants.TILE_SIZE, py);
         }
         shapeRenderer.setColor(1f, 0.85f, 0.1f, 0.8f);
         for (var cell : snapshot.cells()) {
             if (cell.building() != null) {
-                shapeRenderer.rect(cell.position().x() * RenderConstants.TILE_SIZE,
-                        cell.position().y() * RenderConstants.TILE_SIZE,
+                shapeRenderer.rect(
+                        (cell.position().x() + off) * RenderConstants.TILE_SIZE,
+                        (cell.position().y() + off) * RenderConstants.TILE_SIZE,
                         RenderConstants.TILE_SIZE, RenderConstants.TILE_SIZE);
             }
         }

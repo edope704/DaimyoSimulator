@@ -11,6 +11,8 @@ import it.unipd.daimyosimulator.core.app.CoreGameFacade;
 import it.unipd.daimyosimulator.core.app.TradeRequest;
 import it.unipd.daimyosimulator.core.resource.ResourceType;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -32,6 +34,10 @@ public final class MarketDialog extends Dialog {
     private final Label toSelLabel;
     private final Label amtSelLabel;
     private final Skin skin;
+
+    private final List<TextButton> fromButtons = new ArrayList<>();
+    private final List<TextButton> toButtons   = new ArrayList<>();
+    private final List<TextButton> amtButtons  = new ArrayList<>();
 
     private ResourceType fromType = ResourceType.RICE;
     private ResourceType toType   = ResourceType.TIMBER;
@@ -121,6 +127,7 @@ public final class MarketDialog extends Dialog {
 
     private Table resourceRow(boolean isFrom) {
         Table row = new Table();
+        List<TextButton> group = isFrom ? fromButtons : toButtons;
         for (ResourceType type : ResourceType.values()) {
             TextButton btn = new TextButton(displayName(type), skin);
             btn.addListener(new ChangeListener() {
@@ -132,6 +139,7 @@ public final class MarketDialog extends Dialog {
                 }
             });
             row.add(btn).padRight(4).height(28);
+            group.add(btn);
         }
         return row;
     }
@@ -148,6 +156,7 @@ public final class MarketDialog extends Dialog {
                 }
             });
             row.add(btn).padRight(4).width(44).height(28);
+            amtButtons.add(btn);
         }
         return row;
     }
@@ -166,6 +175,18 @@ public final class MarketDialog extends Dialog {
     }
 
     private void updateResult() {
+        // Highlight selected buttons in each group
+        ResourceType[] types = ResourceType.values();
+        for (int i = 0; i < fromButtons.size(); i++) {
+            fromButtons.get(i).getLabel().setColor(types[i] == fromType ? COLOR_SELECTED : COLOR_NORMAL);
+        }
+        for (int i = 0; i < toButtons.size(); i++) {
+            toButtons.get(i).getLabel().setColor(types[i] == toType ? COLOR_SELECTED : COLOR_NORMAL);
+        }
+        for (int i = 0; i < amtButtons.size(); i++) {
+            amtButtons.get(i).getLabel().setColor(AMOUNTS[i] == amount ? COLOR_SELECTED : COLOR_NORMAL);
+        }
+
         fromSelLabel.setText("Selected: " + displayName(fromType));
         fromSelLabel.setColor(COLOR_SELECTED);
         toSelLabel.setText("Selected: " + displayName(toType));

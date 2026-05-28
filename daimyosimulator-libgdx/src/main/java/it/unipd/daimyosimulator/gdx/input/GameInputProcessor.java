@@ -28,7 +28,12 @@ public final class GameInputProcessor extends InputAdapter {
         if (button != Input.Buttons.LEFT) {
             return false;
         }
-        commandRouter.handleGridClick(mapper.screenToGrid(camera, screenX, screenY, RenderConstants.TILE_SIZE));
+        var pos = mapper.screenToGrid(camera, screenX, screenY, RenderConstants.TILE_SIZE);
+        int gridSize = RenderConstants.RENDER_GRID_SIZE - 2 * RenderConstants.PLAYABLE_OFFSET;
+        if (pos.x() < 0 || pos.y() < 0 || pos.x() >= gridSize || pos.y() >= gridSize) {
+            return true; // border tile – swallow click silently
+        }
+        commandRouter.handleGridClick(pos);
         return true;
     }
 

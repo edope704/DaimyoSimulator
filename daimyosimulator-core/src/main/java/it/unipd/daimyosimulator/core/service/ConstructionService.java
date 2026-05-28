@@ -68,7 +68,8 @@ public final class ConstructionService {
     }
 
     /**
-     * Removes the building at the given position. No timber refund is given.
+     * Removes the tile content at the given position.
+     * Clearing a forest grants +10 timber; demolishing a building grants +5 timber.
      * Workers assigned to that building become idle; housing is re-evaluated.
      */
     public PlacementResult demolishBuilding(Village village, Position position) {
@@ -77,16 +78,25 @@ public final class ConstructionService {
             return new PlacementResult(false, "Position outside grid: " + position, before, before);
         }
         var cell = village.getGrid().getCell(position);
-        if (cell.getBuilding().isEmpty()) {
-            return new PlacementResult(false, "No building at " + position + " to demolish", before, before);
+        if (cell.getBuilding().isEmpty() && cell.getNaturalFeature().isEmpty()) {
+            return new PlacementResult(false, "Nothing at " + position + " to demolish", before, before);
+        }
+        if (cell.getNaturalFeature().isPresent()) {
+            String featureName = cell.getNaturalFeature().get().name();
+            cell.clearNaturalFeature();
+            village.getResources().add(ResourceType.TIMBER, 10);
+            String message = featureName + " at " + position + " cleared (+10 timber)";
+            village.addEvent(message);
+            return new PlacementResult(true, message, before, snapshotMapper.toSnapshot(village));
         }
         String name = cell.getBuilding().get().getDisplayName();
         // Unassign workers housed in this dwelling or working here.
         unassignWorkersForCell(village, cell.getBuilding().get().getType(), position);
         village.getGrid().removeBuilding(position);
+        village.getResources().add(ResourceType.TIMBER, 5);
         housingService.assignHousing(village);
         parameterCalculator.recalculate(village);
-        String message = name + " at " + position + " demolished (no refund)";
+        String message = name + " at " + position + " demolished (+5 timber)";
         village.addEvent(message);
         return new PlacementResult(true, message, before, snapshotMapper.toSnapshot(village));
     }

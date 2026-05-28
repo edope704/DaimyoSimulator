@@ -3,10 +3,14 @@ package it.unipd.daimyosimulator.gdx.input;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector3;
 import it.unipd.daimyosimulator.core.domain.Position;
+import it.unipd.daimyosimulator.gdx.render.RenderConstants;
 
 public final class ScreenToGridMapper {
     public Position gridAt(float worldX, float worldY, int tileSize) {
-        return new Position((int) Math.floor(worldX / tileSize), (int) Math.floor(worldY / tileSize));
+        int offset = RenderConstants.PLAYABLE_OFFSET;
+        return new Position(
+                (int) Math.floor(worldX / tileSize) - offset,
+                (int) Math.floor(worldY / tileSize) - offset);
     }
 
     public Position screenToGrid(OrthographicCamera camera, int screenX, int screenY, int tileSize) {

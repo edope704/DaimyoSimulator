@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import it.unipd.daimyosimulator.core.app.view.CellViewModel;
+import it.unipd.daimyosimulator.core.app.view.VillageSnapshot;
 import it.unipd.daimyosimulator.core.building.BuildingType;
 import it.unipd.daimyosimulator.gdx.assets.GameAssetManager;
 
@@ -58,7 +59,7 @@ public final class SelectedBuildingPanel extends Table {
         add(marketButton).padLeft(6).right();
     }
 
-    public void refresh(CellViewModel cell) {
+    public void refresh(CellViewModel cell, VillageSnapshot snapshot) {
         currentCell = cell;
         if (cell == null) {
             iconImage.setDrawable(null);
@@ -71,10 +72,16 @@ public final class SelectedBuildingPanel extends Table {
             nameLabel.setText(cell.building().displayName());
             int totalJobs = cell.building().jobSlots().values().stream()
                     .mapToInt(Integer::intValue).sum();
-            String detail = totalJobs > 0
-                    ? "Jobs: " + totalJobs + "   (" + cell.position().x() + ", " + cell.position().y() + ")"
-                    : "(" + cell.position().x() + ", " + cell.position().y() + ")";
-            detailLabel.setText(detail);
+            if (cell.building().type() == BuildingType.RICE_PADDY) {
+                boolean active = hasNearbyFarm(snapshot, cell.position().x(), cell.position().y());
+                String status = active ? "Status: Active" : "Status: Inactive / No Farm";
+                detailLabel.setText(status + "  @(" + cell.position().x() + ", " + cell.position().y() + ")");
+            } else {
+                String detail = totalJobs > 0
+                        ? "Jobs: " + totalJobs + "   (" + cell.position().x() + ", " + cell.position().y() + ")"
+                        : "(" + cell.position().x() + ", " + cell.position().y() + ")";
+                detailLabel.setText(detail);
+            }
             marketButton.setVisible(cell.building().type() == BuildingType.MARKET);
         } else if (cell.naturalFeature() != null) {
             iconImage.setDrawable(null);
@@ -88,5 +95,14 @@ public final class SelectedBuildingPanel extends Table {
             detailLabel.setText("@(" + cell.position().x() + ", " + cell.position().y() + ")");
             marketButton.setVisible(false);
         }
+    }
+
+    private boolean hasNearbyFarm(VillageSnapshot snapshot, int px, int py) {
+        if (snapshot == null) return false;
+        return snapshot.cells().stream().anyMatch(c ->
+                c.building() != null
+                && c.building().type() == BuildingType.RICE_FARM
+                && Math.abs(c.position().x() - px) <= 1
+                && Math.abs(c.position().y() - py) <= 1);
     }
 }

@@ -9,7 +9,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextTooltip;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import it.unipd.daimyosimulator.core.building.BuildingType;
 import it.unipd.daimyosimulator.core.app.view.VillageSnapshot;
+import it.unipd.daimyosimulator.core.resource.ResourceType;
 import it.unipd.daimyosimulator.gdx.assets.GameAssetManager;
+import it.unipd.daimyosimulator.gdx.assets.GameSoundManager;
 import it.unipd.daimyosimulator.gdx.input.BuildModeState;
 
 import java.util.EnumMap;
@@ -31,9 +33,14 @@ public final class BuildMenu extends Table {
     private final Label buildLimitLabel;
     private final Map<BuildingType, Label> countLabels = new EnumMap<>(BuildingType.class);
     private final TextButton demolishButton;
+    private final BuildModeState buildModeState;
+
+    private final GameSoundManager soundManager;
 
     public BuildMenu(Skin skin, GameAssetManager assetManager, BuildModeState buildModeState,
-                     Consumer<String> statusConsumer) {
+                     Consumer<String> statusConsumer, GameSoundManager soundManager) {
+        this.buildModeState = buildModeState;
+        this.soundManager = soundManager;
         setBackground(skin.getDrawable("hud-panel"));
         defaults().pad(1);
 
@@ -45,14 +52,20 @@ public final class BuildMenu extends Table {
 
         for (BuildingType type : BuildingType.values()) {
             int cost = costFor(type);
-            String label = shortName(type) + " (" + cost + "■)";
 
-            TextButton button = new TextButton(label, skin);
-            button.add(new Image(assetManager.getBuilding(type))).size(20).padRight(2);
+            // 4-column layout (all widths fixed so columns align across every row):
+            // [Name — expanding] [cost 24px] [wood icon 13px] [building icon 16px]
+            TextButton button = new TextButton(shortName(type), skin);
+            button.getLabelCell().left().padLeft(4);
+            Label costLabel = new Label("" + cost, skin, "hint");
+            button.add(costLabel).width(24).right().padRight(1);
+            button.add(new Image(assetManager.getResourceIcon(ResourceType.TIMBER))).size(13).padLeft(2).padRight(2);
+            button.add(new Image(assetManager.getBuilding(type))).size(16).padLeft(2).padRight(4);
             button.addListener(new TextTooltip(tooltipFor(type), skin));
             button.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                    soundManager.playClick();
                     buildModeState.enter(type);
                     statusConsumer.accept("Build mode: " + shortName(type) + " – click grid to place");
                 }
@@ -62,14 +75,10 @@ public final class BuildMenu extends Table {
             Label countLabel = new Label("[0]", skin, "dim");
             countLabels.put(type, countLabel);
 
-            add(button).width(134).height(32).left();
+            add(button).width(155).height(32).left();
             add(countLabel).width(22).right();
             row();
         }
-
-        // Separator.
-        add(new Label("──────────────────", skin, "dim")).colspan(2).left().padLeft(2);
-        row();
 
         // Demolish button.
         demolishButton = new TextButton("Demolish", skin, "demolish");
@@ -80,8 +89,14 @@ public final class BuildMenu extends Table {
         demolishButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                buildModeState.enterDemolish();
-                statusConsumer.accept("Demolish mode – click a building to remove it (no refund)");
+                soundManager.playClick();
+                if (((TextButton) actor).isChecked()) {
+                    buildModeState.enterDemolish();
+                    statusConsumer.accept("Demolish mode – click a building or forest to remove it");
+                } else {
+                    buildModeState.clear();
+                    statusConsumer.accept("Demolish mode cancelled");
+                }
             }
         });
         add(demolishButton).colspan(2).fillX().height(32).pad(1);
@@ -100,6 +115,9 @@ public final class BuildMenu extends Table {
                 lbl.setText("[" + count + "]");
             }
         }
+        demolishButton.setProgrammaticChangeEvents(false);
+        demolishButton.setChecked(buildModeState.isDemolishMode());
+        demolishButton.setProgrammaticChangeEvents(true);
     }
 
     private static String shortName(BuildingType type) {
@@ -135,7 +153,7 @@ public final class BuildMenu extends Table {
     private static String tooltipFor(BuildingType type) {
         return switch (type) {
             case DWELLING ->
-                "Dwelling – Cost: 15 timber\n"
+                "Dwelling - Cost: 15 timber\n"
                 + "Houses 4 villagers. Unhoused villagers cannot work.\n"
                 + "Build more to allow population growth.";
             case RICE_FARM ->

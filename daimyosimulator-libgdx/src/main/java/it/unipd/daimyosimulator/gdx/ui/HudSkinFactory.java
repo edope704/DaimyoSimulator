@@ -7,7 +7,9 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.ProgressBar;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextTooltip;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
@@ -33,14 +35,20 @@ public final class HudSkinFactory {
         Label.LabelStyle labelStyle = new Label.LabelStyle(font, Color.WHITE);
         skin.add("default", labelStyle);
 
-        Label.LabelStyle warningStyle = new Label.LabelStyle(font, new Color(1f, 0.35f, 0.25f, 1f));
+        // Vivid red — used for critical warnings and failed-action alerts.
+        Label.LabelStyle warningStyle = new Label.LabelStyle(font, new Color(1f, 0.20f, 0.08f, 1f));
         skin.add("warning", warningStyle);
 
-        Label.LabelStyle dimStyle = new Label.LabelStyle(font, new Color(0.6f, 0.6f, 0.6f, 1f));
+        Label.LabelStyle dimStyle = new Label.LabelStyle(font, new Color(0.62f, 0.62f, 0.62f, 1f));
         skin.add("dim", dimStyle);
 
-        Label.LabelStyle titleStyle = new Label.LabelStyle(font, new Color(0.98f, 0.82f, 0.35f, 1f));
+        // Sharp gold — section headers, key labels.
+        Label.LabelStyle titleStyle = new Label.LabelStyle(font, new Color(1f, 0.88f, 0.15f, 1f));
         skin.add("title", titleStyle);
+
+        // Warm amber — mid-priority hints, build costs, resource keys.
+        Label.LabelStyle hintStyle = new Label.LabelStyle(font, new Color(1f, 0.72f, 0.10f, 1f));
+        skin.add("hint", hintStyle);
 
         // ── Panel drawables (rounded) ─────────────────────────────────────────
         int r = 5; // corner radius for panels
@@ -62,7 +70,9 @@ public final class HudSkinFactory {
         buttonStyle.downFontColor = Color.WHITE;
         buttonStyle.up = skin.getDrawable("hud-panel");
         buttonStyle.down = skin.getDrawable("hud-panel-light");
-        buttonStyle.checked = skin.getDrawable("hud-panel-selected");
+        // No checked drawable → checked state is visually identical to idle.
+        // This prevents non-toggle action buttons from appearing stuck after click.
+        buttonStyle.checked = null;
         buttonStyle.over = skin.getDrawable("hud-panel-light");
         skin.add("default", buttonStyle);
 
@@ -91,10 +101,78 @@ public final class HudSkinFactory {
         Window.WindowStyle windowStyle = new Window.WindowStyle();
         windowStyle.titleFont = font;
         windowStyle.titleFontColor = new Color(0.98f, 0.85f, 0.45f, 1f);
-        // Raised panel: dark fill with a warm border.
-        windowStyle.background = roundedBorderedDrawable(0.10f, 0.08f, 0.05f, 0.97f,
-                0.38f, 0.28f, 0.12f, 1.0f, r);
+        // Title bar needs enough top inset to fit the font (~20px at 1.1× scale).
+        windowStyle.background = windowBorderedDrawable(0.10f, 0.08f, 0.05f, 0.97f,
+                0.38f, 0.28f, 0.12f, 1.0f, r, 24);
         skin.add("default", windowStyle);
+
+        // ── Progress bar styles ────────────────────────────────────────────────
+        // Shared transparent knob (invisible position indicator).
+        Pixmap knobPm = new Pixmap(2, 2, Pixmap.Format.RGBA8888);
+        knobPm.setColor(0f, 0f, 0f, 0f);
+        knobPm.fill();
+        Texture knobTex = new Texture(knobPm);
+        knobPm.dispose();
+        ownedTextures.add(knobTex);
+        TextureRegionDrawable transparentKnob = new TextureRegionDrawable(new TextureRegion(knobTex));
+
+        // Speed panel mini progress bar (green fill).
+        ProgressBar.ProgressBarStyle pbStyle = new ProgressBar.ProgressBarStyle();
+        pbStyle.background  = solidDrawable(0.15f, 0.12f, 0.08f, 0.80f);
+        pbStyle.knobBefore  = solidDrawable(0.35f, 0.72f, 0.28f, 0.90f);
+        pbStyle.knob        = transparentKnob;
+        skin.add("default-horizontal", pbStyle);
+
+        // Full-width bottom tick timer bar (amber-gold pixel-art fill).
+        ProgressBar.ProgressBarStyle tickBarStyle = new ProgressBar.ProgressBarStyle();
+        tickBarStyle.background = solidDrawable(0.10f, 0.08f, 0.06f, 0.95f);
+        tickBarStyle.knobBefore = solidDrawable(0.90f, 0.65f, 0.15f, 1.00f);
+        tickBarStyle.knob       = transparentKnob;
+        skin.add("tick-bar-horizontal", tickBarStyle);
+
+        // ── Slider style (used by AudioSettingsDialog) ─────────────────────────
+        // Track: 8px-tall dark bar that stretches horizontally.
+        Pixmap sliderTrackPm = new Pixmap(2, 8, Pixmap.Format.RGBA8888);
+        sliderTrackPm.setColor(0.18f, 0.14f, 0.08f, 1.0f);
+        sliderTrackPm.fill();
+        Texture sliderTrackTex = new Texture(sliderTrackPm);
+        sliderTrackPm.dispose();
+        ownedTextures.add(sliderTrackTex);
+        TextureRegionDrawable sliderTrack = new TextureRegionDrawable(new TextureRegion(sliderTrackTex));
+
+        // Fill before the knob: amber.
+        Pixmap sliderFillPm = new Pixmap(2, 8, Pixmap.Format.RGBA8888);
+        sliderFillPm.setColor(0.85f, 0.60f, 0.12f, 1.0f);
+        sliderFillPm.fill();
+        Texture sliderFillTex = new Texture(sliderFillPm);
+        sliderFillPm.dispose();
+        ownedTextures.add(sliderFillTex);
+        TextureRegionDrawable sliderFill = new TextureRegionDrawable(new TextureRegion(sliderFillTex));
+
+        // Knob: 14×14 gold circle rendered into a Pixmap for a crisp handle.
+        Pixmap knobCirclePm = new Pixmap(14, 14, Pixmap.Format.RGBA8888);
+        knobCirclePm.setColor(0f, 0f, 0f, 0f);
+        knobCirclePm.fill();
+        knobCirclePm.setColor(0.80f, 0.55f, 0.08f, 1f);  // dark-gold border ring
+        knobCirclePm.fillCircle(7, 7, 7);
+        knobCirclePm.setColor(1f, 0.88f, 0.22f, 1f);      // bright-gold centre
+        knobCirclePm.fillCircle(7, 7, 5);
+        Texture knobCircleTex = new Texture(knobCirclePm);
+        knobCirclePm.dispose();
+        ownedTextures.add(knobCircleTex);
+        TextureRegionDrawable sliderKnob = new TextureRegionDrawable(new TextureRegion(knobCircleTex));
+
+        Slider.SliderStyle sliderStyle = new Slider.SliderStyle();
+        sliderStyle.background = sliderTrack;
+        sliderStyle.knobBefore = sliderFill;
+        sliderStyle.knob       = sliderKnob;
+        skin.add("default-horizontal", sliderStyle);
+
+        // ── UI icon drawables ─────────────────────────────────────────────────
+        skin.add("icon-settings", new TextureRegionDrawable(assetManager.getRegion("settings_icon")),  Drawable.class);
+        skin.add("icon-sound",    new TextureRegionDrawable(assetManager.getRegion("sound_icon")),     Drawable.class);
+        skin.add("icon-question", new TextureRegionDrawable(assetManager.getRegion("question_icon")), Drawable.class);
+        skin.add("icon-alert",    new TextureRegionDrawable(assetManager.getRegion("icon_event_alert")), Drawable.class);
 
         return skin;
     }
@@ -147,6 +225,38 @@ public final class HudSkinFactory {
         pm.fillCircle(x + w - r - 1, y + r, r);
         pm.fillCircle(x + r, y + h - r - 1, r);
         pm.fillCircle(x + w - r - 1, y + h - r - 1, r);
+    }
+
+    /**
+     * Like roundedBorderedDrawable but with a separate (larger) top split so the
+     * Window title bar has enough vertical space to render without clipping.
+     */
+    private Drawable windowBorderedDrawable(
+            float fr, float fg, float fb, float fa,
+            float br, float bg, float bb, float ba,
+            int radius, int topInset) {
+
+        int size = Math.max(Math.max(radius * 2 + 6, topInset + radius + 4), 16);
+        Pixmap pm = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+        pm.setColor(0, 0, 0, 0);
+        pm.fill();
+
+        drawRoundedRect(pm, 0, 0, size, size, radius, new Color(br, bg, bb, ba));
+        if (radius > 1) {
+            drawRoundedRect(pm, 1, 1, size - 2, size - 2, radius - 1, new Color(fr, fg, fb, fa));
+        } else {
+            pm.setColor(fr, fg, fb, fa);
+            pm.fillRectangle(1, 1, size - 2, size - 2);
+        }
+
+        Texture tex = new Texture(pm);
+        tex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        pm.dispose();
+        ownedTextures.add(tex);
+
+        // top split uses topInset so the Window reserves enough height for the title bar.
+        NinePatch np = new NinePatch(tex, radius, radius, topInset, radius);
+        return new NinePatchDrawable(np);
     }
 
     /** Flat 2×2 drawable (kept for overlay uses that don't need rounded corners). */
