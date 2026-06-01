@@ -19,6 +19,11 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public final class BuildMenu extends Table {
+    // Sized so the row content sits inside the rounded panel border (which reserves
+    // ~5px each side); the panel box itself stays at LEFT_PANEL_WIDTH.
+    private static final float BUILD_BUTTON_WIDTH = 148f;
+    private static final float COUNT_LABEL_WIDTH = 18f;
+
     private static final int TIMBER_COST_DWELLING       = 15;
     private static final int TIMBER_COST_RICE_FARM      = 18;
     private static final int TIMBER_COST_RICE_PADDY     = 8;
@@ -44,10 +49,14 @@ public final class BuildMenu extends Table {
         setBackground(skin.getDrawable("hud-panel"));
         defaults().pad(1);
 
-        // Header row: "BUILD  Builds: x/y"
+        // Header row: "BUILD  Builds: x/y" — kept in its own sub-table (spanning both
+        // columns) so the wide "Builds" label doesn't stretch the per-row count column,
+        // and both ends stay inside the panel border.
         buildLimitLabel = new Label("Builds: -/-", skin, "dim");
-        add(new Label("BUILD", skin)).left().padLeft(4);
-        add(buildLimitLabel).right().padRight(4).expandX();
+        Table header = new Table();
+        header.add(new Label("BUILD", skin)).left().expandX();
+        header.add(buildLimitLabel).right();
+        add(header).colspan(2).fillX().padLeft(6).padRight(4);
         row();
 
         for (BuildingType type : BuildingType.values()) {
@@ -56,7 +65,8 @@ public final class BuildMenu extends Table {
             // 4-column layout (all widths fixed so columns align across every row):
             // [Name — expanding] [cost 24px] [wood icon 13px] [building icon 16px]
             TextButton button = new TextButton(shortName(type), skin);
-            button.getLabelCell().left().padLeft(4);
+            // Name takes the leftover space and is centered within it.
+            button.getLabelCell().expandX().center().padLeft(4);
             Label costLabel = new Label("" + cost, skin, "hint");
             button.add(costLabel).width(24).right().padRight(1);
             button.add(new Image(assetManager.getResourceIcon(ResourceType.TIMBER))).size(13).padLeft(2).padRight(2);
@@ -75,8 +85,8 @@ public final class BuildMenu extends Table {
             Label countLabel = new Label("[0]", skin, "dim");
             countLabels.put(type, countLabel);
 
-            add(button).width(155).height(32).left();
-            add(countLabel).width(22).right();
+            add(button).width(BUILD_BUTTON_WIDTH).height(32).left().padLeft(5);
+            add(countLabel).width(COUNT_LABEL_WIDTH).right();
             row();
         }
 
@@ -99,7 +109,8 @@ public final class BuildMenu extends Table {
                 }
             }
         });
-        add(demolishButton).colspan(2).fillX().height(32).pad(1);
+        // Aligned to the building "block" (same width/left edge as the build buttons).
+        add(demolishButton).colspan(2).width(BUILD_BUTTON_WIDTH).height(32).left().pad(1).padLeft(5);
         row();
     }
 

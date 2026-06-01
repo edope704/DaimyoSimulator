@@ -1,6 +1,7 @@
 package it.unipd.daimyosimulator.gdx.ui;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.scenes.scene2d.ui.Cell;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -22,6 +23,7 @@ public final class SelectedBuildingPanel extends Table {
     private final Label nameLabel;
     private final Label detailLabel;
     private final TextButton marketButton;
+    private final Cell<TextButton> marketButtonCell;
     private CellViewModel currentCell;
     private final Consumer<CellViewModel> onMarketOpen;
 
@@ -56,7 +58,7 @@ public final class SelectedBuildingPanel extends Table {
 
         add(iconImage).size(42, 42).padRight(8).left();
         add(infoCol).expandX().left();
-        add(marketButton).padLeft(6).right();
+        marketButtonCell = add(marketButton).width(0).padLeft(0).right();
     }
 
     public void refresh(CellViewModel cell, VillageSnapshot snapshot) {
@@ -65,7 +67,7 @@ public final class SelectedBuildingPanel extends Table {
             iconImage.setDrawable(null);
             nameLabel.setText("No tile selected");
             detailLabel.setText("");
-            marketButton.setVisible(false);
+            setMarketButtonVisible(false);
         } else if (cell.building() != null) {
             iconImage.setDrawable(new TextureRegionDrawable(
                     assetManager.getBuilding(cell.building().type())));
@@ -82,19 +84,26 @@ public final class SelectedBuildingPanel extends Table {
                         : "(" + cell.position().x() + ", " + cell.position().y() + ")";
                 detailLabel.setText(detail);
             }
-            marketButton.setVisible(cell.building().type() == BuildingType.MARKET);
+            setMarketButtonVisible(cell.building().type() == BuildingType.MARKET);
         } else if (cell.naturalFeature() != null) {
-            iconImage.setDrawable(null);
+            iconImage.setDrawable(new TextureRegionDrawable(
+                    assetManager.getFeature(cell.naturalFeature())));
             nameLabel.setText(cell.naturalFeature().name().charAt(0)
                     + cell.naturalFeature().name().substring(1).toLowerCase().replace('_', ' '));
             detailLabel.setText("@(" + cell.position().x() + ", " + cell.position().y() + ")");
-            marketButton.setVisible(false);
+            setMarketButtonVisible(false);
         } else {
             iconImage.setDrawable(null);
             nameLabel.setText("Empty tile");
             detailLabel.setText("@(" + cell.position().x() + ", " + cell.position().y() + ")");
-            marketButton.setVisible(false);
+            setMarketButtonVisible(false);
         }
+    }
+
+    private void setMarketButtonVisible(boolean visible) {
+        marketButton.setVisible(visible);
+        marketButtonCell.width(visible ? 92 : 0).padLeft(visible ? 6 : 0);
+        invalidateHierarchy();
     }
 
     private boolean hasNearbyFarm(VillageSnapshot snapshot, int px, int py) {

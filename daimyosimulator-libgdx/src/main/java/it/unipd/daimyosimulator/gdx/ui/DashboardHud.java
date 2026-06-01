@@ -19,6 +19,8 @@ import it.unipd.daimyosimulator.gdx.input.BuildModeState;
 import java.util.function.Consumer;
 
 public final class DashboardHud extends Table {
+    private static final float LEFT_PANEL_WIDTH = 187f;
+
     private final Skin skin;
     private final CoreGameFacade facade;
     private final BuildMenu buildMenu;
@@ -103,9 +105,9 @@ public final class DashboardHud extends Table {
         // ── Left side column: BuildMenu (top) + PolicyPanel (below) ───────────
         Table leftCol = new Table();
         leftCol.top().left();
-        leftCol.add(buildMenu).left();
+        leftCol.add(buildMenu).width(LEFT_PANEL_WIDTH).left();
         leftCol.row().padTop(6);
-        leftCol.add(policyPanel).left().fillX();
+        leftCol.add(policyPanel).width(LEFT_PANEL_WIDTH).left().fillX();
 
         // ── Right side: WarningPanel + parameters + event log ────────────────
         Table rightCol = new Table();
@@ -119,7 +121,7 @@ public final class DashboardHud extends Table {
         // ── Bottom bar ────────────────────────────────────────────────────────
         Table bottom = new Table();
         bottom.left();
-        bottom.add(selectedBuildingPanel).left().padRight(8);
+        bottom.add(selectedBuildingPanel).width(LEFT_PANEL_WIDTH).left().padRight(8);
 
         // ── Root layout ───────────────────────────────────────────────────────
         setFillParent(true);
@@ -128,7 +130,7 @@ public final class DashboardHud extends Table {
         row();
 
         Table middle = new Table();
-        middle.add(leftCol).width(200).expandY().left().top().padLeft(6);
+        middle.add(leftCol).width(LEFT_PANEL_WIDTH).expandY().left().top().padLeft(6);
         middle.add(new Table()).expandX().expand();       // empty game viewport
         middle.add(rightCol).width(180).expandY().right().top().padRight(6);
 
