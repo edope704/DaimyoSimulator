@@ -117,7 +117,7 @@ public final class DashboardHud extends Table {
         // ── Right side: WarningPanel + parameters + event log ────────────────
         Table rightCol = new Table();
         rightCol.top().right();
-        rightCol.add(warningPanel).right().width(172).padBottom(6);
+        rightCol.add(warningPanel).right().width(210).fillX().padBottom(6);
         rightCol.row();
         rightCol.add(parameterPanel).right();
         rightCol.row().padTop(6);

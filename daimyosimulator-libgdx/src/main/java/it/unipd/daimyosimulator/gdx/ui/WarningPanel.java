@@ -39,12 +39,13 @@ public final class WarningPanel extends Table {
         defaults().left().pad(3);
 
         Label header = new Label("WARNINGS", skin, "title");
-        add(header).left().padBottom(4);
+        header.setAlignment(com.badlogic.gdx.utils.Align.center);
+        add(header).center().fillX().expandX().padBottom(4);
         row();
 
         warningRows = new Table();
-        warningRows.defaults().left().pad(2);
-        add(warningRows).left();
+        warningRows.defaults().left().pad(2).fillX();
+        add(warningRows).fillX().expandX();
     }
 
     /** Call on every tick with the latest resource snapshot. */
