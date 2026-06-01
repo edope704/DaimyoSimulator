@@ -19,7 +19,9 @@ import it.unipd.daimyosimulator.gdx.input.BuildModeState;
 import java.util.function.Consumer;
 
 public final class DashboardHud extends Table {
-    private static final float LEFT_PANEL_WIDTH = 187f;
+    // 4.5 on-screen forest tiles wide at the default zoom: a tile is
+    // 1280 / (RENDER_GRID_SIZE * 0.85) ≈ 50.2 stage units, so 4.5 * 50.2 ≈ 226.
+    private static final float LEFT_PANEL_WIDTH = 226f;
 
     private final Skin skin;
     private final CoreGameFacade facade;

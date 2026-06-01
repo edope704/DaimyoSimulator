@@ -19,9 +19,9 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public final class BuildMenu extends Table {
-    // Sized so the row content sits inside the rounded panel border (which reserves
-    // ~5px each side); the panel box itself stays at LEFT_PANEL_WIDTH.
-    private static final float BUILD_BUTTON_WIDTH = 148f;
+    // Sized so the row content fills the LEFT_PANEL_WIDTH (226) box while sitting inside
+    // the rounded panel border (which reserves ~5px each side).
+    private static final float BUILD_BUTTON_WIDTH = 184f;
     private static final float COUNT_LABEL_WIDTH = 18f;
 
     private static final int TIMBER_COST_DWELLING       = 15;

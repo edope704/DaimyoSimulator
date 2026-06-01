@@ -77,7 +77,7 @@ public final class SelectedBuildingPanel extends Table {
             if (cell.building().type() == BuildingType.RICE_PADDY) {
                 boolean active = hasNearbyFarm(snapshot, cell.position().x(), cell.position().y());
                 String status = active ? "Status: Active" : "Status: Inactive / No Farm";
-                detailLabel.setText(status + "  @(" + cell.position().x() + ", " + cell.position().y() + ")");
+                detailLabel.setText(status + "  (" + cell.position().x() + ", " + cell.position().y() + ")");
             } else {
                 String detail = totalJobs > 0
                         ? "Jobs: " + totalJobs + "   (" + cell.position().x() + ", " + cell.position().y() + ")"
@@ -90,12 +90,12 @@ public final class SelectedBuildingPanel extends Table {
                     assetManager.getFeature(cell.naturalFeature())));
             nameLabel.setText(cell.naturalFeature().name().charAt(0)
                     + cell.naturalFeature().name().substring(1).toLowerCase().replace('_', ' '));
-            detailLabel.setText("@(" + cell.position().x() + ", " + cell.position().y() + ")");
+            detailLabel.setText("(" + cell.position().x() + ", " + cell.position().y() + ")");
             setMarketButtonVisible(false);
         } else {
             iconImage.setDrawable(null);
             nameLabel.setText("Empty tile");
-            detailLabel.setText("@(" + cell.position().x() + ", " + cell.position().y() + ")");
+            detailLabel.setText("(" + cell.position().x() + ", " + cell.position().y() + ")");
             setMarketButtonVisible(false);
         }
     }
