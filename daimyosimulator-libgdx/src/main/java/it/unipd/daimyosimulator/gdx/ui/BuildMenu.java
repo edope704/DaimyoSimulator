@@ -72,8 +72,8 @@ public final class BuildMenu extends Table {
             button.add(nameLabel).expandX().center();
             // Cost number + wood icon on the right, nudged inward from the edge.
             Label costLabel = new Label("" + cost, skin, "hint");
-            button.add(costLabel).width(24).right().padRight(2);
-            button.add(new Image(assetManager.getResourceIcon(ResourceType.TIMBER))).size(13).padLeft(2).padRight(8);
+            button.add(costLabel).width(24).right().padRight(0);
+            button.add(new Image(assetManager.getResourceIcon(ResourceType.TIMBER))).size(13).padLeft(0).padRight(8);
             button.addListener(new TextTooltip(tooltipFor(type), skin));
             button.addListener(new ChangeListener() {
                 @Override

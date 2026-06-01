@@ -90,19 +90,20 @@ public final class DashboardHud extends Table {
         });
 
         Table top = new Table();
-        // Left group: icon buttons
-        top.add(gearBtn).size(48).padRight(4);
-        top.add(soundBtn).size(48).padRight(4);
-        top.add(helpBtn).size(48).padRight(4);
-        // Spacer — pushes center content away from icons
+        // Left group: speed controls — no padLeft so its left edge lines up with the
+        // build menu below (both end up at x=6 via the surrounding pads).
+        top.add(speedControlPanel);
+        // Spacer — pushes center content away from speed controls
         top.add(new Table()).expandX();
         // Center content: resources + population
         top.add(resourcePanel).padRight(16);
         top.add(populationPanel).padRight(16);
-        // Spacer — pushes speed panel to the right edge
+        // Spacer — pushes icon buttons to the right edge
         top.add(new Table()).expandX();
-        // Right group: speed controls
-        top.add(speedControlPanel).padRight(4);
+        // Right group: icon buttons
+        top.add(gearBtn).size(48).padLeft(4);
+        top.add(soundBtn).size(48).padLeft(4);
+        top.add(helpBtn).size(48).padLeft(4);
 
         // ── Left side column: BuildMenu (top) + PolicyPanel (below) ───────────
         Table leftCol = new Table();
