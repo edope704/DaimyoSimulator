@@ -73,12 +73,12 @@ public record GameConfig(
                 70,   // birthFoodThreshold      (was 80 – slightly more achievable)
                 60,   // birthHousingThreshold
                 60,   // birthHappinessThreshold
-                15,   // birthRate               (was 25 – slower pop growth)
+                25,   // birthRate              
                 40,   // birthRiceCost           (was 20 – birth is expensive)
                 3,    // starvationDeathIntervalTicks
                 5,    // policyDurationTicks
                 8,    // policyCooldownTicks
-                3,    // workshopProductionIntervalTicks
+                1,    // workshopProductionIntervalTicks
                 true, // randomEventsEnabled
                 2,    // tradeExchangeRate
                 10,   // baseTradeCapacity

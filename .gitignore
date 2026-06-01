@@ -27,4 +27,7 @@ android/assets/
 android/libs/
 ios/robovm-logs/
 
+# Misc
+.antigravitycli/
 .claude/
+

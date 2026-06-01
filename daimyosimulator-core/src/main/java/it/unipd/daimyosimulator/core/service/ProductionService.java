@@ -35,7 +35,7 @@ public final class ProductionService {
                         village.getConfig().adjacencyRange()))
                 .count();
         if (validHuts > 0 && woodcutters > 0) {
-            addProduced(village, produced, ResourceType.TIMBER, BuildingType.WOODCUTTERS_HUT, woodcutters * 3, policy);
+            addProduced(village, produced, ResourceType.TIMBER, BuildingType.WOODCUTTERS_HUT, woodcutters * 1, policy);
         }
 
         if (village.getGrid().hasBuilding(BuildingType.MINE) && blacksmiths > 0) {

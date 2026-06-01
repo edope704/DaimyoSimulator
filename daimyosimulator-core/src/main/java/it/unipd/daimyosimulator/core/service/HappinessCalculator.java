@@ -7,7 +7,7 @@ public final class HappinessCalculator {
         return (int) Math.round(parameters.getFood() * 0.30
                 + parameters.getHousing() * 0.25
                 + parameters.getProtection() * 0.20
-                + parameters.getFaith() * 0.15
-                + parameters.getCraftsmanship() * 0.10);
+                + parameters.getCraftsmanship() * 0.15
+                + parameters.getFaith() * 0.10);
     }
 }
