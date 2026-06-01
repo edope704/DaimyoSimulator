@@ -13,8 +13,8 @@ public final class WorkshopAccidentEvent implements RandomEvent {
     @Override
     public String explain() {
         return "A fire broke out in your Workshop! "
-             + "Any Workshop on the map carries a 3% chance of this mishap per tick. "
-             + "Tools and Luxury Goods were lost and Happiness dropped.";
+             + "Any Workshop on the map carries a chance of this mishap per tick. "
+             + "Tools and Luxury Goods were lost in the blaze.";
     }
 
     @Override
@@ -22,7 +22,6 @@ public final class WorkshopAccidentEvent implements RandomEvent {
         int impact = ResourceTheftEvent.scaledImpact(village);
         int tools  = village.getResources().consumeUpTo(ResourceType.TOOLS,         impact);
         int luxury = village.getResources().consumeUpTo(ResourceType.LUXURY_GOODS,  impact);
-        village.getParameters().setHappiness(village.getParameters().getHappiness() - 5);
         return name() + ": lost " + tools + " TOOLS and " + luxury + " LUXURY_GOODS";
     }
 }

@@ -40,6 +40,10 @@ public final class VillageScreen extends ScreenAdapter {
     private boolean tutorialShown = false;
     private Runnable onManualTick;
     private GameSoundManager soundManager;
+    // One-time zero-resource consequence alerts (reset when a fresh game starts at tick 0).
+    private boolean riceZeroAlertShown    = false;
+    private boolean toolsZeroAlertShown   = false;
+    private boolean luxuryZeroAlertShown  = false;
 
     /** Called from MainMenuScreen when starting a brand-new village. */
     public VillageScreen(DaimyoSimulatorGame game, GameAssetManager assetManager, boolean showTutorial) {
@@ -146,9 +150,55 @@ public final class VillageScreen extends ScreenAdapter {
     }
 
     private void setSnapshot(VillageSnapshot snapshot) {
+        // Reset one-time alerts at the start of a fresh game (tick counter back to 0).
+        if (snapshot.tick() == 0) {
+            riceZeroAlertShown   = false;
+            toolsZeroAlertShown  = false;
+            luxuryZeroAlertShown = false;
+        }
         currentSnapshot = snapshot;
         if (hud != null) {
             hud.refresh(snapshot, facade.getDashboard());
+        }
+        checkFirstTimeZeroResourceAlerts(snapshot);
+    }
+
+    private void checkFirstTimeZeroResourceAlerts(VillageSnapshot snapshot) {
+        if (stage == null) return;
+        if (!riceZeroAlertShown && snapshot.resources().rice() == 0) {
+            riceZeroAlertShown = true;
+            EventModal.showInfo(skin,
+                    "Rice Depleted!",
+                    "Your rice stock has run out. Population growth is immediately frozen "
+                    + "and birth progress resets to zero.\n\n"
+                    + "If rice remains at 0, starvation sets in: one villager dies every "
+                    + "few ticks until food is restored.\n\n"
+                    + "Build Rice Farms adjacent to Rice Paddies and assign Farmers quickly "
+                    + "to prevent losing population.",
+                    stage);
+        }
+        if (!toolsZeroAlertShown && snapshot.resources().tools() == 0) {
+            toolsZeroAlertShown = true;
+            EventModal.showInfo(skin,
+                    "Tools Depleted!",
+                    "Your tool supply has run dry.\n\n"
+                    + "Without equipment, your Farmers can only produce HALF their "
+                    + "normal food output each tick.\n\n"
+                    + "Restore your Tools stock as soon as possible to prevent a food crisis.",
+                    stage);
+        }
+        if (!luxuryZeroAlertShown && snapshot.resources().luxuryGoods() == 0) {
+            luxuryZeroAlertShown = true;
+            EventModal.showInfo(skin,
+                    "Luxury Goods Depleted!",
+                    "With no Luxury Goods available, all promotions of Idle villagers "
+                    + "to Samurai or Monk are immediately frozen.\n\n"
+                    + "If the stock remains at 0 for 5 consecutive ticks, desertion begins: "
+                    + "1 Monk and 1 Samurai will abandon the village every tick until "
+                    + "supplies are restored.\n\n"
+                    + "Build a Workshop adjacent to a Mine and assign Artisans to produce "
+                    + "Luxury Goods.",
+                    stage);
         }
     }
 

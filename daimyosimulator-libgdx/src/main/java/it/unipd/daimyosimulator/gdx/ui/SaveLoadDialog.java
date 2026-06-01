@@ -20,7 +20,7 @@ public final class SaveLoadDialog extends Dialog {
     public SaveLoadDialog(Skin skin, CoreGameFacade facade, boolean isSave,
                           Consumer<VillageSnapshot> snapshotConsumer,
                           Consumer<String> statusConsumer) {
-        super(isSave ? "Save Game – Choose Slot" : "Load Game – Choose Slot", skin);
+        super(isSave ? "Save Game - Choose Slot" : "Load Game - Choose Slot", skin);
 
         Table content = getContentTable();
         content.pad(12);

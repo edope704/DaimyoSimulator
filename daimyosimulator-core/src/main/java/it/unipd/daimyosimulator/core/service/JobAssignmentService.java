@@ -2,6 +2,7 @@ package it.unipd.daimyosimulator.core.service;
 
 import it.unipd.daimyosimulator.core.domain.Village;
 import it.unipd.daimyosimulator.core.random.RandomProvider;
+import it.unipd.daimyosimulator.core.resource.ResourceType;
 import it.unipd.daimyosimulator.core.villager.Role;
 import it.unipd.daimyosimulator.core.villager.Villager;
 
@@ -54,6 +55,11 @@ public final class JobAssignmentService {
         village.roleCounts().forEach((role, count) -> slots.computeIfPresent(role, (ignored, capacity) -> Math.max(0, capacity - count)));
         slots.remove(Role.IDLE);
         slots.remove(Role.UNHOUSED);
+        // Luxury deprivation: no promotions to prestige roles when luxury stock is exhausted.
+        if (village.getResources().get(ResourceType.LUXURY_GOODS) == 0) {
+            slots.remove(Role.SAMURAI);
+            slots.remove(Role.MONK);
+        }
         return slots;
     }
 }

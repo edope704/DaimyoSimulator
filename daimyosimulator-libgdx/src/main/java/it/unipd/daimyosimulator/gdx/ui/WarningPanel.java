@@ -58,7 +58,7 @@ public final class WarningPanel extends Table {
         warningRows.clearChildren();
 
         if (history.isEmpty()) {
-            Label waiting = new Label("(monitoring…)", skin, "dim");
+            Label waiting = new Label("(monitoring...)", skin, "dim");
             waiting.setColor(new Color(0.6f, 0.6f, 0.6f, 1f));
             warningRows.add(waiting).left();
             return;
@@ -92,7 +92,7 @@ public final class WarningPanel extends Table {
 
         if (!anyWarning) {
             if (snapshots.size() < TREND_TICKS) {
-                Label waiting = new Label("(monitoring…)", skin, "dim");
+                Label waiting = new Label("(monitoring...)", skin, "dim");
                 waiting.setColor(new Color(0.6f, 0.6f, 0.6f, 1f));
                 warningRows.add(waiting).left();
             } else {
@@ -152,27 +152,27 @@ public final class WarningPanel extends Table {
         return switch (type) {
             case RICE ->
                 "To increase rice production:\n"
-                + "  • Build more Rice Farms (cost: 18 timber)\n"
-                + "  • Place Rice Paddies adjacent to Farms (+5 rice/tick each)\n"
-                + "  • Activate Agricultural Expansion policy (×1.5 paddy output)\n"
-                + "  • Reduce population growth until stocks stabilise";
+                + "  - Build more Rice Farms (cost: 18 timber)\n"
+                + "  - Place Rice Paddies adjacent to Farms (+5 rice/tick each)\n"
+                + "  - Activate Agricultural Expansion policy (x1.5 paddy output)\n"
+                + "  - Reduce population growth until stocks stabilise";
             case TIMBER ->
                 "To increase timber production:\n"
-                + "  • Build Woodcutter's Huts near Forest tiles (cost: 20 timber)\n"
-                + "  • Forest border tiles are always available — expand outward\n"
-                + "  • Pause construction projects until stocks recover";
+                + "  - Build Woodcutter's Huts near Forest tiles (cost: 20 timber)\n"
+                + "  - Forest border tiles are always available - expand outward\n"
+                + "  - Pause construction projects until stocks recover";
             case TOOLS ->
                 "To increase tool production:\n"
-                + "  • Build a Mine first if none exists (cost: 25 timber)\n"
-                + "  • Build a Smithy adjacent to the Mine (cost: 30 timber)\n"
-                + "  • Activate Craftsmen Production policy (×1.5 output)\n"
-                + "  • Reduce Samurai count to lower tool consumption";
+                + "  - Build a Mine first if none exists (cost: 25 timber)\n"
+                + "  - Build a Smithy adjacent to the Mine (cost: 30 timber)\n"
+                + "  - Activate Craftsmen Production policy (x1.5 output)\n"
+                + "  - Reduce Samurai count to lower tool consumption";
             case LUXURY_GOODS ->
                 "To increase luxury goods:\n"
-                + "  • Build a Workshop (cost: 35 timber; requires a Mine)\n"
-                + "  • Artisans produce +2 luxury goods every 3 ticks\n"
-                + "  • Activate Craftsmen Production policy (×1.5 output)\n"
-                + "  • Reduce Monk count to lower luxury consumption";
+                + "  - Build a Workshop (cost: 35 timber; requires a Mine)\n"
+                + "  - Artisans produce +2 luxury goods every 3 ticks\n"
+                + "  - Activate Craftsmen Production policy (x1.5 output)\n"
+                + "  - Reduce Monk count to lower luxury consumption";
         };
     }
 }

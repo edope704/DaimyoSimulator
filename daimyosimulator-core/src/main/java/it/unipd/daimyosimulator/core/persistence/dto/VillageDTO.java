@@ -16,4 +16,5 @@ public final class VillageDTO {
     public boolean randomEventsEnabled;
     public List<String> eventHistory = new ArrayList<>();
     public int marketCooldownTicks;
+    public int zeroLuxuryTicks;
 }

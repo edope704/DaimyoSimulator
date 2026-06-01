@@ -10,6 +10,8 @@ public final class ProductivitySpikeEvent implements RandomEvent {
         return "Productivity Spike";
     }
 
+    @Override public boolean isPositive() { return true; }
+
     @Override
     public String explain() {
         return "Your Samurai kept order and inspired the workforce! "

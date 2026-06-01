@@ -24,7 +24,8 @@ public final class ResourceTheftEvent implements RandomEvent {
         return name() + ": lost " + lost + " " + type;
     }
 
+    /** Base 20, scaling +1 per 10 ticks elapsed (floored). */
     static int scaledImpact(Village village) {
-        return 20 + (int) (village.getTickNumber() / 5);
+        return 20 + (int) (village.getTickNumber() / 10);
     }
 }

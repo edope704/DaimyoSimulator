@@ -9,7 +9,10 @@ import it.unipd.daimyosimulator.core.domain.NaturalFeature;
 import it.unipd.daimyosimulator.core.domain.Village;
 import it.unipd.daimyosimulator.core.event.EventReport;
 import it.unipd.daimyosimulator.core.event.RandomEventManager;
+import it.unipd.daimyosimulator.core.resource.ResourceType;
 import it.unipd.daimyosimulator.core.service.*;
+import it.unipd.daimyosimulator.core.villager.Role;
+import it.unipd.daimyosimulator.core.villager.Villager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,10 +71,14 @@ public final class TickProcessor {
         List<String> shortages = shortageService.applyShortages(consumption);
         messages.addAll(shortages);
 
+        // Luxury deprivation: track consecutive 0-luxury ticks and apply desertion.
+        List<String> desertions = updateLuxuryDesertion(village);
+        messages.addAll(desertions);
+
         parameterCalculator.recalculate(village);
         BirthDeathResult birthDeathResult = birthDeathService.process(village);
         messages.addAll(birthDeathResult.messages());
-        if (birthDeathResult.births() > 0 || birthDeathResult.deaths() > 0) {
+        if (birthDeathResult.births() > 0 || birthDeathResult.deaths() > 0 || !desertions.isEmpty()) {
             parameterCalculator.recalculate(village);
         }
 
@@ -97,6 +104,34 @@ public final class TickProcessor {
                 eventReports,
                 messages
         );
+    }
+
+    /**
+     * Tracks consecutive ticks with 0 luxury after consumption.
+     * At tick 5+ of deprivation, removes 1 Samurai and 1 Monk from the population.
+     */
+    private List<String> updateLuxuryDesertion(Village village) {
+        List<String> msgs = new ArrayList<>();
+        if (village.getResources().get(ResourceType.LUXURY_GOODS) == 0) {
+            village.setZeroLuxuryTicks(village.getZeroLuxuryTicks() + 1);
+            if (village.getZeroLuxuryTicks() >= 5) {
+                village.getVillagers().stream()
+                        .filter(v -> v.getRole() == Role.SAMURAI).findFirst()
+                        .ifPresent(v -> {
+                            village.removeVillager(v);
+                            msgs.add("Luxury deprivation: a Samurai deserted the village");
+                        });
+                village.getVillagers().stream()
+                        .filter(v -> v.getRole() == Role.MONK).findFirst()
+                        .ifPresent(v -> {
+                            village.removeVillager(v);
+                            msgs.add("Luxury deprivation: a Monk deserted the village");
+                        });
+            }
+        } else {
+            village.setZeroLuxuryTicks(0);
+        }
+        return msgs;
     }
 
     private List<String> validateBuildingRules(Village village) {

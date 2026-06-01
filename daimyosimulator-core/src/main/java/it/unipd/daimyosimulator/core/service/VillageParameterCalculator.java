@@ -1,6 +1,5 @@
 package it.unipd.daimyosimulator.core.service;
 
-import it.unipd.daimyosimulator.core.building.BuildingType;
 import it.unipd.daimyosimulator.core.domain.Village;
 import it.unipd.daimyosimulator.core.domain.VillageParameters;
 import it.unipd.daimyosimulator.core.villager.Role;
@@ -34,11 +33,10 @@ public final class VillageParameterCalculator {
                 : Math.min(100, (int) Math.round(monks * 1200.0 / population));
         int housing = population == 0 ? 100
                 : (int) Math.round(housingService.housedCount(village) * 100.0 / population);
-        int craftsmanship = Math.min(100, village.getResources().getTools() * 3
-                + artisans * 15
-                + blacksmiths * 15
-                + (int) village.getGrid().countBuildings(BuildingType.SMITHY) * 8
-                + (int) village.getGrid().countBuildings(BuildingType.WORKSHOP) * 8);
+        // Craftsmanship: 50% from Artisan ratio (1:10 = 50pts) + 50% from Blacksmith ratio (1:6 = 50pts).
+        int artisanPart    = population == 0 ? 0 : Math.min(50, (int) Math.round(artisans    * 500.0 / population));
+        int blacksmithPart = population == 0 ? 0 : Math.min(50, (int) Math.round(blacksmiths * 300.0 / population));
+        int craftsmanship  = artisanPart + blacksmithPart;
 
         parameters.setProtection(protection);
         parameters.setFood(food);

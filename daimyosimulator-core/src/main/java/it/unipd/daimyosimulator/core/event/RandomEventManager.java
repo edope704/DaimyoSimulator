@@ -55,6 +55,6 @@ public final class RandomEventManager {
     private EventReport applyFull(Village village, RandomEvent event) {
         String consequence = event.apply(village, randomProvider);
         village.addEvent(consequence);
-        return new EventReport(event.name(), event.explain(), consequence);
+        return new EventReport(event.name(), event.explain(), consequence, event.isPositive());
     }
 }

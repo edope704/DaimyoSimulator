@@ -27,7 +27,7 @@ public final class TutorialDialog extends Dialog {
         // ── WHAT IS THIS GAME ────────────────────────────────────────────────
         h2(content, skin, "YOUR ROLE");
         body(content, skin,
-            "You are a Daimyo — a feudal lord tasked with building a thriving settlement\n"
+            "You are a Daimyo, a feudal lord tasked with building a thriving settlement\n"
             + "from a handful of villagers and a forest clearing. Gather resources, raise\n"
             + "buildings, grow your population, and weather random events.");
         dim(content, skin,
@@ -46,7 +46,7 @@ public final class TutorialDialog extends Dialog {
 
         // ── THE FOUR RESOURCES ────────────────────────────────────────────────
         h2(content, skin, "RESOURCES  (top bar)");
-        warn(content, skin, "Watch these carefully — yellow means low, red means danger!");
+        warn(content, skin, "Watch these carefully: yellow means low, red means danger!");
         kv(content, skin, "Rice",         "food for your people. Every villager eats 2 rice per turn.");
         kv(content, skin, "Timber",       "the main building material. Everything costs timber to build.");
         kv(content, skin, "Tools",        "used by Farmers and Samurai each turn.");
@@ -70,8 +70,8 @@ public final class TutorialDialog extends Dialog {
         kv(content, skin, "Paddy       8t", "boosts a neighbouring Farm. Place right next to a Farm.");
         kv(content, skin, "Woodcutter 20t", "3 workers chop timber. MUST touch a Forest edge.");
         kv(content, skin, "Mine       25t", "unlocks advanced crafting nearby.");
-        kv(content, skin, "Smithy     30t", "2 Blacksmiths make tools — only works next to a Mine.");
-        kv(content, skin, "Workshop   35t", "2 Artisans make luxury goods — only works next to a Mine.");
+        kv(content, skin, "Smithy     30t", "2 Blacksmiths make tools; only works next to a Mine.");
+        kv(content, skin, "Workshop   35t", "2 Artisans make luxury goods; only works next to a Mine.");
         kv(content, skin, "Market     25t", "enables trading resources. Each Market adds +10 trade capacity.");
         kv(content, skin, "Guard Post 25t", "2 Samurai keep the peace and raise village security.");
         kv(content, skin, "Temple     30t", "2 Monks raise community faith and happiness.");
@@ -82,14 +82,14 @@ public final class TutorialDialog extends Dialog {
 
         // ── POPULATION ───────────────────────────────────────────────────────
         h2(content, skin, "POPULATION");
-        warn(content, skin, "Build Dwellings first — homeless villagers are idle and do not work.");
+        warn(content, skin, "Build Dwellings first! Homeless villagers are idle and do not work.");
         body(content, skin,
             "Every turn, idle villagers automatically take up available job slots.\n"
             + "Your village grows whenever rice is plentiful. A good food surplus\n"
             + "means new citizens are born frequently. The richer the surplus, the faster\n"
             + "new arrivals join your community.");
         dim(content, skin,
-            "Rice is the only requirement for growth — keep those farms producing!\n"
+            "Rice is the only requirement for growth. Keep those farms producing!\n"
             + "Deaths occur when rice reaches zero and starvation sets in.");
 
         // ── SECURITY & CULTURE ────────────────────────────────────────────────
@@ -120,7 +120,7 @@ public final class TutorialDialog extends Dialog {
         body(content, skin,
             "Select a placed Market on the map, then click 'Open Market'.\n"
             + "Each Market building you own adds 10 units of trading capacity.\n"
-            + "Exchange rates heavily favour rarer materials — luxury goods are\n"
+            + "Exchange rates heavily favour rarer materials; luxury goods are\n"
             + "worth far more rice than timber, for example.");
         dim(content, skin,
             "Rough exchange guide:\n"
@@ -134,13 +134,13 @@ public final class TutorialDialog extends Dialog {
         h2(content, skin, "EVENTS");
         body(content, skin,
             "From time to time something unexpected happens in the village.\n"
-            + "A pop-up appears describing what occurred — it closes automatically\n"
+            + "A pop-up appears describing what occurred. It closes automatically\n"
             + "when the next turn advances.");
         dim(content, skin,
             "Thieves strike more often in unprotected villages.\n"
             + "A faithful community may hold a Religious Festival, boosting happiness.\n"
             + "Skilled craftsmen sometimes achieve a breakthrough, producing bonus goods.\n"
-            + "Workshops can occasionally suffer accidents — keep your stock healthy.");
+            + "Workshops can occasionally suffer accidents. Keep your stock healthy.");
 
         // ── SAVE / LOAD ───────────────────────────────────────────────────────
         h2(content, skin, "SAVING YOUR VILLAGE");

@@ -84,7 +84,7 @@ public final class BuildMenu extends Table {
                 public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
                     soundManager.playClick();
                     buildModeState.enter(type);
-                    statusConsumer.accept("Build mode: " + shortName(type) + " – click grid to place");
+                    statusConsumer.accept("Build mode: " + shortName(type) + " - click grid to place");
                 }
             });
 
@@ -110,7 +110,7 @@ public final class BuildMenu extends Table {
                 soundManager.playClick();
                 if (((TextButton) actor).isChecked()) {
                     buildModeState.enterDemolish();
-                    statusConsumer.accept("Demolish mode – click a building or forest to remove it");
+                    statusConsumer.accept("Demolish mode - click a building or forest to remove it");
                 } else {
                     buildModeState.clear();
                     statusConsumer.accept("Demolish mode cancelled");
@@ -180,47 +180,47 @@ public final class BuildMenu extends Table {
                 + "Houses 4 villagers. Unhoused villagers cannot work.\n"
                 + "Build more to allow population growth.";
             case RICE_FARM ->
-                "Rice Farm – Cost: 18 timber\n"
+                "Rice Farm - Cost: 18 timber\n"
                 + "Provides 3 Rice Farmer job slots.\n"
                 + "Each adjacent Rice Paddy adds +5 rice/tick per farmer pair.\n"
                 + "Must be placed next to Rice Paddies to produce.";
             case RICE_PADDY ->
-                "Rice Paddy – Cost: 8 timber\n"
+                "Rice Paddy - Cost: 8 timber\n"
                 + "Boosts adjacent Rice Farm output. No workers needed.\n"
                 + "Place next to a Farm for production.";
             case WOODCUTTERS_HUT ->
-                "Woodcutter's Hut – Cost: 20 timber\n"
+                "Woodcutter's Hut - Cost: 20 timber\n"
                 + "Provides 3 Woodcutter slots. Produces 1 timber/tick per woodcutter.\n"
                 + "MUST be placed adjacent to a Forest tile.\n"
-                + "Note: timber output is 1/3 of early rates — place multiple huts.";
+                + "Note: timber output is 1/3 of early rates - place multiple huts.";
             case MINE ->
-                "Mine – Cost: 25 timber\n"
+                "Mine - Cost: 25 timber\n"
                 + "Required prerequisite for Smithy and Workshop.\n"
                 + "Provides no workers directly.";
             case SMITHY ->
-                "Smithy – Cost: 30 timber\n"
+                "Smithy - Cost: 30 timber\n"
                 + "Provides 2 Blacksmith slots. Produces 2 tools/tick per blacksmith.\n"
                 + "Must be placed adjacent to a Mine to produce. Dims if Mine is absent.";
             case WORKSHOP ->
-                "Workshop – Cost: 35 timber\n"
+                "Workshop - Cost: 35 timber\n"
                 + "Provides 2 Artisan slots. Produces 2 luxury goods every tick.\n"
                 + "Must be placed adjacent to a Mine to produce. Dims if Mine is absent.";
             case MARKET ->
-                "Market – Cost: 25 timber\n"
+                "Market - Cost: 25 timber\n"
                 + "Enables resource trading. Each Market adds +10 max trade capacity.\n"
                 + "After any trade a 10-tick global cooldown locks all Markets.\n"
-                + "Rates (give:receive) — Rice: 5:1 Timber, 15:1 Tools, 30:1 Luxury.\n"
+                + "Rates (give:receive): Rice 5:1 Timber, 15:1 Tools, 30:1 Luxury.\n"
                 + "Timber: 1:5 Rice, 10:1 Tools, 30:1 Luxury.\n"
                 + "Tools: 1:15 Rice, 1:10 Timber, 20:1 Luxury.";
             case GUARD_POST ->
-                "Guard Post – Cost: 25 timber\n"
+                "Guard Post - Cost: 25 timber\n"
                 + "Provides 2 Samurai slots.\n"
                 + "Security = 0% with no Samurai. Grants NO flat protection bonus.\n"
                 + "Formula: Security = Samurai / Population x 8 x 100  (cap 100%).\n"
                 + "Optimal: 1 Samurai per 8 citizens -> 100% security.\n"
                 + "High security reduces theft event chance.";
             case TEMPLE ->
-                "Temple – Cost: 30 timber\n"
+                "Temple - Cost: 30 timber\n"
                 + "Provides 2 Monk slots.\n"
                 + "Culture (Faith) = 0% with no Monks. Grants NO flat faith bonus.\n"
                 + "Formula: Faith = Monks / Population x 12 x 100  (cap 100%).\n"

@@ -213,7 +213,7 @@ public final class MarketDialog extends Dialog {
     private void updateCooldownDisplay(VillageSnapshot snapshot) {
         int cd = snapshot.marketCooldownTicks();
         if (cd > 0) {
-            cooldownLabel.setText("! Market on cooldown — " + cd + " tick" + (cd == 1 ? "" : "s") + " remaining");
+            cooldownLabel.setText("! Market on cooldown - " + cd + " tick" + (cd == 1 ? "" : "s") + " remaining");
             cooldownLabel.setColor(COLOR_WARN);
         } else {
             cooldownLabel.setText("Market ready");

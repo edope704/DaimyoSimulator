@@ -10,4 +10,7 @@ public interface RandomEvent {
     String explain();
 
     String apply(Village village, RandomProvider randomProvider);
+
+    /** Returns true if this event grants resources (shown in green); false if it takes resources (shown in red). */
+    default boolean isPositive() { return false; }
 }

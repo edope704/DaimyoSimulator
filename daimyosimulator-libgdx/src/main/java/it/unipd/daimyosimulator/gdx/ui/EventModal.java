@@ -1,5 +1,6 @@
 package it.unipd.daimyosimulator.gdx.ui;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
@@ -14,35 +15,45 @@ import java.util.List;
 
 /**
  * Modal pop-up shown whenever one or more random events fire in a tick.
- * Each event entry shows its name prominently, its trigger explanation,
- * and the concrete consequence that occurred.
+ *
+ * Negative events (resource losses) are rendered in red with the alert icon visible.
+ * Positive events (resource gains) are rendered in green with the alert icon hidden.
  */
 public final class EventModal extends Dialog {
 
+    private static final Color COLOR_GOOD = new Color(0.25f, 1.00f, 0.35f, 1f);
+    private static final Color COLOR_BAD  = new Color(1.00f, 0.25f, 0.10f, 1f);
+
     public EventModal(Skin skin, List<EventReport> reports) {
-        super("! Random Event !", skin);
+        super(hasAnyNegative(reports) ? "! Random Event !" : "Good News!", skin);
         Table content = getContentTable();
         content.pad(14);
 
-        content.add(new Image(skin.getDrawable("icon-alert"))).size(32).center().padBottom(8);
-        content.row();
+        // Alert icon only shown when at least one negative event is in the batch.
+        if (hasAnyNegative(reports)) {
+            content.add(new Image(skin.getDrawable("icon-alert"))).size(32).center().padBottom(8);
+            content.row();
+        }
 
         for (int i = 0; i < reports.size(); i++) {
             EventReport r = reports.get(i);
+            Color textColor = r.positive() ? COLOR_GOOD : COLOR_BAD;
 
-            // Event name — highlighted in warning colour.
+            // Event name
             Label nameLabel = new Label(r.name(), skin, "warning");
+            nameLabel.setColor(textColor);
             content.add(nameLabel).left().padTop(i == 0 ? 0 : 12);
             content.row();
 
-            // Explanation (why it happened).
+            // Explanation (trigger context — always grey)
             Label explainLabel = new Label(r.explanation(), skin, "dim");
             explainLabel.setWrap(true);
             content.add(explainLabel).width(460).left().padTop(2);
             content.row();
 
-            // Consequence (what actually changed).
+            // Consequence (resource change — coloured by polarity)
             Label consequenceLabel = new Label(r.consequence(), skin);
+            consequenceLabel.setColor(textColor);
             consequenceLabel.setWrap(true);
             content.add(consequenceLabel).width(460).left().padTop(2);
             content.row();
@@ -50,6 +61,10 @@ public final class EventModal extends Dialog {
 
         button("Dismiss");
         setMovable(true);
+    }
+
+    private static boolean hasAnyNegative(List<EventReport> reports) {
+        return reports.stream().anyMatch(r -> !r.positive());
     }
 
     /** Show centred on stage and focus. */
@@ -83,5 +98,20 @@ public final class EventModal extends Dialog {
         alert.button("OK");
         alert.setMovable(true);
         alert.show(stage);
+    }
+
+    /** Show an informational alert (no icon, neutral styling). */
+    public static void showInfo(Skin skin, String title, String message, Stage stage) {
+        if (stage == null) return;
+        Dialog info = new Dialog(title, skin);
+        Table content = info.getContentTable();
+        content.pad(14);
+        Label msg = new Label(message, skin);
+        msg.setColor(new Color(0.90f, 0.85f, 0.70f, 1f));
+        msg.setWrap(true);
+        content.add(msg).width(400).left();
+        info.button("OK");
+        info.setMovable(true);
+        info.show(stage);
     }
 }

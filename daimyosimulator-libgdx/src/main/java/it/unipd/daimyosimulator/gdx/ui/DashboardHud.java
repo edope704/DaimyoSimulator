@@ -153,7 +153,7 @@ public final class DashboardHud extends Table {
     }
 
     public void refresh(VillageSnapshot snapshot, DashboardViewModel dashboard) {
-        resourcePanel.refresh(dashboard.resources());
+        resourcePanel.refreshAmountsOnly(dashboard.resources());
         populationPanel.refresh(dashboard.population());
         parameterPanel.refresh(dashboard.parameters());
         policyPanel.refresh(dashboard.policy());

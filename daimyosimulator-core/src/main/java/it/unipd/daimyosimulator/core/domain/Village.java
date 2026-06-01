@@ -28,6 +28,8 @@ public final class Village {
     private int buildsThisTick;
     /** Ticks remaining before the Market can be used again. 0 = ready. */
     private int marketCooldownTicks;
+    /** Consecutive ticks during which Luxury Goods stock was 0 after consumption. */
+    private int zeroLuxuryTicks;
 
     public Village(
             Grid grid,
@@ -128,6 +130,14 @@ public final class Village {
 
     public void decrementMarketCooldown() {
         if (marketCooldownTicks > 0) marketCooldownTicks--;
+    }
+
+    public int getZeroLuxuryTicks() {
+        return zeroLuxuryTicks;
+    }
+
+    public void setZeroLuxuryTicks(int ticks) {
+        zeroLuxuryTicks = Math.max(0, ticks);
     }
 
     public void addEvent(String event) {

@@ -57,7 +57,7 @@ public final class MainMenuScreen extends ScreenAdapter {
         topSection.center();
         topSection.add(new Label("DAIMYO SIMULATOR", skin, "main-title")).padBottom(6);
         topSection.row();
-        topSection.add(new Label("Build – Grow – Survive", skin, "subtitle")).padBottom(48);
+        topSection.add(new Label("Build - Grow - Survive", skin, "subtitle")).padBottom(48);
 
         root.add(topSection).expandX().expandY().top().padTop(80);
         root.row();

@@ -53,6 +53,15 @@ public final class ResourcePanel extends Table {
         clearDeltas();
     }
 
+    /**
+     * Updates stock numbers only, leaving any existing +x/-x delta indicators intact.
+     * Use this path for mid-tick events (e.g. building placement) so the player's
+     * last-tick economic feedback remains visible until the next tick overwrites it.
+     */
+    public void refreshAmountsOnly(ResourceViewModel resources) {
+        updateAmounts(resources);
+    }
+
     /** Refresh amounts and show per-tick net deltas (produced – consumed). */
     public void refreshWithDelta(ResourceViewModel resources, ResourceViewModel produced, ResourceViewModel consumed) {
         updateAmounts(resources);
@@ -105,20 +114,20 @@ public final class ResourcePanel extends Table {
     private static String iconTooltip(ResourceType type) {
         return switch (type) {
             case RICE ->
-                "Rice – Food supply.\n"
+                "Rice: Food supply.\n"
                 + "Each villager consumes 2 rice/tick.\n"
                 + "Produced by Rice Farmers on Farms adjacent to Paddies (+5/tick per paddy pair).\n"
                 + "YELLOW = low  |  RED = starvation risk!";
             case TIMBER ->
-                "Timber – Building material.\n"
+                "Timber: Building material.\n"
                 + "Spent when constructing buildings.\n"
                 + "Produced by Woodcutters in Huts next to Forests (+3/tick per valid hut).";
             case TOOLS ->
-                "Tools – Industrial resource.\n"
+                "Tools: Industrial resource.\n"
                 + "Consumed by Rice Farmers and Samurai each tick.\n"
                 + "Produced by Blacksmiths in Smithies (+2/tick, requires Mine).";
             case LUXURY_GOODS ->
-                "Luxury Goods – Prestige resource.\n"
+                "Luxury Goods: Prestige resource.\n"
                 + "Consumed by Samurai and Monks each tick.\n"
                 + "Produced by Artisans in Workshops (+2 every 3 ticks, requires Mine).";
         };

@@ -77,17 +77,17 @@ public final class PolicyPanel extends Table {
     private static String tooltipFor(PolicyType type) {
         return switch (type) {
             case AGRICULTURAL_EXPANSION ->
-                "Agricultural Expansion – 5 ticks  ·  Cooldown: 8 ticks\n"
-                + "Rice Paddy output ×1.5.\n"
-                + "Rice Farmer tool consumption ×1.5.";
+                "Agricultural Expansion - 5 ticks | Cooldown: 8 ticks\n"
+                + "Rice Paddy output x1.5.\n"
+                + "Rice Farmer tool consumption x1.5.";
             case MILITARY_PROTECTION ->
-                "Military Protection – 5 ticks  ·  Cooldown: 8 ticks\n"
-                + "Protection multiplier ×1.5 (reduces theft events).\n"
-                + "Samurai tool & luxury consumption ×1.5.";
+                "Military Protection - 5 ticks | Cooldown: 8 ticks\n"
+                + "Protection multiplier x1.5 (reduces theft events).\n"
+                + "Samurai tool & luxury consumption x1.5.";
             case CRAFTSMEN_PRODUCTION ->
-                "Craftsmen Production – 5 ticks  ·  Cooldown: 8 ticks\n"
-                + "Timber, Tools, Luxury Goods output ×1.5.\n"
-                + "Blacksmith & Artisan rice consumption ×1.5.";
+                "Craftsmen Production - 5 ticks | Cooldown: 8 ticks\n"
+                + "Timber, Tools, Luxury Goods output x1.5.\n"
+                + "Blacksmith & Artisan rice consumption x1.5.";
         };
     }
 }

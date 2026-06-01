@@ -32,6 +32,7 @@ public final class VillageMapper {
         dto.randomEventsEnabled = village.getConfig().randomEventsEnabled();
         dto.eventHistory = village.getEventHistory();
         dto.marketCooldownTicks = village.getMarketCooldownTicks();
+        dto.zeroLuxuryTicks = village.getZeroLuxuryTicks();
         return dto;
     }
 
@@ -90,6 +91,7 @@ public final class VillageMapper {
         village.setBirthProgress(dto.birthProgress);
         village.setStarvationTicks(dto.starvationTicks);
         village.setMarketCooldownTicks(dto.marketCooldownTicks);
+        village.setZeroLuxuryTicks(dto.zeroLuxuryTicks);
         village.restoreEventHistory(dto.eventHistory);
         return village;
     }
