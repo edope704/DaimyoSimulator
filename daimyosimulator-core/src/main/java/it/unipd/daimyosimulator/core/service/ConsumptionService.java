@@ -22,7 +22,7 @@ public final class ConsumptionService {
                 requested.add(ResourceType.TOOLS, (int) Math.ceil(policy.toolsConsumptionMultiplier(role)));
             }
             if (role == Role.SAMURAI || role == Role.MONK) {
-                requested.add(ResourceType.LUXURY_GOODS, (int) Math.ceil(policy.luxuryConsumptionMultiplier(role)));
+                requested.add(ResourceType.LUXURY_GOODS, (int) Math.ceil(policy.luxuryConsumptionMultiplier(role) * 2));
             }
         }
 

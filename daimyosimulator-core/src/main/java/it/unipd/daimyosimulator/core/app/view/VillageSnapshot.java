@@ -18,7 +18,9 @@ public record VillageSnapshot(
         /** Buildings placed since last tick advance. */
         int buildsThisTick,
         /** Max buildings allowed per tick (from GameConfig). */
-        int maxBuildsPerTick
+        int maxBuildsPerTick,
+        /** Ticks remaining before Market can trade again. 0 = ready. */
+        int marketCooldownTicks
 ) {
     public VillageSnapshot {
         cells = List.copyOf(cells);

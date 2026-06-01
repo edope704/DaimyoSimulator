@@ -15,4 +15,5 @@ public final class VillageDTO {
     public int starvationTicks;
     public boolean randomEventsEnabled;
     public List<String> eventHistory = new ArrayList<>();
+    public int marketCooldownTicks;
 }

@@ -57,7 +57,7 @@ public final class WarningPanel extends Table {
     private void rebuildWarnings() {
         warningRows.clearChildren();
 
-        if (history.size() < TREND_TICKS) {
+        if (history.isEmpty()) {
             Label waiting = new Label("(monitoring…)", skin, "dim");
             waiting.setColor(new Color(0.6f, 0.6f, 0.6f, 1f));
             warningRows.add(waiting).left();
@@ -65,13 +65,20 @@ public final class WarningPanel extends Table {
         }
 
         List<ResourceViewModel> snapshots = new ArrayList<>(history);
+        ResourceViewModel latest = snapshots.get(snapshots.size() - 1);
         boolean anyWarning = false;
 
         for (ResourceType type : ResourceType.values()) {
-            if (isTrendingDown(snapshots, type)) {
+            boolean depleted = latest.amount(type) == 0;
+            boolean trending  = snapshots.size() >= TREND_TICKS && isTrendingDown(snapshots, type);
+
+            if (depleted || trending) {
                 anyWarning = true;
-                TextButton card = new TextButton("! " + displayName(type) + " falling!", skin);
-                card.getLabel().setColor(COLOR_WARN);
+                String label = depleted
+                        ? "! " + displayName(type) + " depleted!"
+                        : "! " + displayName(type) + " falling!";
+                TextButton card = new TextButton(label, skin);
+                card.getLabel().setColor(depleted ? new Color(1f, 0.25f, 0.10f, 1f) : COLOR_WARN);
                 card.addListener(new ChangeListener() {
                     @Override
                     public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
@@ -84,9 +91,15 @@ public final class WarningPanel extends Table {
         }
 
         if (!anyWarning) {
-            Label ok = new Label("+ All stable", skin, "dim");
-            ok.setColor(COLOR_OK);
-            warningRows.add(ok).left();
+            if (snapshots.size() < TREND_TICKS) {
+                Label waiting = new Label("(monitoring…)", skin, "dim");
+                waiting.setColor(new Color(0.6f, 0.6f, 0.6f, 1f));
+                warningRows.add(waiting).left();
+            } else {
+                Label ok = new Label("+ All stable", skin, "dim");
+                ok.setColor(COLOR_OK);
+                warningRows.add(ok).left();
+            }
         }
     }
 

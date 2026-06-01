@@ -16,12 +16,14 @@ public final class ProductionService {
         int riceFarmers = (int) village.countRole(Role.RICE_FARMER);
         int woodcutters = (int) village.countRole(Role.WOODCUTTER);
         int blacksmiths = (int) village.countRole(Role.BLACKSMITH);
-        int artisans = (int) village.countRole(Role.ARTISAN);
+        int artisans    = (int) village.countRole(Role.ARTISAN);
+        int range       = village.getConfig().adjacencyRange();
 
+        // Rice: paddies adjacent to farms
         int eligiblePaddies = 0;
         for (Cell cell : village.getGrid().getCells()) {
-            if (cell.getBuilding().filter(building -> building.getType() == BuildingType.RICE_PADDY).isPresent()
-                    && village.getGrid().hasBuildingWithin(cell.getPosition(), BuildingType.RICE_FARM, village.getConfig().adjacencyRange())) {
+            if (cell.getBuilding().filter(b -> b.getType() == BuildingType.RICE_PADDY).isPresent()
+                    && village.getGrid().hasBuildingWithin(cell.getPosition(), BuildingType.RICE_FARM, range)) {
                 eligiblePaddies++;
             }
         }
@@ -29,21 +31,30 @@ public final class ProductionService {
             addProduced(village, produced, ResourceType.RICE, BuildingType.RICE_PADDY, eligiblePaddies * 5, policy);
         }
 
+        // Timber: woodcutter huts adjacent to forest
         long validHuts = village.getGrid().getCells().stream()
-                .filter(cell -> cell.getBuilding().filter(building -> building.getType() == BuildingType.WOODCUTTERS_HUT).isPresent())
-                .filter(cell -> village.getGrid().hasNaturalFeatureWithin(cell.getPosition(), NaturalFeature.FOREST,
-                        village.getConfig().adjacencyRange()))
+                .filter(c -> c.getBuilding().filter(b -> b.getType() == BuildingType.WOODCUTTERS_HUT).isPresent())
+                .filter(c -> village.getGrid().hasNaturalFeatureWithin(c.getPosition(), NaturalFeature.FOREST, range))
                 .count();
         if (validHuts > 0 && woodcutters > 0) {
-            addProduced(village, produced, ResourceType.TIMBER, BuildingType.WOODCUTTERS_HUT, woodcutters * 1, policy);
+            addProduced(village, produced, ResourceType.TIMBER, BuildingType.WOODCUTTERS_HUT, woodcutters, policy);
         }
 
-        if (village.getGrid().hasBuilding(BuildingType.MINE) && blacksmiths > 0) {
+        // Tools: smithies adjacent to a mine (proximity-based)
+        long activeSmithies = village.getGrid().getCells().stream()
+                .filter(c -> c.getBuilding().filter(b -> b.getType() == BuildingType.SMITHY).isPresent())
+                .filter(c -> village.getGrid().hasBuildingWithin(c.getPosition(), BuildingType.MINE, range))
+                .count();
+        if (activeSmithies > 0 && blacksmiths > 0) {
             addProduced(village, produced, ResourceType.TOOLS, BuildingType.SMITHY, blacksmiths * 2, policy);
         }
 
-        if (village.getGrid().hasBuilding(BuildingType.MINE)
-                && artisans > 0
+        // Luxury: workshops adjacent to a mine (proximity-based)
+        long activeWorkshops = village.getGrid().getCells().stream()
+                .filter(c -> c.getBuilding().filter(b -> b.getType() == BuildingType.WORKSHOP).isPresent())
+                .filter(c -> village.getGrid().hasBuildingWithin(c.getPosition(), BuildingType.MINE, range))
+                .count();
+        if (activeWorkshops > 0 && artisans > 0
                 && village.getTickNumber() % village.getConfig().workshopProductionIntervalTicks() == 0) {
             addProduced(village, produced, ResourceType.LUXURY_GOODS, BuildingType.WORKSHOP, artisans * 2, policy);
         }

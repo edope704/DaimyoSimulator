@@ -14,6 +14,8 @@ import it.unipd.daimyosimulator.gdx.assets.GameAssetManager;
 import it.unipd.daimyosimulator.gdx.assets.GameSoundManager;
 import it.unipd.daimyosimulator.gdx.input.BuildModeState;
 
+import it.unipd.daimyosimulator.core.service.ProgressiveCostCalculator;
+
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -37,6 +39,7 @@ public final class BuildMenu extends Table {
 
     private final Label buildLimitLabel;
     private final Map<BuildingType, Label> countLabels = new EnumMap<>(BuildingType.class);
+    private final Map<BuildingType, Label> costLabels  = new EnumMap<>(BuildingType.class);
     private final TextButton demolishButton;
     private final BuildModeState buildModeState;
 
@@ -72,6 +75,7 @@ public final class BuildMenu extends Table {
             button.add(nameLabel).expandX().center();
             // Cost number + wood icon on the right, nudged inward from the edge.
             Label costLabel = new Label("" + cost, skin, "hint");
+            costLabels.put(type, costLabel);
             button.add(costLabel).width(24).right().padRight(0);
             button.add(new Image(assetManager.getResourceIcon(ResourceType.TIMBER))).size(13).padLeft(0).padRight(8);
             button.addListener(new TextTooltip(tooltipFor(type), skin));
@@ -96,8 +100,9 @@ public final class BuildMenu extends Table {
         // Demolish button.
         demolishButton = new TextButton("Demolish", skin, "demolish");
         demolishButton.addListener(new TextTooltip(
-                "Demolish mode: click any building on the grid to remove it.\n"
-                + "No timber refund. Workers become idle. Right-click to cancel.",
+                "Demolish mode: click any building or forest on the grid to remove it.\n"
+                + "Building demolished: +5 timber refund. Forest cleared: +10 timber.\n"
+                + "Workers become idle. Right-click to cancel.",
                 skin));
         demolishButton.addListener(new ChangeListener() {
             @Override
@@ -117,16 +122,20 @@ public final class BuildMenu extends Table {
         row();
     }
 
-    /** Called each time the snapshot changes. Updates build-limit header and per-type counts. */
+    /** Called each time the snapshot changes. Updates build-limit header, per-type counts, and scaled costs. */
     public void refresh(VillageSnapshot snapshot) {
         buildLimitLabel.setText("Builds: " + snapshot.buildsThisTick() + "/" + snapshot.maxBuildsPerTick());
         for (BuildingType type : BuildingType.values()) {
             long count = snapshot.cells().stream()
                     .filter(c -> c.building() != null && c.building().type() == type)
                     .count();
-            Label lbl = countLabels.get(type);
-            if (lbl != null) {
-                lbl.setText("[" + count + "]");
+            Label countLbl = countLabels.get(type);
+            if (countLbl != null) countLbl.setText("[" + count + "]");
+
+            Label costLbl = costLabels.get(type);
+            if (costLbl != null) {
+                int scaled = ProgressiveCostCalculator.scaledCost(type, (int) count, costFor(type));
+                costLbl.setText("" + scaled);
             }
         }
         demolishButton.setProgrammaticChangeEvents(false);
@@ -181,8 +190,9 @@ public final class BuildMenu extends Table {
                 + "Place next to a Farm for production.";
             case WOODCUTTERS_HUT ->
                 "Woodcutter's Hut – Cost: 20 timber\n"
-                + "Provides 3 Woodcutter slots. Produces 3 timber/tick per valid hut.\n"
-                + "MUST be placed adjacent to a Forest tile.";
+                + "Provides 3 Woodcutter slots. Produces 1 timber/tick per woodcutter.\n"
+                + "MUST be placed adjacent to a Forest tile.\n"
+                + "Note: timber output is 1/3 of early rates — place multiple huts.";
             case MINE ->
                 "Mine – Cost: 25 timber\n"
                 + "Required prerequisite for Smithy and Workshop.\n"
@@ -190,24 +200,32 @@ public final class BuildMenu extends Table {
             case SMITHY ->
                 "Smithy – Cost: 30 timber\n"
                 + "Provides 2 Blacksmith slots. Produces 2 tools/tick per blacksmith.\n"
-                + "Requires a Mine anywhere on the map.";
+                + "Must be placed adjacent to a Mine to produce. Dims if Mine is absent.";
             case WORKSHOP ->
                 "Workshop – Cost: 35 timber\n"
-                + "Provides 2 Artisan slots. Produces 2 luxury goods every 3 ticks.\n"
-                + "Requires a Mine anywhere on the map.";
+                + "Provides 2 Artisan slots. Produces 2 luxury goods every tick.\n"
+                + "Must be placed adjacent to a Mine to produce. Dims if Mine is absent.";
             case MARKET ->
                 "Market – Cost: 25 timber\n"
-                + "Provides 2 Trader slots. Enables resource trading.\n"
-                + "Click a placed Market on the grid to open the trade menu.\n"
-                + "Exchange rate: 2 of one resource for 1 of another.";
+                + "Enables resource trading. Each Market adds +10 max trade capacity.\n"
+                + "After any trade a 10-tick global cooldown locks all Markets.\n"
+                + "Rates (give:receive) — Rice: 5:1 Timber, 15:1 Tools, 30:1 Luxury.\n"
+                + "Timber: 1:5 Rice, 10:1 Tools, 30:1 Luxury.\n"
+                + "Tools: 1:15 Rice, 1:10 Timber, 20:1 Luxury.";
             case GUARD_POST ->
                 "Guard Post – Cost: 25 timber\n"
-                + "Provides 2 Samurai slots. Increases village Protection.\n"
-                + "Higher protection reduces theft event probability.";
+                + "Provides 2 Samurai slots.\n"
+                + "Security = 0% with no Samurai. Grants NO flat protection bonus.\n"
+                + "Formula: Security = Samurai / Population x 8 x 100  (cap 100%).\n"
+                + "Optimal: 1 Samurai per 8 citizens -> 100% security.\n"
+                + "High security reduces theft event chance.";
             case TEMPLE ->
                 "Temple – Cost: 30 timber\n"
-                + "Provides 2 Monk slots. Increases Faith and Happiness.\n"
-                + "Enables Religious Festival random events.";
+                + "Provides 2 Monk slots.\n"
+                + "Culture (Faith) = 0% with no Monks. Grants NO flat faith bonus.\n"
+                + "Formula: Faith = Monks / Population x 12 x 100  (cap 100%).\n"
+                + "Optimal: 1 Monk per 12 citizens -> 100% faith.\n"
+                + "High faith raises Happiness and enables Religious Festival events.";
         };
     }
 }

@@ -26,6 +26,8 @@ public final class Village {
     private long nextVillagerId;
     /** Number of buildings placed since the last tick advance. Resets to 0 at start of each tick. */
     private int buildsThisTick;
+    /** Ticks remaining before the Market can be used again. 0 = ready. */
+    private int marketCooldownTicks;
 
     public Village(
             Grid grid,
@@ -114,6 +116,18 @@ public final class Village {
 
     public void resetBuildsThisTick() {
         buildsThisTick = 0;
+    }
+
+    public int getMarketCooldownTicks() {
+        return marketCooldownTicks;
+    }
+
+    public void setMarketCooldownTicks(int ticks) {
+        marketCooldownTicks = Math.max(0, ticks);
+    }
+
+    public void decrementMarketCooldown() {
+        if (marketCooldownTicks > 0) marketCooldownTicks--;
     }
 
     public void addEvent(String event) {

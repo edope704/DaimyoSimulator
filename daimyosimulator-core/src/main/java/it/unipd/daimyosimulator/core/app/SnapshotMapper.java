@@ -33,7 +33,8 @@ public final class SnapshotMapper {
                 toPolicyViewModel(village.getPolicyManager()),
                 latest(village.getEventHistory(), 10),
                 village.getBuildsThisTick(),
-                village.getConfig().maxBuildsPerTick()
+                village.getConfig().maxBuildsPerTick(),
+                village.getMarketCooldownTicks()
         );
     }
 

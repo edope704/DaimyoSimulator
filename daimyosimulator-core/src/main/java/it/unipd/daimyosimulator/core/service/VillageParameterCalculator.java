@@ -23,14 +23,15 @@ public final class VillageParameterCalculator {
         int blacksmiths = (int) village.countRole(Role.BLACKSMITH);
         int expectedRice = Math.max(1, population * village.getConfig().ricePerVillagerPerTick() * 5);
 
+        // Security: 1 Samurai per 8 citizens = 100%. No flat bonus from Guard Post.
         int protection = population == 0 ? 100
-                : (int) Math.round((samurai * 640.0 / population)
-                        * village.getPolicyManager().getActivePolicy().protectionMultiplier());
-        protection += (int) village.getGrid().countBuildings(BuildingType.GUARD_POST) * 20;
+                : Math.min(100, (int) Math.round(samurai * 800.0 / population
+                        * village.getPolicyManager().getActivePolicy().protectionMultiplier()));
 
         int food = Math.min(100, (int) Math.round(village.getResources().getRice() * 100.0 / expectedRice));
-        int faith = Math.min(100, (int) Math.round((population == 0 ? 100 : monks * 100.0 / population)
-                + village.getGrid().countBuildings(BuildingType.TEMPLE) * 20));
+        // Culture: 1 Monk per 12 citizens = 100%. No flat bonus from Temple.
+        int faith = population == 0 ? 100
+                : Math.min(100, (int) Math.round(monks * 1200.0 / population));
         int housing = population == 0 ? 100
                 : (int) Math.round(housingService.housedCount(village) * 100.0 / population);
         int craftsmanship = Math.min(100, village.getResources().getTools() * 3

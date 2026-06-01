@@ -30,9 +30,9 @@ public final class CommandsDialog extends Dialog {
         "Building",
         new String[]{ "Place a building",    "Click building button -> click grid tile" },
         new String[]{ "Cancel build mode",   "Right-click or Esc" },
-        new String[]{ "Demolish building",   "Demolish button -> click target tile" },
+        new String[]{ "Demolish building",   "Demolish button -> click target tile (+5/+10 timber)" },
         new String[]{ "Inspect tile",        "Left-click tile (outside build mode)" },
-        new String[]{ "Open Market",         "Inspect Market tile -> 'Open Market'" },
+        new String[]{ "Open Market",         "Inspect Market tile -> 'Open Market'  (10-tick cooldown)" },
         "Game Controls",
         new String[]{ "Advance one tick",    "NEXT button in speed panel" },
         new String[]{ "Pause / Resume",      "PAUSE button" },
@@ -41,9 +41,9 @@ public final class CommandsDialog extends Dialog {
         "Interface",
         new String[]{ "Save game",           "Save button -> choose a slot (1-5)" },
         new String[]{ "Load game",           "Load button -> choose a slot (1-5)" },
-        new String[]{ "New game",            "New button (resets village)" },
+        new String[]{ "New game",            "Gear icon -> New Game (places starter buildings)" },
         new String[]{ "Help / Tutorial",     "? button (top bar)" },
-        new String[]{ "This dialog",         "Cmd button (top bar)" },
+        new String[]{ "This dialog",         "Settings -> Commands  (gear icon -> Commands)" },
         new String[]{ "Debug grid overlay",  "F3" },
     };
 

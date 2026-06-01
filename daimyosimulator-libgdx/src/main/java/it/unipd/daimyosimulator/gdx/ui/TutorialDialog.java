@@ -7,14 +7,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 
 /**
- * Structured help modal.  Uses colour-coded labels for visual hierarchy:
- *   title   (gold)   = section headers
- *   warning (red)    = critical rules the player must know
- *   hint    (amber)  = keys / building names
- *   dim     (grey)   = supplementary / optional detail
- *   default (white)  = regular content
- *
- * All strings are plain ASCII to avoid glyph-missing squares with the default BitmapFont.
+ * In-game tutorial. Written in clear, thematic language aimed at a new player.
+ * No backend/formula jargon — everything is described in terms of what the player sees and does.
  */
 public final class TutorialDialog extends Dialog {
 
@@ -27,88 +21,135 @@ public final class TutorialDialog extends Dialog {
         content.top().left();
         content.defaults().left();
 
-        h1(content, skin, "DAIMYO SIMULATOR - QUICK GUIDE");
+        h1(content, skin, "DAIMYO SIMULATOR  - A FEUDAL VILLAGE GUIDE");
         sep(content, skin);
 
-        // ── GOAL ─────────────────────────────────────────────────────────────
-        h2(content, skin, "GOAL");
+        // ── WHAT IS THIS GAME ────────────────────────────────────────────────
+        h2(content, skin, "YOUR ROLE");
         body(content, skin,
-            "Grow your village, feed your people, and survive random events.\n"
-            + "A new game starts with 1 Woodcutter and 2 Dwellings already placed.");
+            "You are a Daimyo — a feudal lord tasked with building a thriving settlement\n"
+            + "from a handful of villagers and a forest clearing. Gather resources, raise\n"
+            + "buildings, grow your population, and weather random events.");
+        dim(content, skin,
+            "Your village starts with 2 Dwellings and a Woodcutter's Hut already in place\n"
+            + "so your first settlers have a home and a source of wood from day one.");
 
         // ── CONTROLS ─────────────────────────────────────────────────────────
         h2(content, skin, "CONTROLS");
-        kv(content, skin, "Left-click build btn",  "enter build mode");
-        kv(content, skin, "Left-click grid tile",  "place building / inspect cell");
-        kv(content, skin, "Right-click / Esc",     "cancel build or demolish mode");
-        kv(content, skin, "Next button",           "advance one tick manually");
-        kv(content, skin, "Pause button",          "toggle auto-advance");
-        kv(content, skin, "Speed button",          "cycle 1x  2x  4x speed");
-        kv(content, skin, "Demolish button",       "remove a building (no refund)");
-        kv(content, skin, "F3",                    "toggle debug grid overlay");
+        kv(content, skin, "Left-click a building",  "enter build mode for that structure");
+        kv(content, skin, "Left-click the map",     "place the selected building or inspect a tile");
+        kv(content, skin, "Right-click or Esc",     "cancel placement or demolish mode");
+        kv(content, skin, "Demolish button",         "remove a tile (returns some timber)");
+        kv(content, skin, "Next / Pause / Speed",    "advance time, pause, or change tick speed");
+        kv(content, skin, "Gear icon (top left)",    "save, load, or start a new village");
+        kv(content, skin, "F3",                      "toggle the debug grid overlay");
 
-        // ── RESOURCES ────────────────────────────────────────────────────────
-        h2(content, skin, "RESOURCES");
-        warn(content, skin, "YELLOW number = low stock  |  RED = critical / danger!");
-        kv(content, skin, "Rice",         "consumed 2/tick per villager. Runs out -> starvation.");
-        kv(content, skin, "Timber",       "spent to construct buildings.");
-        kv(content, skin, "Tools",        "consumed by Farmers & Samurai each tick.");
-        kv(content, skin, "Luxury Goods", "consumed by Samurai & Monks each tick.");
+        // ── THE FOUR RESOURCES ────────────────────────────────────────────────
+        h2(content, skin, "RESOURCES  (top bar)");
+        warn(content, skin, "Watch these carefully — yellow means low, red means danger!");
+        kv(content, skin, "Rice",         "food for your people. Every villager eats 2 rice per turn.");
+        kv(content, skin, "Timber",       "the main building material. Everything costs timber to build.");
+        kv(content, skin, "Tools",        "used by Farmers and Samurai each turn.");
+        kv(content, skin, "Luxury Goods", "consumed by Samurai and Monks each turn.");
+        dim(content, skin,
+            "If a resource hits zero the WARNINGS panel on the right immediately alerts you.\n"
+            + "If rice runs out entirely, a villager will die every few turns from starvation.");
 
         // ── BUILD LIMIT ───────────────────────────────────────────────────────
-        h2(content, skin, "BUILD LIMIT");
-        warn(content, skin, "You may only place 2 buildings per tick.");
+        h2(content, skin, "CONSTRUCTION LIMIT");
+        warn(content, skin, "You can only place 2 buildings per turn.");
         dim(content, skin,
-            "The counter 'Builds: x/y' in the left panel resets each tick.\n"
-            + "Exceeding the limit triggers an alert pop-up.");
+            "The counter in the build panel resets each time a new turn begins.\n"
+            + "Costs also rise slightly each time you build more of the same type,\n"
+            + "so plan ahead rather than spamming a single structure.");
 
         // ── BUILDINGS ─────────────────────────────────────────────────────────
-        h2(content, skin, "BUILDINGS  (cost in timber)");
-        kv(content, skin, "Dwelling   15t", "houses 4 villagers. Unhoused cannot work.");
-        kv(content, skin, "Farm       18t", "3 Farmer slots. Needs adjacent Paddies.");
-        kv(content, skin, "Paddy       8t", "boosts adjacent Farm. +5 rice/tick per pair.");
-        kv(content, skin, "Woodcutter 20t", "3 Woodcutter slots. MUST touch a Forest.");
-        kv(content, skin, "Mine       25t", "prerequisite for Smithy & Workshop.");
-        kv(content, skin, "Smithy     30t", "2 Blacksmith slots -> +2 Tools/tick.");
-        kv(content, skin, "Workshop   35t", "2 Artisan slots -> +2 Luxury/3 ticks.");
-        kv(content, skin, "Market     25t", "2 Trader slots. Enables resource trading.");
-        kv(content, skin, "Guard Post 25t", "2 Samurai slots -> raises Protection.");
-        kv(content, skin, "Temple     30t", "2 Monk slots -> raises Faith & Happiness.");
+        h2(content, skin, "BUILDINGS  (base timber cost)");
+        kv(content, skin, "Dwelling   15t", "houses 4 people. Homeless villagers cannot work.");
+        kv(content, skin, "Farm       18t", "puts 3 Rice Farmers to work. Needs Rice Paddies next to it.");
+        kv(content, skin, "Paddy       8t", "boosts a neighbouring Farm. Place right next to a Farm.");
+        kv(content, skin, "Woodcutter 20t", "3 workers chop timber. MUST touch a Forest edge.");
+        kv(content, skin, "Mine       25t", "unlocks advanced crafting nearby.");
+        kv(content, skin, "Smithy     30t", "2 Blacksmiths make tools — only works next to a Mine.");
+        kv(content, skin, "Workshop   35t", "2 Artisans make luxury goods — only works next to a Mine.");
+        kv(content, skin, "Market     25t", "enables trading resources. Each Market adds +10 trade capacity.");
+        kv(content, skin, "Guard Post 25t", "2 Samurai keep the peace and raise village security.");
+        kv(content, skin, "Temple     30t", "2 Monks raise community faith and happiness.");
+        dim(content, skin,
+            "Smithies and Workshops appear dimmed when no Mine is directly beside them.\n"
+            + "An alert will warn you if you place one too far from a Mine.\n"
+            + "Rice Paddies also dim and warn if no Farm is adjacent.");
 
         // ── POPULATION ───────────────────────────────────────────────────────
         h2(content, skin, "POPULATION");
-        warn(content, skin, "All 8 start unhoused. Build Dwellings first!");
-        body(content, skin, "Idle villagers auto-fill job slots each tick.");
+        warn(content, skin, "Build Dwellings first — homeless villagers are idle and do not work.");
+        body(content, skin,
+            "Every turn, idle villagers automatically take up available job slots.\n"
+            + "Your village grows whenever rice is plentiful. A good food surplus\n"
+            + "means new citizens are born frequently. The richer the surplus, the faster\n"
+            + "new arrivals join your community.");
         dim(content, skin,
-            "Birth requires Food >= 70, Housing >= 60, Happiness >= 60, costs 40 rice.\n"
-            + "Starvation (rice = 0) kills one villager every 3 ticks.");
+            "Rice is the only requirement for growth — keep those farms producing!\n"
+            + "Deaths occur when rice reaches zero and starvation sets in.");
+
+        // ── SECURITY & CULTURE ────────────────────────────────────────────────
+        h2(content, skin, "SECURITY & CULTURE");
+        body(content, skin,
+            "Security depends entirely on how many Samurai protect your people.\n"
+            + "A good balance is one Samurai for every eight citizens.\n"
+            + "A well-protected village suffers far fewer theft events.");
+        body(content, skin,
+            "Culture (Faith) depends on your Monks relative to the population.\n"
+            + "Aim for one Monk for every twelve citizens to keep faith high.\n"
+            + "High faith lifts happiness and makes festive events more likely.");
+        dim(content, skin,
+            "Both values start at zero without any qualified workers, regardless of\n"
+            + "how many Guard Posts or Temples you have built.\n"
+            + "The Military Policy boosts security by 50% while active.");
 
         // ── POLICIES ─────────────────────────────────────────────────────────
-        h2(content, skin, "POLICIES  (bottom-left panel)");
-        dim(content, skin, "Duration 5 ticks, cooldown 8 ticks. Only one active at a time.");
-        kv(content, skin, "Agriculture", "rice x1.5, farmer tool cost x1.5.");
-        kv(content, skin, "Military",    "protection x1.5, samurai upkeep x1.5.");
-        kv(content, skin, "Craft",       "production x1.5 for timber/tools/luxury.");
+        h2(content, skin, "EDICTS  (bottom-left panel)");
+        dim(content, skin, "Lasts 5 turns, then goes on an 8-turn cooldown. One active at a time.");
+        kv(content, skin, "Agricultural Edict", "rice output x1.5, but Farmers use more tools.");
+        kv(content, skin, "Military Edict",     "security x1.5, but Samurai consume more.");
+        kv(content, skin, "Craft Edict",        "timber, tools, and luxury output x1.5.");
 
         // ── MARKET TRADING ────────────────────────────────────────────────────
-        h2(content, skin, "MARKET TRADING");
-        body(content, skin, "Click a placed Market -> 'Open Market' button appears.");
-        dim(content, skin, "Exchange rate: give 2 of one resource, receive 1 of another.");
+        h2(content, skin, "TRADING AT THE MARKET");
+        warn(content, skin, "Every trade locks the Market for 10 turns. Plan carefully!");
+        body(content, skin,
+            "Select a placed Market on the map, then click 'Open Market'.\n"
+            + "Each Market building you own adds 10 units of trading capacity.\n"
+            + "Exchange rates heavily favour rarer materials — luxury goods are\n"
+            + "worth far more rice than timber, for example.");
+        dim(content, skin,
+            "Rough exchange guide:\n"
+            + "  Spend 5 rice to gain 1 timber\n"
+            + "  Spend 15 rice to gain 1 tool\n"
+            + "  Spend 30 rice to gain 1 luxury good\n"
+            + "  Trade 1 tool away and receive 10 timber in return\n"
+            + "  Trading luxury goods yields the best return on any resource.");
 
         // ── RANDOM EVENTS ─────────────────────────────────────────────────────
-        h2(content, skin, "RANDOM EVENTS");
-        body(content, skin, "Events fire automatically each tick (messages in event log).");
+        h2(content, skin, "EVENTS");
+        body(content, skin,
+            "From time to time something unexpected happens in the village.\n"
+            + "A pop-up appears describing what occurred — it closes automatically\n"
+            + "when the next turn advances.");
         dim(content, skin,
-            "Theft, Productivity Spikes, Festivals, Breakthroughs, Accidents.\n"
-            + "High Protection reduces theft. High Faith enables Festivals.\n"
-            + "Event alerts auto-dismiss when the next tick advances.");
+            "Thieves strike more often in unprotected villages.\n"
+            + "A faithful community may hold a Religious Festival, boosting happiness.\n"
+            + "Skilled craftsmen sometimes achieve a breakthrough, producing bonus goods.\n"
+            + "Workshops can occasionally suffer accidents — keep your stock healthy.");
 
         // ── SAVE / LOAD ───────────────────────────────────────────────────────
-        h2(content, skin, "SAVE / LOAD");
-        body(content, skin, "Save/Load buttons -> choose one of 5 slots.");
+        h2(content, skin, "SAVING YOUR VILLAGE");
+        body(content, skin,
+            "Open the gear icon in the top bar and choose Save Game, Load Game,\n"
+            + "or New Game. Five save slots are available.");
         dim(content, skin,
-            "Saves to ~/.daimyosimulator/savegame_N.json.\n"
-            + "New resets the village. Load restores a saved game.");
+            "Your village is saved exactly as it stands, including any active\n"
+            + "Market cooldown, building counts, and resource totals.");
 
         ScrollPane scroll = new ScrollPane(content, new ScrollPane.ScrollPaneStyle());
         scroll.setScrollingDisabled(true, false);

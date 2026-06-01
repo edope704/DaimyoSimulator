@@ -19,8 +19,9 @@ public final class WorkshopAccidentEvent implements RandomEvent {
 
     @Override
     public String apply(Village village, RandomProvider randomProvider) {
-        int tools = village.getResources().consumeUpTo(ResourceType.TOOLS, 3);
-        int luxury = village.getResources().consumeUpTo(ResourceType.LUXURY_GOODS, 3);
+        int impact = ResourceTheftEvent.scaledImpact(village);
+        int tools  = village.getResources().consumeUpTo(ResourceType.TOOLS,         impact);
+        int luxury = village.getResources().consumeUpTo(ResourceType.LUXURY_GOODS,  impact);
         village.getParameters().setHappiness(village.getParameters().getHappiness() - 5);
         return name() + ": lost " + tools + " TOOLS and " + luxury + " LUXURY_GOODS";
     }

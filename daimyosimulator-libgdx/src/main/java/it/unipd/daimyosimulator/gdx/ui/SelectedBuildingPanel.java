@@ -74,14 +74,21 @@ public final class SelectedBuildingPanel extends Table {
             nameLabel.setText(cell.building().displayName());
             int totalJobs = cell.building().jobSlots().values().stream()
                     .mapToInt(Integer::intValue).sum();
+            int px = cell.position().x(), py = cell.position().y();
+            String coords = "  (" + px + ", " + py + ")";
             if (cell.building().type() == BuildingType.RICE_PADDY) {
-                boolean active = hasNearbyFarm(snapshot, cell.position().x(), cell.position().y());
-                String status = active ? "Status: Active" : "Status: Inactive / No Farm";
-                detailLabel.setText(status + "  (" + cell.position().x() + ", " + cell.position().y() + ")");
+                boolean active = hasNearbyFarm(snapshot, px, py);
+                detailLabel.setText((active ? "Status: Active" : "Status: Inactive / No Farm") + coords);
+            } else if (cell.building().type() == BuildingType.SMITHY
+                    || cell.building().type() == BuildingType.WORKSHOP) {
+                boolean active = hasNearbyMine(snapshot, px, py);
+                detailLabel.setText((active
+                        ? "Jobs: " + totalJobs
+                        : "Status: Inactive / Missing Mine Proximity") + coords);
             } else {
                 String detail = totalJobs > 0
-                        ? "Jobs: " + totalJobs + "   (" + cell.position().x() + ", " + cell.position().y() + ")"
-                        : "(" + cell.position().x() + ", " + cell.position().y() + ")";
+                        ? "Jobs: " + totalJobs + coords
+                        : coords.strip();
                 detailLabel.setText(detail);
             }
             setMarketButtonVisible(cell.building().type() == BuildingType.MARKET);
@@ -111,6 +118,15 @@ public final class SelectedBuildingPanel extends Table {
         return snapshot.cells().stream().anyMatch(c ->
                 c.building() != null
                 && c.building().type() == BuildingType.RICE_FARM
+                && Math.abs(c.position().x() - px) <= 1
+                && Math.abs(c.position().y() - py) <= 1);
+    }
+
+    private boolean hasNearbyMine(VillageSnapshot snapshot, int px, int py) {
+        if (snapshot == null) return false;
+        return snapshot.cells().stream().anyMatch(c ->
+                c.building() != null
+                && c.building().type() == BuildingType.MINE
                 && Math.abs(c.position().x() - px) <= 1
                 && Math.abs(c.position().y() - py) <= 1);
     }

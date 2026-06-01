@@ -50,7 +50,9 @@ public final class ConstructionService {
         if (!check.success()) {
             return new PlacementResult(false, check.message(), before, before);
         }
-        village.getResources().consume(ResourceType.TIMBER, building.getTimberCost());
+        int existingCount = (int) village.getGrid().countBuildings(type);
+        int actualCost = ProgressiveCostCalculator.scaledCost(type, existingCount, building.getTimberCost());
+        village.getResources().consume(ResourceType.TIMBER, actualCost);
         village.getGrid().placeBuilding(building, position);
         village.incrementBuildsThisTick();
         int newlyHoused = housingService.assignHousing(village);

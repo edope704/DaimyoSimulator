@@ -18,8 +18,13 @@ public final class ResourceTheftEvent implements RandomEvent {
 
     @Override
     public String apply(Village village, RandomProvider randomProvider) {
+        int impact = scaledImpact(village);
         ResourceType type = ResourceType.values()[randomProvider.nextInt(ResourceType.values().length)];
-        int lost = village.getResources().consumeUpTo(type, 5);
+        int lost = village.getResources().consumeUpTo(type, impact);
         return name() + ": lost " + lost + " " + type;
+    }
+
+    static int scaledImpact(Village village) {
+        return 20 + (int) (village.getTickNumber() / 5);
     }
 }

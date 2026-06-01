@@ -11,6 +11,7 @@ import java.util.Comparator;
 
 public final class BuildingRenderer {
     private static final int   RICE_ADJACENCY_RANGE = 1;
+    private static final int   MINE_ADJACENCY_RANGE = 1;
     private static final float INACTIVE_ALPHA       = 0.70f;
 
     private final GameAssetManager assetManager;
@@ -26,8 +27,7 @@ public final class BuildingRenderer {
                         .thenComparingInt(candidate -> candidate.position().x()))
                 .toList()) {
             if (cell.building() != null) {
-                boolean dimmed = cell.building().type() == BuildingType.RICE_PADDY
-                        && !hasNearbyFarm(snapshot, cell.position());
+                boolean dimmed = isDimmed(cell, snapshot);
                 if (dimmed) batch.setColor(0.72f, 0.72f, 0.80f, INACTIVE_ALPHA);
                 var region = assetManager.getBuilding(cell.building().type());
                 drawGroundAnchored(batch, region,
@@ -45,12 +45,20 @@ public final class BuildingRenderer {
                 (gridY + RenderConstants.PLAYABLE_OFFSET) * RenderConstants.TILE_SIZE);
     }
 
-    private boolean hasNearbyFarm(VillageSnapshot snapshot, Position pos) {
+    private boolean isDimmed(CellViewModel cell, VillageSnapshot snapshot) {
+        return switch (cell.building().type()) {
+            case RICE_PADDY -> !hasNearby(snapshot, cell.position(), BuildingType.RICE_FARM, RICE_ADJACENCY_RANGE);
+            case SMITHY, WORKSHOP -> !hasNearby(snapshot, cell.position(), BuildingType.MINE, MINE_ADJACENCY_RANGE);
+            default -> false;
+        };
+    }
+
+    private boolean hasNearby(VillageSnapshot snapshot, Position pos, BuildingType target, int range) {
         return snapshot.cells().stream().anyMatch(c ->
                 c.building() != null
-                && c.building().type() == BuildingType.RICE_FARM
-                && Math.abs(c.position().x() - pos.x()) <= RICE_ADJACENCY_RANGE
-                && Math.abs(c.position().y() - pos.y()) <= RICE_ADJACENCY_RANGE);
+                && c.building().type() == target
+                && Math.abs(c.position().x() - pos.x()) <= range
+                && Math.abs(c.position().y() - pos.y()) <= range);
     }
 
     private void drawGroundAnchored(SpriteBatch batch, com.badlogic.gdx.graphics.g2d.TextureRegion region,
@@ -58,7 +66,6 @@ public final class BuildingRenderer {
         float ts = RenderConstants.TILE_SIZE;
         float sw = region.getRegionWidth();
         float sh = region.getRegionHeight();
-        // Scale uniformly so the sprite fits within one tile cell (no horizontal bleed).
         float scale = ts / Math.max(sw, sh);
         float width  = sw * scale;
         float height = sh * scale;

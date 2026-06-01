@@ -52,6 +52,8 @@ public final class TickProcessor {
         village.advanceTickCounter();
         // Reset per-tick build quota so the player gets fresh build actions each tick.
         village.resetBuildsThisTick();
+        // Tick down the market trade cooldown.
+        village.decrementMarketCooldown();
 
         List<String> policyMessages = village.getPolicyManager().advanceTick(village.getConfig());
         policyEffects.addAll(policyMessages);

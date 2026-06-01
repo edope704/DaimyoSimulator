@@ -13,14 +13,15 @@ public final class ProductivitySpikeEvent implements RandomEvent {
     @Override
     public String explain() {
         return "Your Samurai kept order and inspired the workforce! "
-             + "High Protection (≥70) more than triples the chance of this bonus event. "
+             + "High Protection (>=70) more than triples the chance of this bonus event. "
              + "You received free Rice and Timber.";
     }
 
     @Override
     public String apply(Village village, RandomProvider randomProvider) {
-        village.getResources().add(ResourceType.RICE, 5);
-        village.getResources().add(ResourceType.TIMBER, 5);
-        return name() + ": gained 5 RICE and 5 TIMBER";
+        int impact = ResourceTheftEvent.scaledImpact(village);
+        village.getResources().add(ResourceType.RICE, impact);
+        village.getResources().add(ResourceType.TIMBER, impact);
+        return name() + ": gained " + impact + " RICE and " + impact + " TIMBER";
     }
 }

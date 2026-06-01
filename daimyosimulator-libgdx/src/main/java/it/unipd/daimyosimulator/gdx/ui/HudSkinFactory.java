@@ -11,6 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.ProgressBar;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.ui.TextTooltip;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
@@ -167,6 +168,29 @@ public final class HudSkinFactory {
         sliderStyle.knobBefore = sliderFill;
         sliderStyle.knob       = sliderKnob;
         skin.add("default-horizontal", sliderStyle);
+
+        // ── TextField style ───────────────────────────────────────────────────
+        Pixmap cursorPm = new Pixmap(2, 20, Pixmap.Format.RGBA8888);
+        cursorPm.setColor(0.95f, 0.85f, 0.40f, 1f);
+        cursorPm.fill();
+        Texture cursorTex = new Texture(cursorPm);
+        cursorPm.dispose();
+        ownedTextures.add(cursorTex);
+
+        Pixmap selPm = new Pixmap(2, 20, Pixmap.Format.RGBA8888);
+        selPm.setColor(0.35f, 0.55f, 0.85f, 0.55f);
+        selPm.fill();
+        Texture selTex = new Texture(selPm);
+        selPm.dispose();
+        ownedTextures.add(selTex);
+
+        TextField.TextFieldStyle textFieldStyle = new TextField.TextFieldStyle();
+        textFieldStyle.font       = font;
+        textFieldStyle.fontColor  = new Color(0.95f, 0.90f, 0.75f, 1f);
+        textFieldStyle.cursor     = new TextureRegionDrawable(new TextureRegion(cursorTex));
+        textFieldStyle.selection  = new TextureRegionDrawable(new TextureRegion(selTex));
+        textFieldStyle.background = skin.getDrawable("hud-panel");
+        skin.add("default", textFieldStyle);
 
         // ── UI icon drawables ─────────────────────────────────────────────────
         skin.add("icon-settings", new TextureRegionDrawable(assetManager.getRegion("settings_icon")),  Drawable.class);

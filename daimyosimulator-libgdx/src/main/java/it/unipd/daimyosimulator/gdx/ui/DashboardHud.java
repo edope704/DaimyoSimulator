@@ -21,7 +21,9 @@ import java.util.function.Consumer;
 public final class DashboardHud extends Table {
     // 4.5 on-screen forest tiles wide at the default zoom: a tile is
     // 1280 / (RENDER_GRID_SIZE * 0.85) ≈ 50.2 stage units, so 4.5 * 50.2 ≈ 226.
-    private static final float LEFT_PANEL_WIDTH = 226f;
+    private static final float LEFT_PANEL_WIDTH    = 226f;
+    // Bottom info panel is 30% wider so the Market button and icons fit without bleeding.
+    private static final float SELECTED_PANEL_WIDTH = 294f;
 
     private final Skin skin;
     private final CoreGameFacade facade;
@@ -124,7 +126,7 @@ public final class DashboardHud extends Table {
         // ── Bottom bar ────────────────────────────────────────────────────────
         Table bottom = new Table();
         bottom.left();
-        bottom.add(selectedBuildingPanel).width(LEFT_PANEL_WIDTH).left().padRight(8);
+        bottom.add(selectedBuildingPanel).width(SELECTED_PANEL_WIDTH).left().padRight(8);
 
         // ── Root layout ───────────────────────────────────────────────────────
         setFillParent(true);
