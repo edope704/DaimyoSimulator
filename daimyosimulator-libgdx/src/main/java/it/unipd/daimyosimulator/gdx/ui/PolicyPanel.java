@@ -28,16 +28,17 @@ public final class PolicyPanel extends Table {
         defaults().pad(2);
 
         Label header = new Label("POLICIES", skin, "title");
-        add(header).left().padBottom(4);
+        add(header).expandX().center().padBottom(4);
         row();
 
         statusLabel = new Label("None active", skin, "dim");
         statusLabel.setColor(new Color(0.60f, 0.60f, 0.50f, 1f));
-        add(statusLabel).left().padBottom(4);
+        add(statusLabel).expandX().center().padBottom(4);
         row();
 
         for (PolicyType type : PolicyType.values()) {
             Table cell = new Table();
+            cell.center();
             cell.add(new Image(assetManager.getPolicyIcon(type))).size(22).padRight(3);
             TextButton button = new TextButton(shortName(type), skin);
             button.addListener(new TextTooltip(tooltipFor(type), skin));
@@ -50,7 +51,7 @@ public final class PolicyPanel extends Table {
                 }
             });
             cell.add(button);
-            add(cell).fillX();
+            add(cell).expandX().center();
             row();
         }
     }

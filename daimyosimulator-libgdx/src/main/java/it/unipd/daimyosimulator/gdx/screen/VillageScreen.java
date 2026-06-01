@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import it.unipd.daimyosimulator.core.app.CoreGameFacade;
 import it.unipd.daimyosimulator.core.app.view.VillageSnapshot;
 import it.unipd.daimyosimulator.gdx.DaimyoSimulatorGame;
@@ -21,6 +20,7 @@ import it.unipd.daimyosimulator.gdx.ui.DashboardHud;
 import it.unipd.daimyosimulator.gdx.ui.EventModal;
 import it.unipd.daimyosimulator.gdx.ui.HudSkinFactory;
 import it.unipd.daimyosimulator.gdx.ui.TutorialDialog;
+import it.unipd.daimyosimulator.gdx.ui.UiViewportFactory;
 
 public final class VillageScreen extends ScreenAdapter {
     private final DaimyoSimulatorGame game;
@@ -75,7 +75,7 @@ public final class VillageScreen extends ScreenAdapter {
         worldRenderer = new WorldRenderer(assetManager);
         soundManager = new GameSoundManager();
 
-        stage = new Stage(new ScreenViewport());
+        stage = new Stage(UiViewportFactory.create());
         skin  = new HudSkinFactory().create(assetManager);
         hud   = new DashboardHud(skin, assetManager, facade, buildModeState, soundManager);
         hud.setSnapshotConsumer(this::setSnapshot);
@@ -153,7 +153,7 @@ public final class VillageScreen extends ScreenAdapter {
 
     @Override
     public void resize(int width, int height) {
-        stage.getViewport().update(width, height, true);
+        UiViewportFactory.update(stage, width, height);
         camera.viewportWidth  = width;
         camera.viewportHeight = height;
         camera.update();

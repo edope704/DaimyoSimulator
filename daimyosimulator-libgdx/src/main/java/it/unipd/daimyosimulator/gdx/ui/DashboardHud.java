@@ -19,6 +19,10 @@ import it.unipd.daimyosimulator.gdx.input.BuildModeState;
 import java.util.function.Consumer;
 
 public final class DashboardHud extends Table {
+    // 4.5 on-screen forest tiles wide at the default zoom: a tile is
+    // 1280 / (RENDER_GRID_SIZE * 0.85) ≈ 50.2 stage units, so 4.5 * 50.2 ≈ 226.
+    private static final float LEFT_PANEL_WIDTH = 226f;
+
     private final Skin skin;
     private final CoreGameFacade facade;
     private final BuildMenu buildMenu;
@@ -86,26 +90,27 @@ public final class DashboardHud extends Table {
         });
 
         Table top = new Table();
-        // Left group: icon buttons
-        top.add(gearBtn).size(48).padRight(4);
-        top.add(soundBtn).size(48).padRight(4);
-        top.add(helpBtn).size(48).padRight(4);
-        // Spacer — pushes center content away from icons
+        // Left group: speed controls — no padLeft so its left edge lines up with the
+        // build menu below (both end up at x=6 via the surrounding pads).
+        top.add(speedControlPanel);
+        // Spacer — pushes center content away from speed controls
         top.add(new Table()).expandX();
         // Center content: resources + population
         top.add(resourcePanel).padRight(16);
         top.add(populationPanel).padRight(16);
-        // Spacer — pushes speed panel to the right edge
+        // Spacer — pushes icon buttons to the right edge
         top.add(new Table()).expandX();
-        // Right group: speed controls
-        top.add(speedControlPanel).padRight(4);
+        // Right group: icon buttons
+        top.add(gearBtn).size(48).padLeft(4);
+        top.add(soundBtn).size(48).padLeft(4);
+        top.add(helpBtn).size(48).padLeft(4);
 
         // ── Left side column: BuildMenu (top) + PolicyPanel (below) ───────────
         Table leftCol = new Table();
         leftCol.top().left();
-        leftCol.add(buildMenu).left();
+        leftCol.add(buildMenu).width(LEFT_PANEL_WIDTH).left();
         leftCol.row().padTop(6);
-        leftCol.add(policyPanel).left().fillX();
+        leftCol.add(policyPanel).width(LEFT_PANEL_WIDTH).left().fillX();
 
         // ── Right side: WarningPanel + parameters + event log ────────────────
         Table rightCol = new Table();
@@ -119,7 +124,7 @@ public final class DashboardHud extends Table {
         // ── Bottom bar ────────────────────────────────────────────────────────
         Table bottom = new Table();
         bottom.left();
-        bottom.add(selectedBuildingPanel).left().padRight(8);
+        bottom.add(selectedBuildingPanel).width(LEFT_PANEL_WIDTH).left().padRight(8);
 
         // ── Root layout ───────────────────────────────────────────────────────
         setFillParent(true);
@@ -128,7 +133,7 @@ public final class DashboardHud extends Table {
         row();
 
         Table middle = new Table();
-        middle.add(leftCol).width(200).expandY().left().top().padLeft(6);
+        middle.add(leftCol).width(LEFT_PANEL_WIDTH).expandY().left().top().padLeft(6);
         middle.add(new Table()).expandX().expand();       // empty game viewport
         middle.add(rightCol).width(180).expandY().right().top().padRight(6);
 
