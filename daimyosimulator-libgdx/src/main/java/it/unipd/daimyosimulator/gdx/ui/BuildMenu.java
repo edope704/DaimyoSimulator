@@ -63,14 +63,17 @@ public final class BuildMenu extends Table {
             int cost = costFor(type);
 
             // 4-column layout (all widths fixed so columns align across every row):
-            // [Name — expanding] [cost 24px] [wood icon 13px] [building icon 16px]
+            // [building icon 16px] [Name — expanding/centered] [cost 24px] [wood icon 13px]
             TextButton button = new TextButton(shortName(type), skin);
-            // Name takes the leftover space and is centered within it.
-            button.getLabelCell().expandX().center().padLeft(4);
+            Label nameLabel = button.getLabel();
+            button.clearChildren();
+            // Building icon first, then the centered name.
+            button.add(new Image(assetManager.getBuilding(type))).size(16).padLeft(4).padRight(4);
+            button.add(nameLabel).expandX().center();
+            // Cost number + wood icon on the right, nudged inward from the edge.
             Label costLabel = new Label("" + cost, skin, "hint");
-            button.add(costLabel).width(24).right().padRight(1);
-            button.add(new Image(assetManager.getResourceIcon(ResourceType.TIMBER))).size(13).padLeft(2).padRight(2);
-            button.add(new Image(assetManager.getBuilding(type))).size(16).padLeft(2).padRight(4);
+            button.add(costLabel).width(24).right().padRight(2);
+            button.add(new Image(assetManager.getResourceIcon(ResourceType.TIMBER))).size(13).padLeft(2).padRight(8);
             button.addListener(new TextTooltip(tooltipFor(type), skin));
             button.addListener(new ChangeListener() {
                 @Override
