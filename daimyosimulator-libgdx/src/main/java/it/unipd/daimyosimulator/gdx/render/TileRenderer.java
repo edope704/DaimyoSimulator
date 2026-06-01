@@ -13,22 +13,32 @@ public final class TileRenderer {
     }
 
     public void render(SpriteBatch batch, VillageSnapshot snapshot) {
+        int ts = RenderConstants.TILE_SIZE;
+        int offset = RenderConstants.PLAYABLE_OFFSET;
+        int renderSize = RenderConstants.RENDER_GRID_SIZE;
+        int pw = snapshot.width();
+        int ph = snapshot.height();
+
+        // Border tiles (outside playable area)
+        for (int rx = 0; rx < renderSize; rx++) {
+            for (int ry = 0; ry < renderSize; ry++) {
+                if (rx >= offset && rx < offset + pw && ry >= offset && ry < offset + ph) continue;
+                batch.draw(assetManager.getTile(tileAt(rx - offset, ry - offset)),
+                        rx * ts, ry * ts, ts, ts);
+            }
+        }
+
+        // Playable grid cells
         for (var cell : snapshot.cells()) {
             int x = cell.position().x();
             int y = cell.position().y();
-            TileType tile = tileAt(x, y);
-            batch.draw(assetManager.getTile(tile),
-                    x * RenderConstants.TILE_SIZE,
-                    y * RenderConstants.TILE_SIZE,
-                    RenderConstants.TILE_SIZE, RenderConstants.TILE_SIZE);
+            batch.draw(assetManager.getTile(tileAt(x, y)),
+                    (x + offset) * ts,
+                    (y + offset) * ts,
+                    ts, ts);
         }
     }
 
-    /**
-     * Uses a fast integer hash of (x,y) to scatter dirt tiles aperiodically.
-     * ~12 % of cells become dirt, forming small natural-looking patches rather
-     * than the visually obvious diagonal stripe of the original modulo-7 rule.
-     */
     private static TileType tileAt(int x, int y) {
         int h = hash(x, y);
         return ((h & 0xFF) < 30) ? TileType.DIRT : TileType.GRASS;

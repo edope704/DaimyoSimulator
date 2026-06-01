@@ -68,7 +68,8 @@ public final class ConstructionService {
     }
 
     /**
-     * Removes the building at the given position. No timber refund is given.
+     * Removes the tile content at the given position.
+     * Clearing a forest grants +10 timber; demolishing a building grants +5 timber.
      * Workers assigned to that building become idle; housing is re-evaluated.
      */
     public PlacementResult demolishBuilding(Village village, Position position) {
@@ -83,7 +84,8 @@ public final class ConstructionService {
         if (cell.getNaturalFeature().isPresent()) {
             String featureName = cell.getNaturalFeature().get().name();
             cell.clearNaturalFeature();
-            String message = featureName + " at " + position + " cleared";
+            village.getResources().add(ResourceType.TIMBER, 10);
+            String message = featureName + " at " + position + " cleared (+10 timber)";
             village.addEvent(message);
             return new PlacementResult(true, message, before, snapshotMapper.toSnapshot(village));
         }
@@ -91,9 +93,10 @@ public final class ConstructionService {
         // Unassign workers housed in this dwelling or working here.
         unassignWorkersForCell(village, cell.getBuilding().get().getType(), position);
         village.getGrid().removeBuilding(position);
+        village.getResources().add(ResourceType.TIMBER, 5);
         housingService.assignHousing(village);
         parameterCalculator.recalculate(village);
-        String message = name + " at " + position + " demolished (no refund)";
+        String message = name + " at " + position + " demolished (+5 timber)";
         village.addEvent(message);
         return new PlacementResult(true, message, before, snapshotMapper.toSnapshot(village));
     }

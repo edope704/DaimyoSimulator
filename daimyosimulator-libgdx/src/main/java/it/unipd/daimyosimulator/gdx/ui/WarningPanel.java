@@ -2,6 +2,7 @@ package it.unipd.daimyosimulator.gdx.ui;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -69,7 +70,7 @@ public final class WarningPanel extends Table {
         for (ResourceType type : ResourceType.values()) {
             if (isTrendingDown(snapshots, type)) {
                 anyWarning = true;
-                TextButton card = new TextButton("▼ " + displayName(type) + " falling!", skin);
+                TextButton card = new TextButton("! " + displayName(type) + " falling!", skin);
                 card.getLabel().setColor(COLOR_WARN);
                 card.addListener(new ChangeListener() {
                     @Override
@@ -83,7 +84,7 @@ public final class WarningPanel extends Table {
         }
 
         if (!anyWarning) {
-            Label ok = new Label("✔ All stable", skin, "dim");
+            Label ok = new Label("+ All stable", skin, "dim");
             ok.setColor(COLOR_OK);
             warningRows.add(ok).left();
         }
@@ -102,7 +103,10 @@ public final class WarningPanel extends Table {
         Table content = dialog.getContentTable();
         content.pad(16);
 
-        Label title = new Label("▼  " + displayName(type) + " is depleting!", skin, "title");
+        content.add(new Image(skin.getDrawable("icon-alert"))).size(28).center().padBottom(8);
+        content.row();
+
+        Label title = new Label("! " + displayName(type) + " is depleting!", skin, "title");
         title.setColor(COLOR_WARN);
         content.add(title).left().padBottom(12);
         content.row();

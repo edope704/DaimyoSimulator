@@ -8,11 +8,11 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import it.unipd.daimyosimulator.core.app.CoreGameFacade;
 import it.unipd.daimyosimulator.core.app.view.VillageSnapshot;
 import it.unipd.daimyosimulator.gdx.DaimyoSimulatorGame;
 import it.unipd.daimyosimulator.gdx.assets.GameAssetManager;
+import it.unipd.daimyosimulator.gdx.assets.GameSoundManager;
 import it.unipd.daimyosimulator.gdx.input.*;
 import it.unipd.daimyosimulator.gdx.render.RenderConstants;
 import it.unipd.daimyosimulator.gdx.render.WorldRenderer;
@@ -20,6 +20,7 @@ import it.unipd.daimyosimulator.gdx.ui.DashboardHud;
 import it.unipd.daimyosimulator.gdx.ui.EventModal;
 import it.unipd.daimyosimulator.gdx.ui.HudSkinFactory;
 import it.unipd.daimyosimulator.gdx.ui.TutorialDialog;
+import it.unipd.daimyosimulator.gdx.ui.UiViewportFactory;
 
 public final class VillageScreen extends ScreenAdapter {
     private final DaimyoSimulatorGame game;
@@ -34,9 +35,11 @@ public final class VillageScreen extends ScreenAdapter {
     private Stage stage;
     private Skin skin;
     private DashboardHud hud;
-    private float autoTickTimer;
+    private float autoTickFraction;   // 0..1 progress through current tick interval
     private boolean debugOverlay;
     private boolean tutorialShown = false;
+    private Runnable onManualTick;
+    private GameSoundManager soundManager;
 
     /** Called from MainMenuScreen when starting a brand-new village. */
     public VillageScreen(DaimyoSimulatorGame game, GameAssetManager assetManager, boolean showTutorial) {
@@ -59,25 +62,32 @@ public final class VillageScreen extends ScreenAdapter {
 
     @Override
     public void show() {
-        currentSnapshot = facade.getCurrentSnapshot();
+        currentSnapshot = showTutorialOnStart
+                ? facade.applyStarterBuildings()
+                : facade.getCurrentSnapshot();
         camera = new OrthographicCamera();
         camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        camera.position.set(currentSnapshot.width() * RenderConstants.TILE_SIZE / 2f,
-                currentSnapshot.height() * RenderConstants.TILE_SIZE / 2f, 0);
+        float worldSize = RenderConstants.RENDER_GRID_SIZE * (float) RenderConstants.TILE_SIZE;
+        camera.position.set(worldSize / 2f, worldSize / 2f, 0);
+        camera.zoom = worldSize / Math.max(camera.viewportWidth, camera.viewportHeight);
         camera.update();
         cameraController = new CameraController(camera);
         worldRenderer = new WorldRenderer(assetManager);
+        soundManager = new GameSoundManager();
 
-        stage = new Stage(new ScreenViewport());
+        stage = new Stage(UiViewportFactory.create());
         skin  = new HudSkinFactory().create(assetManager);
-        hud   = new DashboardHud(skin, assetManager, facade, buildModeState);
+        hud   = new DashboardHud(skin, assetManager, facade, buildModeState, soundManager);
         hud.setSnapshotConsumer(this::setSnapshot);
+        onManualTick = () -> { autoTickFraction = 0f; hud.updateTickProgress(0f); };
+        hud.setOnManualTickCallback(onManualTick);
         hud.refresh(currentSnapshot, facade.getDashboard());
         stage.addActor(hud);
 
         InputCommandRouter router = new InputCommandRouter(
                 facade, buildModeState, this::setSnapshot,
-                hud::setStatus, hud::setSelectedCell);
+                hud::setStatus, hud::setSelectedCell, soundManager,
+                msg -> EventModal.showAlert(skin, "Action Failed", msg, stage));
         GameInputProcessor gameInputProcessor =
                 new GameInputProcessor(camera, new ScreenToGridMapper(), router, buildModeState);
         Gdx.input.setInputProcessor(new InputMultiplexer(stage, cameraController, gameInputProcessor));
@@ -113,15 +123,14 @@ public final class VillageScreen extends ScreenAdapter {
 
     private void processAutomaticTicks(float delta) {
         if (hud.isPaused()) {
-            autoTickTimer = 0;
-            hud.updateTickProgress(0);
             return;
         }
-        autoTickTimer += delta;
         float interval = 40f / hud.getSpeedMultiplier();
-        hud.updateTickProgress(autoTickTimer / interval);
-        if (autoTickTimer >= interval) {
-            autoTickTimer = 0;
+        autoTickFraction += delta / interval;
+        hud.updateTickProgress(Math.min(1f, autoTickFraction));
+        if (autoTickFraction >= 1f) {
+            autoTickFraction = 0f;
+            EventModal.dismissAll(stage);
             var result = facade.advanceTick();
             setSnapshot(result.afterState());
             hud.refreshAfterTick(result);
@@ -144,7 +153,7 @@ public final class VillageScreen extends ScreenAdapter {
 
     @Override
     public void resize(int width, int height) {
-        stage.getViewport().update(width, height, true);
+        UiViewportFactory.update(stage, width, height);
         camera.viewportWidth  = width;
         camera.viewportHeight = height;
         camera.update();
@@ -152,8 +161,9 @@ public final class VillageScreen extends ScreenAdapter {
 
     @Override
     public void dispose() {
-        if (worldRenderer != null) worldRenderer.dispose();
-        if (stage != null) stage.dispose();
-        if (skin  != null) skin.dispose();
+        if (worldRenderer  != null) worldRenderer.dispose();
+        if (stage          != null) stage.dispose();
+        if (skin           != null) skin.dispose();
+        if (soundManager   != null) soundManager.dispose();
     }
 }

@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class ScreenToGridMapperTest {
     @Test
     void worldCoordinatesMapToGridCells() {
-        assertEquals(new Position(2, 3), new ScreenToGridMapper().gridAt(65, 96, 32));
+        // Grid cell (2,3) is at render cell (7,8) with PLAYABLE_OFFSET=5; world coords = 7*32+1, 8*32+1
+        assertEquals(new Position(2, 3), new ScreenToGridMapper().gridAt(225, 257, 32));
     }
 }

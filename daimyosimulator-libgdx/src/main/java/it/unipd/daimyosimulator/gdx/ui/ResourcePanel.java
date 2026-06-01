@@ -1,6 +1,7 @@
 package it.unipd.daimyosimulator.gdx.ui;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.scenes.scene2d.ui.Cell;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -16,6 +17,7 @@ import java.util.Map;
 public final class ResourcePanel extends Table {
     private static final int LOW_THRESHOLD    = 30;
     private static final int DANGER_THRESHOLD = 10;
+    private static final float DELTA_WIDTH = 32f;
 
     private static final Color COLOR_NORMAL = Color.WHITE;
     private static final Color COLOR_LOW    = new Color(1f, 0.85f, 0.25f, 1f);
@@ -23,6 +25,7 @@ public final class ResourcePanel extends Table {
 
     private final Map<ResourceType, Label> amountLabels = new EnumMap<>(ResourceType.class);
     private final Map<ResourceType, Label> deltaLabels  = new EnumMap<>(ResourceType.class);
+    private final Map<ResourceType, Cell<Label>> deltaCells = new EnumMap<>(ResourceType.class);
 
     public ResourcePanel(Skin skin, GameAssetManager assetManager) {
         setBackground(skin.getDrawable("hud-panel"));
@@ -34,17 +37,20 @@ public final class ResourcePanel extends Table {
 
             Label amountLabel = new Label("0", skin);
             amountLabels.put(type, amountLabel);
-            add(amountLabel).width(46).left();
+            add(amountLabel).width(42).left();
 
             // Delta label shows ±net per tick after each tick advance.
             Label deltaLabel = new Label("", skin, "dim");
+            deltaLabel.setVisible(false);
             deltaLabels.put(type, deltaLabel);
-            add(deltaLabel).width(36).left();
+            Cell<Label> deltaCell = add(deltaLabel).width(0).left().pad(0);
+            deltaCells.put(type, deltaCell);
         }
     }
 
     public void refresh(ResourceViewModel resources) {
         updateAmounts(resources);
+        clearDeltas();
     }
 
     /** Refresh amounts and show per-tick net deltas (produced – consumed). */
@@ -60,10 +66,15 @@ public final class ResourcePanel extends Table {
                 lbl.setText(String.valueOf(net));
                 lbl.setColor(COLOR_DANGER);
             } else {
-                lbl.setText("±0");
-                lbl.setColor(new Color(0.6f, 0.6f, 0.6f, 1f));
+                lbl.setText("");
+                lbl.setVisible(false);
+                deltaCells.get(type).width(0).pad(0);
+                continue;
             }
+            lbl.setVisible(true);
+            deltaCells.get(type).width(DELTA_WIDTH).padLeft(2).padRight(2);
         }
+        invalidateHierarchy();
     }
 
     private void updateAmounts(ResourceViewModel resources) {
@@ -79,6 +90,16 @@ public final class ResourcePanel extends Table {
                 lbl.setColor(COLOR_NORMAL);
             }
         }
+    }
+
+    private void clearDeltas() {
+        for (ResourceType type : ResourceType.values()) {
+            Label lbl = deltaLabels.get(type);
+            lbl.setText("");
+            lbl.setVisible(false);
+            deltaCells.get(type).width(0).pad(0);
+        }
+        invalidateHierarchy();
     }
 
     private static String iconTooltip(ResourceType type) {

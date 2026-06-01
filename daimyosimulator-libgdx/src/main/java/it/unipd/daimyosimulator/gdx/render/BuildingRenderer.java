@@ -31,8 +31,8 @@ public final class BuildingRenderer {
                 if (dimmed) batch.setColor(0.72f, 0.72f, 0.80f, INACTIVE_ALPHA);
                 var region = assetManager.getBuilding(cell.building().type());
                 drawGroundAnchored(batch, region,
-                        cell.position().x() * RenderConstants.TILE_SIZE,
-                        cell.position().y() * RenderConstants.TILE_SIZE);
+                        (cell.position().x() + RenderConstants.PLAYABLE_OFFSET) * RenderConstants.TILE_SIZE,
+                        (cell.position().y() + RenderConstants.PLAYABLE_OFFSET) * RenderConstants.TILE_SIZE);
                 if (dimmed) batch.setColor(1f, 1f, 1f, 1f);
             }
         }
@@ -41,7 +41,8 @@ public final class BuildingRenderer {
     public void drawPreview(SpriteBatch batch, it.unipd.daimyosimulator.core.building.BuildingType type,
                             int gridX, int gridY) {
         drawGroundAnchored(batch, assetManager.getBuilding(type),
-                gridX * RenderConstants.TILE_SIZE, gridY * RenderConstants.TILE_SIZE);
+                (gridX + RenderConstants.PLAYABLE_OFFSET) * RenderConstants.TILE_SIZE,
+                (gridY + RenderConstants.PLAYABLE_OFFSET) * RenderConstants.TILE_SIZE);
     }
 
     private boolean hasNearbyFarm(VillageSnapshot snapshot, Position pos) {
