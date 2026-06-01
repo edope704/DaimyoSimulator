@@ -1661,19 +1661,20 @@ Use a multi-module Maven layout:
 ```text
 daimyosimulator/
 ├── pom.xml
-├── daimyosimulator-core/
-├── daimyosimulator-libgdx/
-└── daimyosimulator-desktop/
+├── src/
+│   ├── core/
+│   ├── libgdx/
+│   └── desktop/
 ```
 
 The dependency direction is:
 
 ```text
-daimyosimulator-desktop
+desktop
         ↓
-daimyosimulator-libgdx
+libgdx
         ↓
-daimyosimulator-core
+core
 ```
 
 The core module must never depend on libGDX and must never import `com.badlogic.gdx.*`.
@@ -1681,7 +1682,7 @@ The core module must never depend on libGDX and must never import `com.badlogic.
 Suggested packages:
 
 ```text
-it.unipd.daimyosimulator.core
+core
   application/
     CoreGameFacade.java
     GameController.java
@@ -1734,7 +1735,7 @@ it.unipd.daimyosimulator.core
     ResourceStockDTO.java
     PolicyDTO.java
 
-it.unipd.daimyosimulator.gdx
+gdx
   app/
     DaimyoSimulatorGame.java
 
@@ -1781,7 +1782,7 @@ it.unipd.daimyosimulator.gdx
     SnapshotToRenderModelAdapter.java
     HudViewModelAdapter.java
 
-it.unipd.daimyosimulator.desktop
+desktop
   DesktopLauncher.java
 ```
 

@@ -1,6 +1,17 @@
-# Maven build output
+# Java / Maven build output
 target/
+build/
+out/
+*.class
+*.jar
+*.war
+*.ear
+dependency-reduced-pom.xml
 !.mvn/wrapper/maven-wrapper.jar
+
+# JVM crash logs
+hs_err_pid*
+replay_pid*
 
 # IDE files
 .idea/
@@ -10,6 +21,7 @@ target/
 .classpath
 .project
 .settings/
+.factorypath
 *.eclipse
 
 # VS Code

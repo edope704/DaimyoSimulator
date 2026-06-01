@@ -257,7 +257,7 @@ Assets are created manually by the project team. The expected style is **2D pixe
 Assets live in the libGDX module, for example:
 
 ```text
-daimyosimulator-libgdx/src/main/resources/assets/
+src/libgdx/main/resources/assets/
 ├── atlases/
 ├── textures/
 │   ├── tiles/
@@ -286,8 +286,8 @@ During early development, individual PNG files can be used directly. Before fina
 
 The architecture follows MVC / Clean Architecture:
 
-* `daimyosimulator-core` contains the pure Java simulation and JUnit tests.
-* `daimyosimulator-libgdx` contains graphics, input, HUD, menus, asset loading, and adapters.
-* `daimyosimulator-desktop` contains the desktop launcher.
+* `core` contains the pure Java simulation and JUnit tests.
+* `libgdx` contains graphics, input, HUD, menus, asset loading, and adapters.
+* `desktop` contains the desktop launcher.
 
 The libGDX layer may depend on the core module. The core module must never depend on libGDX and must never import `com.badlogic.gdx.*`.

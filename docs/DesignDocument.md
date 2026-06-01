@@ -276,35 +276,35 @@ The UI and renderer communicate with the core only through `GameController`, `Co
 ```text
 daimyosimulator/
 ├── pom.xml
-├── daimyosimulator-core/
-│   ├── pom.xml
-│   └── src/
-│       ├── main/java/it/unipd/daimyosimulator/core/...
-│       └── test/java/it/unipd/daimyosimulator/core/...
-├── daimyosimulator-libgdx/
-│   ├── pom.xml
-│   └── src/
-│       ├── main/java/it/unipd/daimyosimulator/gdx/...
-│       └── main/resources/assets/...
-└── daimyosimulator-desktop/
-    ├── pom.xml
-    └── src/main/java/it/unipd/daimyosimulator/desktop/DesktopLauncher.java
+├── src/
+│   ├── core/
+│   │   ├── pom.xml
+│   │   ├── main/...
+│   │   └── test/...
+│   ├── libgdx/
+│   │   ├── pom.xml
+│   │   ├── main/...
+│   │   ├── main/resources/assets/...
+│   │   └── test/...
+│   └── desktop/
+│       ├── pom.xml
+│       └── main/DesktopLauncher.java
 ```
 
 Dependencies flow in one direction:
 
 ```text
-daimyosimulator-desktop
+desktop
         ↓
-daimyosimulator-libgdx
+libgdx
         ↓
-daimyosimulator-core
+core
 ```
 
 The forbidden direction is:
 
 ```text
-daimyosimulator-core ❌ must not depend on daimyosimulator-libgdx
+core ❌ must not depend on libgdx
 ```
 
 The core module must compile and run JUnit tests without any `com.badlogic.gdx.*` imports.
@@ -314,7 +314,7 @@ The core module must compile and run JUnit tests without any `com.badlogic.gdx.*
 #### Core module packages
 
 ```text
-it.unipd.daimyosimulator.core
+core
 ├── application/
 │   ├── CoreGameFacade.java
 │   ├── GameController.java
@@ -366,7 +366,7 @@ it.unipd.daimyosimulator.core
 #### libGDX module packages
 
 ```text
-it.unipd.daimyosimulator.gdx
+gdx
 ├── app/
 │   └── DaimyoSimulatorGame.java
 ├── screen/
@@ -416,7 +416,7 @@ it.unipd.daimyosimulator.gdx
 #### desktop module package
 
 ```text
-it.unipd.daimyosimulator.desktop
+desktop
 └── DesktopLauncher.java
 ```
 
@@ -1146,7 +1146,7 @@ Camera movement is visual only and must not touch the core domain model.
 ### 8.1 Assets folder structure
 
 ```text
-daimyosimulator-libgdx/src/main/resources/assets/
+src/libgdx/main/resources/assets/
 ├── atlases/
 │   ├── village.atlas
 │   └── ui.atlas
@@ -1329,7 +1329,7 @@ Acceptance criteria must verify that UI actions go through the controller/facade
 - Keep domain logic independent from the UI and renderer.
 - Do not create a single class that performs all calculations. `SimulationEngine` coordinates the tick, while specialized services calculate the details.
 - Keep formulas simple and deterministic where possible. Random events should use a `RandomProvider` or fixed seed during unit tests.
-- The `daimyosimulator-core` module must never import `com.badlogic.gdx.*`.
+- The `core` module must never import `com.badlogic.gdx.*`.
 - The libGDX module may depend on the core, but it must use immutable snapshots/view models instead of mutable domain objects.
 - `WorldRenderer` must draw the world only. It must not enforce placement rules or run production/consumption logic.
 - `DashboardHud` and Scene2D panels must call `CoreGameFacade` or `GameController` for commands.

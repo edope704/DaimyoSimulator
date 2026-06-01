@@ -4,34 +4,57 @@ Java 17 / Maven / libGDX rule-based simulation game set in an ancient Japanese v
 
 ## Architecture
 
-- `daimyosimulator-core`: pure Java domain, simulation services, placement rules, policies, persistence, DTOs, snapshots, and JUnit 5 tests. It must not import `com.badlogic.gdx.*`.
-- `daimyosimulator-libgdx`: rendering, input, Scene2D HUD, generated placeholder assets, and adapters from snapshots to render/UI models.
-- `daimyosimulator-desktop`: LWJGL3 desktop launcher only.
+- `src/core`: pure Java domain, simulation services, placement rules, policies, persistence, DTOs, snapshots, and JUnit 5 tests. It must not import `com.badlogic.gdx.*`.
+- `src/libgdx`: rendering, input, Scene2D HUD, generated placeholder assets, and adapters from snapshots to render/UI models.
+- `src/desktop`: LWJGL3 desktop launcher only.
 
 Dependency direction:
 
 ```text
-daimyosimulator-desktop -> daimyosimulator-libgdx -> daimyosimulator-core
+desktop -> libgdx -> core
 ```
 
 ## Build And Test
 
 From repository root:
 
+Test all modules:
+
 ```bash
 mvn clean test
+```
+
+Package all modules:
+
+```bash
 mvn clean package
-mvn -pl daimyosimulator-desktop -am package
+```
+
+Package desktop and required modules only:
+
+```bash
+mvn -pl :desktop -am package
 ```
 
 Run desktop launcher:
 
 ```bash
 mvn clean package
-mvn -pl daimyosimulator-desktop -am exec:java
+mvn -pl :desktop exec:java
 ```
 
-`package` also installs the core and libGDX module artifacts locally so the later direct `exec:java` invocation can resolve reactor module dependencies.
+`mvn clean package` installs `core` and `libgdx` into your local Maven repository, so `exec:java` can run the `desktop` module on its own. Do **not** add `-am` here: `exec:java` is a direct goal that Maven would then run on every reactor module — including the parent `pom`, which has no `mainClass` and fails with `The parameters 'mainClass' ... are missing or invalid`.
+
+Run one module test suite:
+
+```bash
+mvn -pl :core test
+mvn -pl :libgdx -am test
+```
+
+`:libgdx` depends on `:core`, so it needs `-am` (also-make) unless `core` is already installed. `:core` has no upstream modules and runs on its own.
+
+Use `:core`, `:libgdx`, and `:desktop` as Maven selectors. The old selectors `daimyosimulator-core`, `daimyosimulator-libgdx`, and `daimyosimulator-desktop` no longer exist.
 
 ## Save Files
 

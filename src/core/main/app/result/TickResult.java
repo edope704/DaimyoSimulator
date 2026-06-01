@@ -1,0 +1,29 @@
+package core.app.result;
+
+import core.app.view.ResourceViewModel;
+import core.app.view.VillageSnapshot;
+import core.event.EventReport;
+
+import java.util.List;
+
+public record TickResult(
+        VillageSnapshot beforeState,
+        VillageSnapshot afterState,
+        ResourceViewModel producedResources,
+        ResourceViewModel consumedResources,
+        List<String> policyEffects,
+        int births,
+        int deaths,
+        List<String> shortagePenalties,
+        List<String> randomEvents,
+        List<EventReport> randomEventReports,
+        List<String> messages
+) {
+    public TickResult {
+        policyEffects = List.copyOf(policyEffects);
+        shortagePenalties = List.copyOf(shortagePenalties);
+        randomEvents = List.copyOf(randomEvents);
+        randomEventReports = List.copyOf(randomEventReports);
+        messages = List.copyOf(messages);
+    }
+}

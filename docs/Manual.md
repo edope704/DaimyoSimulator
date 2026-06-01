@@ -34,27 +34,28 @@ The core module must never import libGDX. The renderer and UI communicate with t
 ```text
 daimyosimulator/
 ├── pom.xml
-├── daimyosimulator-core/
-├── daimyosimulator-libgdx/
-└── daimyosimulator-desktop/
+├── src/
+│   ├── core/
+│   ├── libgdx/
+│   └── desktop/
 ```
 
 Dependency direction:
 
 ```text
-daimyosimulator-desktop
+desktop
         ↓
-daimyosimulator-libgdx
+libgdx
         ↓
-daimyosimulator-core
+core
 ```
 
 Rules:
 
-- `daimyosimulator-core` contains the pure Java domain model, simulation engine, persistence, application services, DTOs, snapshots, and JUnit tests.
-- `daimyosimulator-libgdx` contains screens, renderer, HUD, input handling, asset loading, and adapters.
-- `daimyosimulator-desktop` contains only the desktop launcher and libGDX desktop backend configuration.
-- `daimyosimulator-core` must not import `com.badlogic.gdx.*`.
+- `core` contains the pure Java domain model, simulation engine, persistence, application services, DTOs, snapshots, and JUnit tests.
+- `libgdx` contains screens, renderer, HUD, input handling, asset loading, and adapters.
+- `desktop` contains only the desktop launcher and libGDX desktop backend configuration.
+- `core` must not import `com.badlogic.gdx.*`.
 
 ---
 
@@ -75,14 +76,14 @@ mvn clean package
 Build the desktop app and required modules:
 
 ```bash
-mvn -pl daimyosimulator-desktop -am package
+mvn -pl :desktop -am package
 ```
 
 Run the desktop launcher if the Maven exec plugin is configured:
 
 ```bash
 mvn clean package
-mvn -pl daimyosimulator-desktop -am exec:java
+mvn -pl :desktop -am exec:java
 ```
 
 The implemented desktop module configures this command through `exec-maven-plugin`. Run `mvn clean package` first; package also installs core/libGDX artifacts locally so direct `exec:java` can resolve them.
@@ -91,8 +92,8 @@ Alternative launch from IDE:
 
 1. Import the repository as a Maven project.
 2. Set the project SDK to Java 17.
-3. Open `daimyosimulator-desktop`.
-4. Run `it.unipd.daimyosimulator.desktop.DesktopLauncher`.
+3. Open `desktop`.
+4. Run `desktop.DesktopLauncher`.
 
 ---
 
@@ -154,7 +155,7 @@ Assets are created manually by the project team. The expected visual style is **
 Recommended asset folder:
 
 ```text
-daimyosimulator-libgdx/src/main/resources/assets/
+src/libgdx/main/resources/assets/
 ├── atlases/
 │   ├── village.atlas
 │   └── ui.atlas

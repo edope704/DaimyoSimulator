@@ -14,7 +14,7 @@ The focus is system-level validation: the complete application should be execute
 |---|---|
 | Java version | Java 17 LTS |
 | Build tool | Maven |
-| Application module | `daimyosimulator-desktop` |
+| Application module | `desktop` |
 | Graphics/UI | libGDX, Scene2D UI |
 | Operating system | To be filled during test execution |
 | Tester | To be filled during test execution |
