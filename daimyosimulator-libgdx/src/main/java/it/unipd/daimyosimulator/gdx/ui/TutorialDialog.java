@@ -154,11 +154,17 @@ public final class TutorialDialog extends Dialog {
         ScrollPane scroll = new ScrollPane(content, new ScrollPane.ScrollPaneStyle());
         scroll.setScrollingDisabled(true, false);
         scroll.setFadeScrollBars(true);
+        // Prevent content from bouncing/bleeding past the viewport edges.
+        scroll.setOverscroll(false, false);
+        scroll.setClamp(true);
 
         getContentTable().pad(14);
         getContentTable().add(scroll).size(600, 460);
         button("Close");
         setMovable(true);
+
+        // Align the window title with the body content (which is inset by pad(14)).
+        getTitleTable().padLeft(14);
     }
 
     // ── Layout helpers ────────────────────────────────────────────────────────
