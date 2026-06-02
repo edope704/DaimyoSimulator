@@ -780,7 +780,7 @@ Resource Production and Trade
 
 The final DaimyoSimulator concept uses one different market building per resource. Each market holds traders and allows resources to be exchanged. More traders in a market increase how much can be exchanged and shorten the trade timer.
 
-> **Implementation note (current build):** Trading shipped as a **single shared Market type** (any Market cell opens the same dialog) rather than one market per resource. Trade-volume capacity scales with the number of Market buildings (`10 units × Market count`), and after any trade the market is locked for a fixed **10-tick cooldown** (instead of a per-trader timer). Exchange uses an asymmetric rate table (see `docs/Commands.md`), not a single flat rate.
+> **Implementation note (current build):** Trading shipped as a **single shared Market type** (any Market cell opens the same dialog) rather than one market per resource. Trade-volume capacity scales with the number of Market buildings (`10 units × Market count`), and after any trade the market is locked for a fixed **10-tick cooldown** (instead of a per-trader timer). Exchange uses an asymmetric rate table (see the project [README](../README.md)), not a single flat rate.
 
 ### Acceptance criteria
 

@@ -58,8 +58,8 @@ models. This keeps the rules independent of how the game is displayed.
 ## 3. Installation (foolproof, one time only)
 
 You only need **two free tools**: a Java 17 JDK and Maven. The repository's
-[README](../README.md) contains the same instructions with extra screenshots-level
-detail and per-OS package-manager options; the short version is below.
+[README](../README.md) gives the project overview and command reference; this
+manual keeps the step-by-step setup instructions.
 
 ### Step 1 — Install Java 17 (JDK)
 
@@ -311,7 +311,7 @@ falls back to `missing_asset.png` and logs a readable warning.
     icons; press **?** for the in-game tutorial and **F3** to toggle the debug grid.
 
 The full controls reference, balance constants, and building requirements are in
-[Commands.md](Commands.md).
+the project [README](../README.md).
 
 ---
 
