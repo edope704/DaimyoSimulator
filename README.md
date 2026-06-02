@@ -10,6 +10,10 @@ The core owns the village rules and is testable without graphics; the libGDX
 layer renders snapshots, collects mouse/keyboard/HUD input, and sends commands
 through `CoreGameFacade`.
 
+## Snapshot
+
+![DaimyoSimulator gameplay snapshot](media/snapshot.png)
+
 ## Project At A Glance
 
 - Build and manage a 20 x 20 village grid with forests, dwellings, farms,
