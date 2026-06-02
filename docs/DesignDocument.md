@@ -153,16 +153,16 @@ classDiagram
 
 | Building | Main responsibility | Job slots / role | Rule enforcement |
 |---|---|---|---|
-| `Dwelling` | Provides housing capacity | none | Required to house villagers born in the village |
-| `RiceFarm` | Holds farmers | Rice Farmer | Needed near Rice Paddies |
-| `RicePaddy` | Produces rice | indirectly uses farmers from Rice Farm | Produces only if a Rice Farm is nearby and at least one farmer exists |
-| `WoodcuttersHut` | Produces timber | Woodcutter | Must be near forest |
-| `Mine` | Unlocks Smithy and Workshop | optional / none | At least one Mine must exist before Smithy or Workshop can be built |
-| `Smithy` | Produces tools | Blacksmith | Requires Mine |
-| `Workshop` | Produces luxury goods | Artisan | Requires Mine |
-| `Market` | Exchanges resources | Trader | Exchange amount and speed depend on traders |
-| `GuardPost` | Increases protection | Samurai | Consumes tools/luxury goods under policy effects |
-| `Temple` | Increases faith | Monk | Supports faith-based events and happiness |
+| `Dwelling` | Provides housing capacity (4 each) | none | Houses villagers; unhoused villagers hurt the Housing parameter |
+| `RiceFarm` | Holds farmers | Rice Farmer ×3 | Provides the farmers a nearby Rice Paddy needs |
+| `RicePaddy` | Produces rice | none (uses farmers from a nearby Rice Farm) | Produces only if a Rice Farm is within range **and** ≥1 Rice Farmer exists (half output when Tools = 0) |
+| `WoodcuttersHut` | Produces timber | Woodcutter ×3 | **Placement rule:** must be within range 1 of a Forest. Produces near a forest or the outer tree border |
+| `Mine` | Enables nearby Smithy/Workshop production | none | No placement rule; a Mine within range lets adjacent Smithies/Workshops produce |
+| `Smithy` | Produces tools | Blacksmith ×2 | Produces only with a Mine within range and ≥1 Blacksmith |
+| `Workshop` | Produces luxury goods | Artisan ×2 | Produces only with a Mine within range, ≥1 Artisan, on workshop-production ticks |
+| `Market` | Exchanges resources | Trader ×2 | Single shared market; capacity scales with Market count, 10-tick cooldown |
+| `GuardPost` | Increases protection | Samurai ×2 | Samurai consume tools/luxury (more under Military policy) |
+| `Temple` | Increases faith | Monk ×2 | Supports faith-based events and happiness |
 
 ### 1.4 Resource and parameter model
 
@@ -311,114 +311,89 @@ The core module must compile and run JUnit tests without any `com.badlogic.gdx.*
 
 ### 3.3 Package architecture
 
-#### Core module packages
+The core module uses Java packages under `core.*`; the libGDX module uses `gdx.*`; the launcher uses `desktop`. The layout below matches the implemented source tree.
+
+#### Core module packages (`src/core/main`, root package `core`)
 
 ```text
 core
-├── application/
+├── app/                          # application boundary (facade, controller, commands, snapshot mapping)
 │   ├── CoreGameFacade.java
 │   ├── GameController.java
-│   ├── VillageInitializer.java
+│   ├── SnapshotMapper.java
 │   ├── BuildCommand.java
 │   ├── TickCommand.java
-│   ├── PlacementResult.java
-│   ├── PolicyActivationResult.java
-│   └── TickResult.java
-├── application/view/
-│   ├── VillageSnapshot.java
-│   ├── CellViewModel.java
-│   ├── BuildingViewModel.java
-│   ├── DashboardViewModel.java
-│   ├── ResourceViewModel.java
-│   ├── PopulationViewModel.java
-│   ├── PolicyViewModel.java
-│   └── EventLogViewModel.java
-├── domain/
-│   ├── village/
-│   ├── grid/
-│   ├── building/
-│   ├── villager/
-│   ├── resource/
-│   ├── policy/
-│   ├── rule/
-│   └── event/
-├── engine/
-│   ├── SimulationEngine.java
-│   ├── TickProcessor.java
-│   ├── TickContext.java
-│   ├── JobAssignmentService.java
-│   ├── ProductionService.java
-│   ├── ConsumptionService.java
-│   ├── ShortageService.java
-│   ├── BirthDeathService.java
-│   ├── VillageParameterCalculator.java
-│   └── HappinessCalculator.java
-├── factory/
-│   ├── BuildingFactory.java
-│   └── PolicyFactory.java
-└── persistence/
-    ├── VillagePersistenceService.java
-    ├── VillageMapper.java
-    ├── dto/
-    └── json/
+│   ├── TradeRequest.java
+│   ├── result/                   # PlacementResult, TickResult, PolicyActivationResult,
+│   │                             #   SaveResult, LoadResult, TradeResult
+│   └── view/                     # immutable view models: VillageSnapshot, CellViewModel,
+│                                 #   BuildingViewModel, DashboardViewModel, ResourceViewModel,
+│                                 #   PopulationViewModel, PolicyViewModel, EventLogViewModel,
+│                                 #   VillageParametersViewModel, TickSummaryViewModel
+├── building/                     # Building, AbstractBuilding, BuildingType + 10 concrete buildings
+├── config/                       # GameConfig
+├── domain/                       # Village, Grid, Cell, Position, NaturalFeature, VillageParameters
+├── villager/                     # Villager, Role, HousingStatus
+├── resource/                     # ResourceStock, ResourceType
+├── placement/                    # PlacementRule, PlacementCheck, CompositePlacementValidator,
+│                                 #   CellInsideGridRule, CellEmptyRule, EnoughTimberRule,
+│                                 #   WoodcutterNearForestRule, MineRequiredRule (unused; see §3.4)
+├── policy/                       # PolicyStrategy, PolicyManager, PolicyType, PolicyActivation,
+│                                 #   NoPolicy + 3 concrete policies
+├── event/                        # RandomEvent, RandomEventManager, EventReport + 5 events
+├── random/                       # RandomProvider, JavaRandomProvider, FixedRandomProvider
+├── factory/                      # BuildingFactory, PolicyFactory
+├── service/                      # ConstructionService, JobAssignmentService, ProductionService,
+│                                 #   ConsumptionService, ShortageService, BirthDeathService,
+│                                 #   HousingService, TradeService, VillageInitializer,
+│                                 #   VillageParameterCalculator, HappinessCalculator,
+│                                 #   ProgressiveCostCalculator (+ *Result records)
+├── simulation/                   # SimulationEngine, TickProcessor
+└── persistence/                  # VillagePersistenceService, VillageMapper (Jackson JSON)
+    └── dto/                      # VillageDTO, GridDTO, CellDTO, BuildingDTO, VillagerDTO,
+                                  #   ResourceStockDTO, VillageParametersDTO, PolicyDTO,
+                                  #   PositionDTO, EventDTO
 ```
 
-#### libGDX module packages
+#### libGDX module packages (`src/libgdx/main`, root package `gdx`)
 
 ```text
 gdx
-├── app/
-│   └── DaimyoSimulatorGame.java
-├── screen/
-│   ├── LoadingScreen.java
-│   ├── MainMenuScreen.java
-│   └── VillageScreen.java
-├── render/
-│   ├── WorldRenderer.java
-│   ├── TileRenderer.java
-│   ├── BuildingRenderer.java
-│   ├── NaturalFeatureRenderer.java
-│   ├── AnimationRenderer.java
-│   ├── GridOverlayRenderer.java
-│   └── RenderConstants.java
-├── ui/
-│   ├── HudStageFactory.java
-│   ├── DashboardHud.java
-│   ├── BuildMenu.java
-│   ├── ResourcePanel.java
-│   ├── PopulationPanel.java
-│   ├── VillageParameterPanel.java
-│   ├── SelectedBuildingPanel.java
-│   ├── SpeedControlPanel.java
-│   ├── PolicyPanel.java
-│   ├── EventLogPanel.java
-│   └── MenuOverlay.java
-├── input/
-│   ├── GameInputProcessor.java
-│   ├── CameraController.java
-│   ├── BuildModeState.java
-│   ├── ScreenToGridMapper.java
-│   └── InputCommandRouter.java
-├── asset/
-│   ├── GameAssetManager.java
-│   ├── AssetPaths.java
-│   ├── BuildingSpriteRegistry.java
-│   ├── TileSpriteRegistry.java
-│   ├── IconRegistry.java
-│   └── MissingAssetFallback.java
-└── adapter/
-    ├── SnapshotToRenderModelAdapter.java
-    ├── CellRenderModel.java
-    ├── BuildingRenderModel.java
-    └── HudViewModelAdapter.java
+├── DaimyoSimulatorGame.java      # Game entry point
+├── screen/                       # LoadingScreen, MainMenuScreen, VillageScreen
+├── render/                       # WorldRenderer, TileRenderer, BuildingRenderer,
+│                                 #   NaturalFeatureRenderer, ForestBorderRenderer,
+│                                 #   AnimationRenderer, GridOverlayRenderer, RenderConstants
+├── ui/                           # DashboardHud, BuildMenu, ResourcePanel, PopulationPanel,
+│                                 #   VillageParameterPanel, SelectedBuildingPanel,
+│                                 #   SpeedControlPanel, PolicyPanel, EventLogPanel, MenuOverlay,
+│                                 #   WarningPanel, EventModal, MarketDialog, SaveLoadDialog,
+│                                 #   SettingsDialog, AudioSettingsDialog, TutorialDialog,
+│                                 #   CommandsDialog, HudSkinFactory, UiViewportFactory
+├── input/                        # GameInputProcessor, CameraController, BuildModeState,
+│                                 #   ScreenToGridMapper, InputCommandRouter
+├── assets/                       # GameAssetManager, SpriteSheetRegionRegistry,
+│                                 #   BuildingSpriteRegistry, TileSpriteRegistry, IconRegistry,
+│                                 #   FeatureSpriteRegistry, UiTextureRegistry, MissingAssetFallback,
+│                                 #   GameSoundManager, AudioSettings, ParameterType, TileType
+├── adapter/                      # SnapshotToRenderModelAdapter, HudViewModelAdapter
+└── model/                        # CellRenderModel, BuildingRenderModel
 ```
 
-#### desktop module package
+#### desktop module package (`src/desktop/main`, package `desktop`)
 
 ```text
 desktop
-└── DesktopLauncher.java
+└── DesktopLauncher.java          # LWJGL3 launcher; main class desktop.DesktopLauncher
 ```
+
+### 3.4 Notable implementation choices
+
+- **Application package is `app`, not `application`.** Results live in `app/result`, view models in `app/view`. `SnapshotMapper` builds the immutable snapshots/dashboards.
+- **Tick work is split across `service` and `simulation`.** `SimulationEngine`/`TickProcessor` (in `simulation`) orchestrate the per-tick services in `service`.
+- **Placement and construction.** `GameController` uses `ConstructionService` with a `CompositePlacementValidator` (cell-inside-grid, cell-empty, enough-timber, plus building-specific rules). Only `WoodcuttersHut` carries a placement rule (near forest). `MineRequiredRule` exists but is **not** wired into placement — Smithy/Workshop instead require a nearby Mine to *produce* (see §1.3).
+- **Progressive building cost.** `ProgressiveCostCalculator` scales timber cost with existing copies (+10 for Temple/Market/Guard Post/Smithy/Mine/Workshop, +5 otherwise, capped at the 5th copy).
+- **Persistence uses Jackson JSON** through `VillagePersistenceService` + `VillageMapper` and the `dto` records, saving to 5 numbered slots (`~/.daimyosimulator/savegame_<slot>.json`; see `README.md` and `docs/COMMANDS.md`).
 
 ---
 
@@ -430,13 +405,16 @@ desktop
 classDiagram
     class CoreGameFacade {
         +startNewVillage(width, height) VillageSnapshot
-        +placeBuilding(type, position) PlacementResult
+        +applyStarterBuildings() VillageSnapshot
+        +constructBuilding(type, position) PlacementResult
+        +demolishBuilding(position) PlacementResult
         +advanceTick() TickResult
         +activatePolicy(policyType) PolicyActivationResult
+        +requestTrade(TradeRequest) TradeResult
         +inspectCell(position) CellViewModel
-        +getSnapshot() VillageSnapshot
-        +save(path) SaveResult
-        +load(path) VillageSnapshot
+        +getCurrentSnapshot() VillageSnapshot
+        +saveVillage(slot) SaveResult
+        +loadVillage(slot) LoadResult
     }
 
     class GameController {
@@ -506,8 +484,9 @@ classDiagram
     }
 
     CoreGameFacade --> GameController
-    GameController --> PlacementService
+    GameController --> ConstructionService
     GameController --> SimulationEngine
+    GameController --> TradeService
     GameController --> VillagePersistenceService
     CoreGameFacade --> VillageSnapshot
     CoreGameFacade --> CellViewModel
@@ -518,39 +497,33 @@ classDiagram
     CellViewModel *-- BuildingViewModel
 ```
 
-### 4.2 Building hierarchy and interfaces
+### 4.2 Building hierarchy
+
+Buildings are data-driven rather than behavior-driven: each building exposes its timber cost, housing capacity, job slots (a `Map<Role, Integer>`), and placement rules. Production and consumption are computed by the tick services (`ProductionService`, `ConsumptionService`) from those declarations and the grid layout — there are no per-building `produce`/`consume` interfaces.
 
 ```mermaid
 classDiagram
     class Building {
-        <<abstract>>
-        -BuildingType type
-        -int timberCost
+        <<interface>>
         +getType() BuildingType
         +getTimberCost() int
+        +getDisplayName() String
+        +getHousingCapacity() int
+        +getJobSlots() Map~Role,Integer~
         +getPlacementRules() List~PlacementRule~
     }
 
-    class JobProvider {
-        <<interface>>
-        +getRole() Role
-        +getJobSlots() int
+    class AbstractBuilding {
+        <<abstract>>
+        -BuildingType type
+        -int timberCost
+        -String displayName
+        -int housingCapacity
+        -Map~Role,Integer~ jobSlots
+        -List~PlacementRule~ placementRules
     }
 
-    class ResourceProducer {
-        <<interface>>
-        +produce(Village, TickContext) BuildingEffect
-    }
-
-    class ResourceConsumer {
-        <<interface>>
-        +consume(Village, TickContext) ConsumptionPlan
-    }
-
-    class Dwelling {
-        +getHousingCapacity() int
-    }
-
+    class Dwelling
     class RiceFarm
     class RicePaddy
     class WoodcuttersHut
@@ -561,34 +534,20 @@ classDiagram
     class GuardPost
     class Temple
 
-    Building <|-- Dwelling
-    Building <|-- RiceFarm
-    Building <|-- RicePaddy
-    Building <|-- WoodcuttersHut
-    Building <|-- Mine
-    Building <|-- Smithy
-    Building <|-- Workshop
-    Building <|-- Market
-    Building <|-- GuardPost
-    Building <|-- Temple
-
-    JobProvider <|.. RiceFarm
-    JobProvider <|.. WoodcuttersHut
-    JobProvider <|.. Smithy
-    JobProvider <|.. Workshop
-    JobProvider <|.. Market
-    JobProvider <|.. GuardPost
-    JobProvider <|.. Temple
-
-    ResourceProducer <|.. RicePaddy
-    ResourceProducer <|.. WoodcuttersHut
-    ResourceProducer <|.. Smithy
-    ResourceProducer <|.. Workshop
-
-    ResourceConsumer <|.. RicePaddy
-    ResourceConsumer <|.. GuardPost
-    ResourceConsumer <|.. Temple
+    Building <|.. AbstractBuilding
+    AbstractBuilding <|-- Dwelling
+    AbstractBuilding <|-- RiceFarm
+    AbstractBuilding <|-- RicePaddy
+    AbstractBuilding <|-- WoodcuttersHut
+    AbstractBuilding <|-- Mine
+    AbstractBuilding <|-- Smithy
+    AbstractBuilding <|-- Workshop
+    AbstractBuilding <|-- Market
+    AbstractBuilding <|-- GuardPost
+    AbstractBuilding <|-- Temple
 ```
+
+Job-slot declarations: Dwelling (housing 4, no jobs), RiceFarm (Rice Farmer ×3), WoodcuttersHut (Woodcutter ×3, near-forest placement rule), Smithy (Blacksmith ×2), Workshop (Artisan ×2), Market (Trader ×2), GuardPost (Samurai ×2), Temple (Monk ×2). RicePaddy and Mine declare no job slots.
 
 ### 4.3 Strategy policies
 
@@ -798,31 +757,30 @@ sequenceDiagram
     actor Player
     participant UI as libGDX HUD/Input
     participant C as CoreGameFacade
-    participant PS as PlacementService
+    participant CS as ConstructionService
     participant BF as BuildingFactory
+    participant Cost as ProgressiveCostCalculator
+    participant Val as CompositePlacementValidator
     participant RS as ResourceStock
-    participant Rules as PlacementRules
     participant V as Village
     participant G as Grid
 
     Player->>UI: choose building type and position
-    UI->>C: placeBuilding(type, position)
-    C->>PS: placeBuilding(village, type, position)
-    PS->>BF: create(type)
-    BF-->>PS: building
-    PS->>G: getCell(position)
-    G-->>PS: cell
-    PS->>RS: has(TIMBER, building.cost)
-    RS-->>PS: true/false
-    PS->>Rules: validate(village, building, position)
-    Rules-->>PS: valid/invalid
-    alt valid placement and enough timber
-        PS->>RS: consume(TIMBER, building.cost)
-        PS->>V: construct(building, position)
-        V->>G: place(building, position)
-        PS-->>C: PlacementResult(success)
+    UI->>C: constructBuilding(type, position)
+    C->>CS: constructBuilding(village, type, position)
+    CS->>BF: create(type)
+    BF-->>CS: building
+    CS->>Cost: scaledCost(type, existingCount, baseCost)
+    Cost-->>CS: timber cost
+    CS->>Val: validate(village, building, position)
+    Val->>RS: enough timber? cell empty? inside grid? building rules?
+    Val-->>CS: PlacementCheck
+    alt valid placement, enough timber, build limit not reached
+        CS->>RS: consume(TIMBER, cost)
+        CS->>G: placeBuilding(building, position)
+        CS-->>C: PlacementResult(success)
     else invalid placement
-        PS-->>C: PlacementResult(failure, reason)
+        CS-->>C: PlacementResult(failure, reason)
     end
     C-->>UI: placement result and updated snapshot
 ```
@@ -868,20 +826,21 @@ sequenceDiagram
     C-->>Player: TickResult and updated snapshot
 ```
 
-Tick order implemented by `SimulationEngine`:
+Tick order implemented by `TickProcessor` (orchestrated by `SimulationEngine`):
 
-1. Advance tick counter.
-2. Update active policy duration and cooldown.
-3. Validate building rules.
-4. Assign idle villagers to available jobs.
-5. Produce resources.
-6. Consume resources.
-7. Apply shortages and penalties.
-8. Update village parameters.
-9. Recalculate happiness.
-10. Process births and deaths.
-11. Trigger random events if conditions are met.
-12. Build `TickResult` and updated immutable view models.
+1. Snapshot the *before* state.
+2. Advance the tick counter, reset the per-tick build quota, and decrement the market cooldown.
+3. Update active policy duration and cooldown.
+4. Validate building rules (emit non-blocking warnings).
+5. Assign **one** idle villager to an available job (weighted by free slots).
+6. Produce resources.
+7. Consume resources.
+8. Apply shortages and penalties.
+9. Apply luxury-deprivation desertion (Samurai/Monk leave after 5 consecutive zero-luxury ticks).
+10. Recalculate village parameters (including happiness).
+11. Process births and deaths, then recalculate parameters again if the population changed.
+12. Evaluate random events.
+13. Append messages to the event log and build the `TickResult` (before/after snapshots, produced/consumed resources, births/deaths, shortages, events).
 
 ### 5.3 Internal sequence — Activate a strategy policy
 
@@ -1143,46 +1102,32 @@ Camera movement is visual only and must not touch the core domain model.
 
 ## 8. Asset Pipeline
 
-### 8.1 Assets folder structure
+### 8.1 Assets folder structure (as implemented)
+
+All runtime sprites are flat PNG files under `textures/sprites/`, loaded individually and registered by key. The UI skin is built **programmatically** by `HudSkinFactory` (there is no `daimyo-ui.json`); `atlases/` and `skins/` currently hold only `.keep` placeholders.
 
 ```text
 src/libgdx/main/resources/assets/
-├── atlases/
-│   ├── village.atlas
-│   └── ui.atlas
-├── textures/
-│   ├── tiles/
-│   │   ├── tile_grass.png
-│   │   ├── tile_dirt.png
-│   │   └── tile_selection.png
-│   ├── features/
-│   │   └── feature_forest.png
-│   ├── buildings/
-│   │   ├── building_dwelling.png
-│   │   ├── building_rice_farm.png
-│   │   ├── building_rice_paddy.png
-│   │   ├── building_woodcutters_hut.png
-│   │   ├── building_mine.png
-│   │   ├── building_smithy.png
-│   │   ├── building_workshop.png
-│   │   ├── building_market.png
-│   │   ├── building_guard_post.png
-│   │   └── building_temple.png
-│   ├── icons/
-│   │   ├── icon_resource_rice.png
-│   │   ├── icon_resource_timber.png
-│   │   ├── icon_resource_tools.png
-│   │   ├── icon_resource_luxury_goods.png
-│   │   ├── icon_policy_agricultural_expansion.png
-│   │   ├── icon_policy_military_protection.png
-│   │   └── icon_policy_craftsmen_production.png
-│   └── placeholders/
-│       └── missing_asset.png
-├── skins/
-│   ├── daimyo-ui.json
-│   └── daimyo-ui.atlas
-└── mapping/
-    └── sprite-map.json
+├── README.md
+├── atlases/                 (.keep – reserved for future atlas packing)
+├── skins/                   (.keep – skin is generated by HudSkinFactory)
+├── audio/
+│   ├── music_bg.mp3
+│   ├── sfx_build.mp3
+│   ├── sfx_click.mp3
+│   └── sfx_demolish.mp3
+└── textures/sprites/
+    ├── building_dwelling.png ... building_temple.png   (10 buildings)
+    ├── feature_forest.png
+    ├── tile_grass.png, tile_dirt.png
+    ├── icon_resource_rice|timber|tools|luxury_goods.png
+    ├── icon_parameter_happiness|protection|food|faith|housing|craftsmanship.png
+    ├── icon_policy_agricultural_expansion|military_protection|craftsmen_production.png
+    ├── icon_population.png, icon_event_alert.png
+    ├── button_play.png, button_pause.png, button_fast.png
+    ├── overlay_valid_blue.png, overlay_invalid_red.png
+    ├── question_icon.png, settings_icon.png, sound_icon.png
+    └── missing_asset.png
 ```
 
 ### 8.2 Naming convention
@@ -1191,10 +1136,12 @@ src/libgdx/main/resources/assets/
 tile_<terrain>.png
 feature_<feature_type>.png
 building_<building_type>.png
-building_<building_type>_<animation_state>_<frame>.png
 icon_resource_<resource_type>.png
+icon_parameter_<parameter_type>.png
 icon_policy_<policy_type>.png
-ui_<component>.png
+button_<control>.png        (play / pause / fast)
+overlay_<state>.png         (valid_blue / invalid_red)
+<name>_icon.png             (question / settings / sound)
 ```
 
 Examples:
@@ -1204,14 +1151,19 @@ building_dwelling.png
 building_guard_post.png
 feature_forest.png
 icon_resource_rice.png
+icon_parameter_happiness.png
 icon_policy_agricultural_expansion.png
 ```
 
-### 8.3 TextureAtlas and individual textures
+### 8.3 Sprite loading
 
-During early development, individual PNG files are acceptable because they are easier to replace manually. Before the final delivery, the project should pack stable sprites into `village.atlas` and access them through `TextureRegion` names.
+Sprites are declared in `SpriteSheetRegionRegistry` and loaded as individual textures by `GameAssetManager`, which applies `TextureFilter.Nearest` to keep pixel art crisp. `docs/Textures.png` is kept only as a reference sprite sheet. Packing into a `TextureAtlas` is left as a future optimization (`atlases/` is reserved for it).
 
-### 8.4 BuildingType-to-sprite mapping
+### 8.4 Audio
+
+`GameSoundManager` plays background music (`music_bg.mp3`) and short SFX for click/build/demolish; volumes are adjustable through the in-game audio settings dialog and stored in `AudioSettings`.
+
+### 8.5 BuildingType-to-sprite mapping
 
 | Core type | Asset key |
 |---|---|
@@ -1229,14 +1181,11 @@ During early development, individual PNG files are acceptable because they are e
 
 The mapping is owned by the libGDX module. The core knows only domain enums and must not know file paths, texture names, `TextureRegion`, `Animation`, or `AssetManager`.
 
-### 8.5 Missing asset fallback
+### 8.6 Missing asset fallback
 
-During development:
-
-1. `GameAssetManager` logs a warning such as `Missing sprite for BuildingType.SMITHY`.
+1. `GameAssetManager` logs a warning when a requested sprite key has no texture.
 2. `MissingAssetFallback` returns `missing_asset.png`.
 3. The game continues running.
-4. Final release validation can fail if required production assets are still missing.
 
 ---
 
@@ -1251,7 +1200,8 @@ During development:
 | Save/load must not use a database | Use JSON DTOs through `VillagePersistenceService` | DTO + Service |
 | Simulation tick must remain understandable and testable | Split tick work into services: job assignment, production, consumption, parameters, birth/death, events | GRASP / Single Responsibility |
 | Placement rules must be extensible | Implement separate `PlacementRule` classes | Open/Closed Principle |
-| Building behavior must be polymorphic | Use abstract `Building` plus interfaces like `JobProvider` and `ResourceProducer` | Inheritance + interfaces |
+| Buildings must declare housing/jobs/rules uniformly | `Building` interface + `AbstractBuilding` base; tick services read the declarations | Inheritance + data-driven design |
+| Building timber cost must rise with quantity | `ProgressiveCostCalculator` scales cost by existing count | Strategy/helper calculation |
 | Missing art during development should not block testing | Use placeholder sprite and warning | Fail-soft development workflow |
 
 ---
@@ -1260,28 +1210,32 @@ During development:
 
 ### 10.1 Core unit tests
 
-Core logic remains pure JUnit and does not require libGDX initialization. Suggested tests:
+Core logic is pure JUnit 5 and does not require libGDX initialization. Implemented test classes (in `src/core/test`) include:
 
 ```text
-GridTest
-CellTest
-PositionTest
-BuildingFactoryTest
-PlacementRuleTest
-ConstructionServiceTest
-SimulationEngineTest
-TickProcessorOrderTest
-PolicyStrategyTest
-RandomEventManagerTest
-VillagePersistenceServiceTest
-VillageSnapshotMapperTest
+GridTest, CellTest, PositionTest, VillagerTest
+VillageInitializerTest, InitialResourceStockTest, ForestGenerationTest
+BuildingFactoryTest, ConstructionServiceTest, OccupiedCellPlacementTest, InsufficientTimberTest
+PlacementRuleTest, WoodcutterNearForestRuleTest, MineRequiredRuleTest
+RoleAssignmentServiceTest, JobAssignmentServiceTest, WeightedRoleAssignmentTest, HousingServiceTest
+RiceProductionServiceTest, RiceConsumptionServiceTest, RicePaddyProductionRuleTest,
+RicePaddyWithoutFarmerTest, ProductionServiceTest, ConsumptionServiceTest
+SimulationEngineTest, TickProcessorOrderTest, TickResultTest
+VillageParameterCalculatorTest, HappinessCalculatorTest, BirthDeathServiceTest, StarvationDeathTest
+PolicyManagerTest, PolicyStrategyTest, AgriculturalExpansionPolicyTest,
+MilitaryProtectionPolicyTest, CraftsmenProductionPolicyTest
+RandomEventManagerTest, RandomProviderTest, TradeServiceTest
+VillagePersistenceServiceTest, SaveLoadIntegrationTest, InvalidSaveFileTest, VillageSnapshotMapperTest
+CoreGameFacadeTest, GameControllerTest
 ```
+
+The libGDX module adds `ScreenToGridMapperTest` and `AssetRegistryFallbackTest`.
 
 ### 10.2 Controller/facade tests
 
 `CoreGameFacade` and `GameController` should be unit-tested with deterministic services or fake dependencies:
 
-- placement delegates to `PlacementService`;
+- placement delegates to `ConstructionService` / `CompositePlacementValidator`;
 - invalid placement does not change the snapshot;
 - `advanceTick()` returns `TickResult` and updated `DashboardViewModel`;
 - policy activation respects one active policy and cooldowns;

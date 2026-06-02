@@ -256,9 +256,11 @@ Village Map and Building Placement
 
 ### Description
 
-Some buildings require nearby buildings or map features. Rice paddies need a rice farm nearby to produce rice. Woodcutter huts need to be near a forest. Smithies and workshops can exist only if at least one mine is present in the village.
+Some buildings require nearby buildings or map features. Rice paddies need a rice farm nearby to produce rice. Woodcutter huts need to be near a forest. Smithies and workshops need a mine nearby to operate.
 
 These rules are important because the assignment requires rule enforcement in the simulation engine.
+
+> **Implementation note (current build):** Only the Woodcutter's Hut carries a hard *placement* rule (must be within range 1 of a forest). The Mine requirement for Smithy/Workshop and the Rice Farm requirement for Rice Paddy are enforced at **production** time (the building can be placed anywhere but only produces when the required neighbour is within `adjacencyRange`, default 1). The unused `MineRequiredRule` class remains in the codebase for reference.
 
 ### Acceptance criteria
 
@@ -777,6 +779,8 @@ Resource Production and Trade
 ### Description
 
 The final DaimyoSimulator concept uses one different market building per resource. Each market holds traders and allows resources to be exchanged. More traders in a market increase how much can be exchanged and shorten the trade timer.
+
+> **Implementation note (current build):** Trading shipped as a **single shared Market type** (any Market cell opens the same dialog) rather than one market per resource. Trade-volume capacity scales with the number of Market buildings (`10 units × Market count`), and after any trade the market is locked for a fixed **10-tick cooldown** (instead of a per-trader timer). Exchange uses an asymmetric rate table (see `docs/COMMANDS.md`), not a single flat rate.
 
 ### Acceptance criteria
 
@@ -1390,7 +1394,7 @@ Then the timer values are preserved
 
 ### Technical notes
 
-Use DTOs for persistence if serializing the domain objects directly becomes difficult. Jackson or Gson can be used.
+Use DTOs for persistence if serializing the domain objects directly becomes difficult. (Implemented with **Jackson** via `VillagePersistenceService` + `VillageMapper` and the `core.persistence.dto` records, saving to 5 numbered slots.)
 
 ### Related classes
 
@@ -1655,6 +1659,8 @@ Do not necessarily implement the stories in numerical order. A practical order i
 ---
 
 # Suggested package and Maven structure
+
+> **Implementation note (current build):** The shipped package layout differs from the sketch below. The application boundary lives in `core.app` (with `core.app.result` and `core.app.view`), tick logic is split across `core.service` and `core.simulation`, and the domain is organized as `core.domain`, `core.building`, `core.villager`, `core.resource`, `core.placement`, `core.policy`, `core.event`, `core.random`, `core.factory`, and `core.persistence` (+ `dto`). The libGDX module uses the `gdx.*` root (`gdx.screen`, `gdx.render`, `gdx.ui`, `gdx.input`, `gdx.assets`, `gdx.adapter`, `gdx.model`). See **DesignDocument.md §3.3** for the authoritative tree.
 
 Use a multi-module Maven layout:
 

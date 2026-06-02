@@ -79,14 +79,21 @@ Build the desktop app and required modules:
 mvn -pl :desktop -am package
 ```
 
-Run the desktop launcher if the Maven exec plugin is configured:
+Run the desktop launcher (Windows / Linux):
 
 ```bash
 mvn clean package
-mvn -pl :desktop -am exec:java
+mvn -pl :desktop exec:java
 ```
 
-The implemented desktop module configures this command through `exec-maven-plugin`. Run `mvn clean package` first; package also installs core/libGDX artifacts locally so direct `exec:java` can resolve them.
+On macOS, LWJGL3 must run on the first thread, so use the dedicated execution:
+
+```bash
+mvn clean package
+mvn -pl :desktop exec:exec@run-mac
+```
+
+The desktop module configures these through `exec-maven-plugin` with main class `desktop.DesktopLauncher`. Run `mvn clean package` first — `package` also installs the `core`/`libgdx` artifacts locally so `exec:java` can resolve them. Do **not** add `-am` to the `exec:java` form (it would run the goal on every reactor module, including the parent pom, which has no `mainClass`).
 
 Alternative launch from IDE:
 
@@ -124,10 +131,11 @@ Expected launch flow:
 4. `VillageScreen` creates the world renderer, HUD stage, camera, and input multiplexer.
 5. The user can start or load a village and interact with it through the libGDX UI.
 
-The default save/load path used by the HUD is:
+The HUD uses 5 save slots; slot 1 is the default path:
 
 ```text
-%USERPROFILE%\.daimyosimulator\savegame.json
+%USERPROFILE%\.daimyosimulator\savegame_<slot>.json   (Windows)
+~/.daimyosimulator/savegame_<slot>.json               (Linux / macOS)
 ```
 
 ---
@@ -142,34 +150,31 @@ The default save/load path used by the HUD is:
 | libGDX core | Game framework, rendering, input, asset management |
 | libGDX LWJGL3 backend | Desktop execution |
 | libGDX Scene2D UI | HUD, buttons, panels, menus, dashboard |
-| Jackson or Gson | JSON save/load persistence, if selected during implementation |
+| Jackson (`jackson-databind` 2.17.1) | JSON save/load persistence |
 
-No database is required. Persistence is file-based using JSON.
+Versions in use: Java 17, libGDX 1.12.1, Jackson 2.17.1, JUnit 5.10.2. No database is required — persistence is file-based using JSON.
 
 ---
 
 ## 8. Asset folder description
 
-Assets are created manually by the project team. The expected visual style is **2D pixelated Japanese-inspired graphics**.
+Assets are created manually by the project team. The visual style is **2D pixelated Japanese-inspired graphics**.
 
-Recommended asset folder:
+The implemented asset folder uses flat PNG sprites plus audio. The UI skin is generated programmatically by `HudSkinFactory` (no skin JSON), and `atlases/`/`skins/` hold only `.keep` placeholders for future packing:
 
 ```text
 src/libgdx/main/resources/assets/
-├── atlases/
-│   ├── village.atlas
-│   └── ui.atlas
-├── textures/
-│   ├── tiles/
-│   ├── buildings/
-│   ├── features/
-│   ├── icons/
-│   └── placeholders/
-├── skins/
-│   ├── daimyo-ui.json
-│   └── daimyo-ui.atlas
-└── mapping/
-    └── sprite-map.json
+├── atlases/        (.keep)
+├── skins/          (.keep)
+├── audio/          (music_bg.mp3, sfx_click/build/demolish.mp3)
+└── textures/sprites/
+    ├── building_*.png        (10 building sprites)
+    ├── tile_grass.png, tile_dirt.png, feature_forest.png
+    ├── icon_resource_*.png, icon_parameter_*.png, icon_policy_*.png
+    ├── icon_population.png, icon_event_alert.png
+    ├── button_play|pause|fast.png, overlay_valid_blue|invalid_red.png
+    ├── question_icon.png, settings_icon.png, sound_icon.png
+    └── missing_asset.png
 ```
 
 Naming examples:
@@ -178,16 +183,14 @@ Naming examples:
 tile_grass.png
 feature_forest.png
 building_dwelling.png
-building_rice_farm.png
 building_guard_post.png
 icon_resource_rice.png
+icon_parameter_happiness.png
 icon_policy_agricultural_expansion.png
 missing_asset.png
 ```
 
-During early development, individual PNG files can be loaded directly. Before final delivery, stable sprites should be packed into a `TextureAtlas`.
-
-Missing assets should use `missing_asset.png` and log a readable warning.
+Sprites are loaded individually by `GameAssetManager` (keys declared in `SpriteSheetRegionRegistry`) with `TextureFilter.Nearest`. Missing sprite keys fall back to `missing_asset.png` and log a readable warning. Packing into a `TextureAtlas` is left for future optimization.
 
 ---
 
@@ -200,10 +203,11 @@ Missing assets should use `missing_asset.png` and log a readable warning.
 5. Click a valid cell to request placement.
 6. Watch the HUD for resource, population, and village parameter changes.
 7. Select existing buildings to inspect them in the selected building panel.
-8. Press **Next Tick** to advance time by one tick.
-9. Use pause/speed controls only for automatic tick playback.
-10. Activate one strategy policy at a time from the policy panel.
-11. Save or load the village through the menu.
+8. Use **Demolish** to remove a building (no refund), or open a **Market** cell to trade resources.
+9. Press **Next Tick** to advance time by one tick.
+10. Use pause/speed controls (1x/2x/4x) only for automatic tick playback.
+11. Activate one strategy policy at a time from the policy panel.
+12. Save or load the village through the menu (5 slots). Adjust audio/settings from the top-bar icons.
 
 ---
 

@@ -33,12 +33,17 @@ The focus is system-level validation: the complete application should be execute
 | ST-CORE-05: Occupied-cell placement is rejected and consumes no timber. |  |  |  |  |
 | ST-CORE-06: Insufficient-timber placement is rejected and leaves state unchanged. |  |  |  |  |
 | ST-CORE-07: Woodcutter's Hut placement requires nearby forest. |  |  |  |  |
-| ST-CORE-08: Smithy and Workshop require at least one Mine. |  |  |  |  |
+| ST-CORE-08: Smithy and Workshop only produce when a Mine is within range (Mine adjacency is a production rule, not a placement rule). |  |  |  |  |
 | ST-CORE-09: Next tick advances the tick counter by exactly one. |  |  |  |  |
 | ST-CORE-10: Tick processing updates resources and village parameters. |  |  |  |  |
 | ST-CORE-11: Only one strategy policy can be active at a time. |  |  |  |  |
 | ST-CORE-12: Save creates a JSON file with grid, buildings, resources, villagers, policy, and tick data. |  |  |  |  |
 | ST-CORE-13: Load restores the saved village and allows ticking to continue. |  |  |  |  |
+| ST-CORE-14: Repeated placement of the same building type increases its timber cost (progressive cost). |  |  |  |  |
+| ST-CORE-15: Demolishing a building clears the cell and gives no refund. |  |  |  |  |
+| ST-CORE-16: Trading through a Market exchanges resources at the rate table and locks the market for 10 ticks. |  |  |  |  |
+| ST-CORE-17: A new village is seeded with starter buildings (1 Woodcutter's Hut + 2 Dwellings). |  |  |  |  |
+| ST-CORE-18: Save/load uses 5 numbered slots and the load dialog shows which slots are occupied. |  |  |  |  |
 
 ---
 
@@ -67,6 +72,10 @@ The focus is system-level validation: the complete application should be execute
 | ST-UI-19: EventLogPanel shows random events, placement errors, and tick status messages. |  |  |  |  |
 | ST-UI-20: Missing development sprite uses a placeholder and logs a readable warning. |  |  |  |  |
 | ST-UI-21: Renderer and HUD never directly mutate `Village`, `Cell`, `Building`, `ResourceStock`, or `Villager`. |  |  |  |  |
+| ST-UI-22: Demolish mode lets the player click a building to remove it and the map/HUD update. |  |  |  |  |
+| ST-UI-23: The Market dialog performs a valid trade and reports cooldown/insufficient-resource errors. |  |  |  |  |
+| ST-UI-24: Settings dialog (New/Save/Load/Commands) and audio dialog (music/SFX volume) work. |  |  |  |  |
+| ST-UI-25: F3 toggles the debug grid overlay; WASD/arrows pan and mouse wheel zooms within limits. |  |  |  |  |
 
 ---
 
