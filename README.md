@@ -312,5 +312,3 @@ and event history.
 Runtime art is loaded from individual PNG sprites under
 `src/libgdx/main/resources/assets/textures/sprites`. `missing_asset.png` is shown
 with a logged warning for any missing sprite key.
-
-AI-assisted code and documentation must be reviewed by the team before submission.

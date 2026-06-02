@@ -55,9 +55,9 @@ models. This keeps the rules independent of how the game is displayed.
 
 ---
 
-## 3. Installation (foolproof, one time only)
+## 3. Installation (one time only)
 
-You only need **two free tools**: a Java 17 JDK and Maven. The repository's
+You only need **three free tools**: Git, a Java 17 JDK, and Maven. The repository's
 [README](../README.md) gives the project overview and command reference; this
 manual keeps the step-by-step setup instructions.
 
@@ -100,17 +100,18 @@ PATH.
 > `Cmd+Space`, type `Terminal`, Enter. Linux → open your Terminal app. Always open a
 > **fresh** terminal after installing something.
 
-### Step 3 — Get the project and open a terminal in it
+### Step 3 — Clone the project and open a terminal in it
 
-Unzip the project (or `git clone` it), then move your terminal into the folder that
+Clone the repository with Git, then move your terminal into the folder that
 contains `pom.xml` and this manual's parent `README.md`:
 
 ```bash
-cd path/to/DaimyoSimulator
+git clone https://github.com/edope704/DaimyoSimulator.git
+cd DaimyoSimulator
 ```
 
-> On Windows you can open the folder in File Explorer, type `powershell` in the
-> address bar, and press Enter to get a terminal already in that folder.
+If `git` is not recognized, install Git from <https://git-scm.com/downloads>, open a
+fresh terminal, and run the two commands again.
 
 The **first** Maven command downloads all dependencies from the internet, so be
 online. This happens once and may take a few minutes.
@@ -326,7 +327,4 @@ only**, including:
 - drafting and editing documentation sections (including parts of this manual);
 - suggesting unit and system test coverage.
 
-All AI-assisted output was **reviewed by the team before submission**. The team
-remains fully responsible for reviewing, understanding, validating, and explaining
-every part of the generated content and code.
-```
+All AI-assisted output was **reviewed by the team before submission**.
