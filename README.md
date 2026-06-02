@@ -183,7 +183,8 @@ To stop the game, simply close its window (or press `Ctrl+C` in the terminal).
 - **Left-click** a building button → you enter "build mode"; then **left-click** a
   cell on the grid to place the building.
 - **Right-click** or press **`Escape`** → cancel build or demolish mode.
-- **Demolish** button (left panel) → click any building to remove it (no refund).
+- **Demolish** button (left panel) -> click a building for +5 timber, or a
+  forest for +10 timber.
 - Click a **Market** cell → "Open Market" → exchange resources (one shared market;
   it scales with how many Markets you own; 10-tick cooldown).
 - Move the map with **WASD** or the **arrow keys**; **zoom** with the mouse wheel.
@@ -197,7 +198,7 @@ To stop the game, simply close its window (or press `Ctrl+C` in the terminal).
   village advances a tick.
 
 For the full controls list, balance numbers, and building requirements, see
-[docs/COMMANDS.md](docs/COMMANDS.md).
+[docs/Commands.md](docs/Commands.md).
 
 ---
 

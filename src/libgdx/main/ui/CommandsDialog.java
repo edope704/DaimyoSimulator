@@ -10,7 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 
 /**
  * In-game reference card listing all keyboard / mouse controls, grouped by category.
- * Opened by the "Cmd" button in the top bar of the HUD.
+ * Opened through Settings -> Commands in the HUD.
  *
  * All strings use plain ASCII only (no arrows, middle-dots, or multiplication signs)
  * to avoid glyph-missing squares with the default libGDX BitmapFont.
@@ -25,7 +25,7 @@ public final class CommandsDialog extends Dialog {
     private static final Object[] SECTIONS = {
         // A String header starts a new category; String[2] is an action row.
         "Map Navigation",
-        new String[]{ "Scroll / Pan map",   "Arrow keys - WASD - middle-drag" },
+        new String[]{ "Scroll / Pan map",   "Arrow keys - WASD" },
         new String[]{ "Zoom in / out",       "Scroll wheel" },
         "Building",
         new String[]{ "Place a building",    "Click building button -> click grid tile" },

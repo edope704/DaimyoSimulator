@@ -299,8 +299,8 @@ falls back to `missing_asset.png` and logs a readable warning.
 2. Pan the map with **WASD / arrow keys** and zoom with the **mouse wheel**.
 3. **Left-click** a building button to enter build mode, then **left-click** a valid
    grid cell to place it. **Right-click** or **`Escape`** cancels.
-4. Use **Demolish** to remove a building (no refund), or open a **Market** cell to
-   trade resources.
+4. Use **Demolish** to remove a building for +5 timber, clear a forest for +10
+   timber, or open a **Market** cell to trade resources.
 5. Watch the HUD for resource, population, and village-parameter changes. Resource
    numbers turn **yellow** at ≤ 30 and **red** at ≤ 10.
 6. Select an existing building to inspect it in the selected-building panel.
@@ -311,7 +311,7 @@ falls back to `missing_asset.png` and logs a readable warning.
     icons; press **?** for the in-game tutorial and **F3** to toggle the debug grid.
 
 The full controls reference, balance constants, and building requirements are in
-[COMMANDS.md](COMMANDS.md).
+[Commands.md](Commands.md).
 
 ---
 
