@@ -1,45 +1,4 @@
-# Java / Maven build output
 target/
-build/
-out/
-*.class
-*.jar
-*.war
-*.ear
-dependency-reduced-pom.xml
-!.mvn/wrapper/maven-wrapper.jar
-
-# JVM crash logs
-hs_err_pid*
-replay_pid*
-
-# IDE files
-.idea/
-*.iml
-*.iws
-*.ipr
-.classpath
-.project
-.settings/
-.factorypath
-*.eclipse
-
-# VS Code
-.vscode/
-
-# OS files
 .DS_Store
-Thumbs.db
-
-# Logs
-*.log
-
-# LibGDX
-android/assets/
-android/libs/
-ios/robovm-logs/
-
-# Misc
-.antigravitycli/
 .claude/
 
