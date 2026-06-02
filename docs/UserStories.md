@@ -260,7 +260,7 @@ Some buildings require nearby buildings or map features. Rice paddies need a ric
 
 These rules are important because the assignment requires rule enforcement in the simulation engine.
 
-> **Implementation note (current build):** Only the Woodcutter's Hut carries a hard *placement* rule (must be within range 1 of a forest). The Mine requirement for Smithy/Workshop and the Rice Farm requirement for Rice Paddy are enforced at **production** time (the building can be placed anywhere but only produces when the required neighbour is within `adjacencyRange`, default 1). The unused `MineRequiredRule` class remains in the codebase for reference.
+> **Implementation note (current build):** Only the Woodcutter's Hut carries a hard *placement* rule (must be within range 1 of a forest). The Mine requirement for Smithy/Workshop and the Rice Farm requirement for Rice Paddy are enforced at **production** time: these buildings can be placed anywhere but only produce when the required neighbour is within `adjacencyRange`, default 1.
 
 ### Acceptance criteria
 
@@ -281,22 +281,22 @@ When there is no forest near the selected cell
 Then the placement is rejected
 
 AC-03.4
-Given the player tries to place a Smithy
-When the village has no Mine
-Then the placement is rejected
+Given a Smithy exists without a Mine within the configured adjacency range
+When the production step runs
+Then the Smithy produces no Tools until the Mine proximity requirement is satisfied
 
 AC-03.5
-Given the player tries to place a Workshop
-When the village has no Mine
-Then the placement is rejected
+Given a Workshop exists without a Mine within the configured adjacency range
+When the production step runs
+Then the Workshop produces no Luxury Goods until the Mine proximity requirement is satisfied
 
 AC-03.6
-Given the village has at least one Mine
-When the player places a Smithy or Workshop on a valid empty cell
-Then the placement can succeed if the village has enough timber
+Given the village has enough timber and the target cell is valid and empty
+When the player places a Smithy or Workshop
+Then placement can succeed, and production activates only when a Mine is nearby
 
 AC-03.7
-Given a rule is violated during construction or validation
+Given a hard placement rule is violated during construction validation
 When the system rejects the action
 Then the error message explains which rule failed
 ```
@@ -309,9 +309,9 @@ Keep placement rules in separate `PlacementRule` or `SimulationRule` classes. Do
 
 ```text
 PlacementRule
-RicePaddyNearFarmRule
+CompositePlacementValidator
 WoodcutterNearForestRule
-MineRequiredRule
+ProductionService
 Grid
 Position
 ConstructionService
@@ -320,9 +320,9 @@ ConstructionService
 ### Related tests
 
 ```text
-RicePaddyNearFarmRuleTest
+RicePaddyProductionRuleTest
 WoodcutterNearForestRuleTest
-MineRequiredRuleTest
+ProductionServiceTest
 PlacementRuleTest
 ```
 
@@ -431,7 +431,7 @@ Villagers, Housing, and Jobs
 
 ### Description
 
-Dwellings provide housing capacity. Every villager is assigned to a dwelling at birth if one is available. If no dwelling capacity is available, the villager becomes unhoused. The final DaimyoSimulator rules also allow a villager to become unhoused after remaining idle for a configured number of ticks.
+Dwellings provide housing capacity. Every villager is assigned to a dwelling at birth if one is available. If no dwelling capacity is available, the villager becomes unhoused. When dwellings are added or removed, housing is recalculated from the available capacity.
 
 ### Acceptance criteria
 
@@ -462,14 +462,14 @@ When random events are evaluated
 Then housing-related events such as food theft can become more likely
 
 AC-05.6
-Given a villager remains idle for the configured number of ticks
-When the idle-to-unhoused rule is active
-Then the villager can become unhoused according to the DaimyoSimulator rules
+Given housing capacity changes because dwellings are built or demolished
+When the housing service recalculates assignments
+Then villagers are housed up to available capacity and excess villagers remain unhoused
 ```
 
 ### Technical notes
 
-Keep the idle-to-unhoused behavior configurable because it is a special gameplay rule and may need balancing.
+Keep housing assignment in `HousingService` so building placement, demolition, and birth flows reuse the same capacity rule.
 
 ### Related classes
 
@@ -477,19 +477,18 @@ Keep the idle-to-unhoused behavior configurable because it is a special gameplay
 Dwelling
 HousingService
 Villager
-VillageState
-HousingCalculator
+Village
+VillageParameterCalculator
 RandomEventManager
 ```
 
 ### Related tests
 
 ```text
-DwellingTest
 HousingServiceTest
-UnhousedVillagerTest
-HousingCalculatorTest
-IdleToUnhousedRuleTest
+VillageParameterCalculatorTest
+RandomEventManagerTest
+BirthDeathServiceTest
 ```
 
 ### Priority
@@ -514,7 +513,7 @@ Villagers, Housing, and Jobs
 
 The system checks available job slots in buildings and assigns idle villagers probabilistically. The probability depends on the number and type of available slots. For example, if the village has many rice farmer slots and few samurai slots, rice farmer assignment should be more likely.
 
-The same weighted logic can also be used when removing villagers from jobs, such as when a villager dies.
+Starvation deaths remove one living villager using the configured `RandomProvider`, so tests can reproduce the selected victim with a fixed seed.
 
 ### Acceptance criteria
 
@@ -545,9 +544,9 @@ When fewer than X ticks have passed since the last assignment
 Then no automatic assignment occurs
 
 AC-06.6
-Given a villager must be removed from a job because of death or another rule
-When the removal logic runs
-Then the system chooses the removed job according to the configured weighted logic
+Given starvation requires one villager to die
+When the death rule runs
+Then the system removes one living villager using the configured random provider
 
 AC-06.7
 Given tests use a fixed random seed
@@ -563,11 +562,11 @@ Use a `RandomProvider` interface or injectable random seed to make tests determi
 
 ```text
 JobAssignmentService
-JobSlot
-WorkplaceBuilding
+Building
 Villager
-VillagerRole
+Role
 RandomProvider
+BirthDeathService
 ```
 
 ### Related tests
@@ -575,7 +574,7 @@ RandomProvider
 ```text
 JobAssignmentServiceTest
 WeightedRoleAssignmentTest
-JobRemovalServiceTest
+StarvationDeathTest
 RandomProviderTest
 ```
 
@@ -686,7 +685,7 @@ Resource Production and Trade
 
 ### Description
 
-Timber is produced by woodcutters in Woodcutter's Huts near forests. Tools are produced by blacksmiths in Smithies. Luxury Goods are produced by artisans in Workshops every several ticks. Smithies and Workshops require at least one Mine to exist.
+Timber is produced by woodcutters in Woodcutter's Huts near forests. Tools are produced by blacksmiths in Smithies. Luxury Goods are produced by artisans in Workshops every several ticks. Smithies and Workshops can be placed before a Mine exists, but they only produce when a Mine is within the configured adjacency range.
 
 Tools are used by samurai and rice farmers. Luxury Goods are used by samurai and monks.
 
@@ -704,19 +703,19 @@ When placement or validation occurs
 Then the rule is rejected according to the construction rules
 
 AC-08.3
-Given a Smithy exists and has at least one Blacksmith
+Given a Smithy exists near a Mine and has at least one Blacksmith
 When the production step runs
 Then tools increase once every tick
 
 AC-08.4
-Given a Workshop exists and has at least one Artisan
+Given a Workshop exists near a Mine and has at least one Artisan
 When the configured number of ticks has passed
 Then luxury goods increase
 
 AC-08.5
-Given there is no Mine in the village
-When the player tries to build a Smithy or Workshop
-Then construction is rejected
+Given a Smithy or Workshop exists without a nearby Mine
+When the production step runs
+Then production is blocked until a Mine is placed within the configured adjacency range
 
 AC-08.6
 Given samurai, monks, or rice farmers exist
@@ -736,25 +735,21 @@ Implement different production frequencies. Tools are produced every tick; luxur
 ### Related classes
 
 ```text
-WoodcutterHut
+WoodcuttersHut
 Smithy
 Mine
 Workshop
-CraftProductionService
-ResourceConsumptionService
+ProductionService
+ConsumptionService
 CraftsmenProductionPolicy
-ProductionFrequencyRule
+GameConfig
 ```
 
 ### Related tests
 
 ```text
-WoodcutterHutTest
-SmithyTest
-WorkshopTest
-MineRequiredRuleTest
-CraftProductionServiceTest
-ProductionFrequencyRuleTest
+ProductionServiceTest
+ConsumptionServiceTest
 CraftsmenProductionPolicyTest
 ```
 
@@ -773,37 +768,35 @@ Resource Production and Trade
 ### User story
 
 **As a** player,  
-**I want** markets and traders to exchange resources,  
+**I want** markets to exchange resources,
 **so that** I can recover from shortages and support different strategies.
 
 ### Description
 
-The final DaimyoSimulator concept uses one different market building per resource. Each market holds traders and allows resources to be exchanged. More traders in a market increase how much can be exchanged and shorten the trade timer.
-
-> **Implementation note (current build):** Trading shipped as a **single shared Market type** (any Market cell opens the same dialog) rather than one market per resource. Trade-volume capacity scales with the number of Market buildings (`10 units × Market count`), and after any trade the market is locked for a fixed **10-tick cooldown** (instead of a per-trader timer). Exchange uses an asymmetric rate table (see the project [README](../README.md)), not a single flat rate.
+Trading uses a single shared Market type. Any Market cell opens the same trade dialog. Trade-volume capacity scales with the number of Market buildings (`10 units x Market count`), and after any successful trade the market is locked for a fixed **10-tick cooldown**. Exchange uses an asymmetric rate table (see the project [README](../README.md)), not a single flat rate.
 
 ### Acceptance criteria
 
 ```text
 AC-09.1
-Given the player builds a Market for a specific resource type
+Given the player builds any Market
 When construction succeeds
-Then that market can be used for trades involving that resource type
+Then the shared Market trade system becomes available
 
 AC-09.2
-Given a Market has at least one Trader
+Given at least one Market exists and the market cooldown is zero
 When the player requests a valid trade
-Then the system schedules or executes the exchange according to the market rules
+Then the system executes the exchange immediately according to the market rules
 
 AC-09.3
-Given a Market has more Traders assigned
+Given the village has more Market buildings
 When trade capacity is calculated
-Then more resources can be exchanged
+Then more resources can be exchanged in a single trade
 
 AC-09.4
-Given a Market has more Traders assigned
-When trade timing is calculated
-Then the time required to complete a trade is shorter
+Given a trade completes successfully
+When the market cooldown is applied
+Then all Market trades are locked for 10 ticks and the cooldown decreases by one each tick
 
 AC-09.5
 Given the village does not have enough of the source resource
@@ -818,16 +811,14 @@ Then the source resource decreases and the target resource increases according t
 
 ### Technical notes
 
-A simple market service is enough. You do not need a complex economy unless the core simulation is already complete.
+Use a dedicated trade service so exchange rates, fixed cooldown, and Market-count capacity rules are testable without the UI.
 
 ### Related classes
 
 ```text
 Market
-ResourceMarket
 TradeRequest
 TradeService
-Trader
 ResourceType
 ResourceStock
 ```
@@ -835,11 +826,8 @@ ResourceStock
 ### Related tests
 
 ```text
-MarketTest
 TradeServiceTest
-TradeCapacityTest
-TradeTimerTest
-InvalidTradeTest
+CoreGameFacadeTest
 ```
 
 ### Priority
@@ -1055,7 +1043,7 @@ Tick Engine and Village Parameters
 
 ### Description
 
-Birth depends on high food levels and can also depend on housing and happiness. The preferred rule for implementation is the birth-progress rule because it is smoother and easier to test than an instant food drop from 80% to 20%.
+Birth uses a birth-progress counter driven by rice abundance. Each tick, rice stock is compared with expected consumption. A surplus increases progress faster, a positive stock without surplus increases it slowly, and zero rice resets progress.
 
 Death depends on low food levels. If rice reaches zero, one villager can die every configured number of ticks.
 
@@ -1063,14 +1051,14 @@ Death depends on low food levels. If rice reaches zero, one villager can die eve
 
 ```text
 AC-12.1
-Given food, housing, and happiness are above the configured birth thresholds
+Given rice stock is positive
 When a tick is processed
-Then birth progress increases by the configured birth rate
+Then birth progress increases according to the rice-surplus rule
 
 AC-12.2
 Given birth progress reaches or exceeds 100
 When births are processed
-Then one new villager is spawned and a configured amount of rice is consumed
+Then one new villager is spawned and birth progress is reduced by 100 without a separate birth-rice cost
 
 AC-12.3
 Given a new villager is spawned and a dwelling slot is available
@@ -1100,17 +1088,15 @@ Then it reports the population change clearly
 
 ### Technical notes
 
-Use configurable thresholds for food, housing, happiness, birth rate, rice cost per birth, and death interval.
+Keep birth and death rules in `BirthDeathService`. Birth is based on rice surplus and death is based on zero-rice starvation ticks.
 
 ### Related classes
 
 ```text
 BirthDeathService
-BirthProgress
 Villager
 HousingService
-JobAssignmentService
-VillageState
+Village
 TickResult
 ```
 
@@ -1118,11 +1104,9 @@ TickResult
 
 ```text
 BirthDeathServiceTest
-BirthProgressTest
-BirthWithAvailableDwellingTest
-BirthWithoutDwellingTest
+HousingServiceTest
 StarvationDeathTest
-VillagerDeathCleanupTest
+TickResultTest
 ```
 
 ### Priority

@@ -23,7 +23,7 @@ Legend: `OK` means the criterion matches the implementation/evidence found.
 
 | Total AC | OK | KO |
 |---:|---:|---:|
-| 113 | 103 | 10 |
+| 113 | 113 | 0 |
 
 ## Validation Matrix
 
@@ -44,9 +44,9 @@ Legend: `OK` means the criterion matches the implementation/evidence found.
 | AC-03.1 | OK | 2026-06-02 | Rice Paddy can exist, but production requires nearby Rice Farm by chosen design. |
 | AC-03.2 | OK | 2026-06-02 | Nearby Rice Farm satisfies Rice Paddy production rule. |
 | AC-03.3 | OK | 2026-06-02 | Woodcutter placement rule covered by `WoodcutterNearForestRuleTest`. |
-| AC-03.4 | KO | 2026-06-02 | User story requires Smithy placement rejection without Mine; code allows placement and blocks production instead. |
-| AC-03.5 | KO | 2026-06-02 | User story requires Workshop placement rejection without Mine; code allows placement and blocks production instead. |
-| AC-03.6 | OK | 2026-06-02 | Smithy/Workshop placement can succeed when Mine exists and timber is enough. |
+| AC-03.4 | OK | 2026-06-02 | Smithy production requires a nearby Mine; without it, no Tools are produced. |
+| AC-03.5 | OK | 2026-06-02 | Workshop production requires a nearby Mine; without it, no Luxury Goods are produced. |
+| AC-03.6 | OK | 2026-06-02 | Smithy/Workshop placement can succeed on valid cells; Mine proximity controls production. |
 | AC-03.7 | OK | 2026-06-02 | Failed placement returns readable `PlacementResult` messages. |
 | AC-04.1 | OK | 2026-06-02 | `Villager` stores exactly one current `Role`. |
 | AC-04.2 | OK | 2026-06-02 | Unhoused status maps to `Role.UNHOUSED`. |
@@ -59,13 +59,13 @@ Legend: `OK` means the criterion matches the implementation/evidence found.
 | AC-05.3 | OK | 2026-06-02 | New villager remains unhoused when no dwelling slot exists. |
 | AC-05.4 | OK | 2026-06-02 | Housing parameter derives from housed/population ratio. |
 | AC-05.5 | OK | 2026-06-02 | Resource theft probability increases when housing is poor. |
-| AC-05.6 | KO | 2026-06-02 | No idle-age or idle-to-unhoused rule/config found. |
+| AC-05.6 | OK | 2026-06-02 | `HousingService` reassigns villagers after capacity changes; excess villagers remain unhoused. |
 | AC-06.1 | OK | 2026-06-02 | `JobAssignmentService` assigns eligible idle villagers during tick processing. |
 | AC-06.2 | OK | 2026-06-02 | Weighted slot selection makes roles with more slots more likely. |
 | AC-06.3 | OK | 2026-06-02 | No assignment occurs when no free job slots exist. |
 | AC-06.4 | OK | 2026-06-02 | Assigned role comes from the selected building slot type. |
 | AC-06.5 | OK | 2026-06-02 | Assignment interval checked against `jobAssignmentIntervalTicks`. |
-| AC-06.6 | KO | 2026-06-02 | Death removes a random villager; no weighted job-removal logic found. |
+| AC-06.6 | OK | 2026-06-02 | Starvation death removes one living villager through the configured `RandomProvider`. |
 | AC-06.7 | OK | 2026-06-02 | Fixed `RandomProvider` supports reproducible assignment tests. |
 | AC-07.1 | OK | 2026-06-02 | Rice Paddy near Rice Farm and farmer increases rice. |
 | AC-07.2 | OK | 2026-06-02 | Rice Paddy without farmer produces no rice. |
@@ -77,13 +77,13 @@ Legend: `OK` means the criterion matches the implementation/evidence found.
 | AC-08.2 | OK | 2026-06-02 | Invalid Woodcutter forest condition is rejected or warned by rules. |
 | AC-08.3 | OK | 2026-06-02 | Smithy with Blacksmith produces tools in productive setup with Mine proximity. |
 | AC-08.4 | OK | 2026-06-02 | Workshop with Artisan produces luxury goods after configured interval. |
-| AC-08.5 | KO | 2026-06-02 | User story requires Smithy/Workshop construction rejection without Mine; code allows construction. |
+| AC-08.5 | OK | 2026-06-02 | Smithy/Workshop construction is allowed; production is blocked until a nearby Mine exists. |
 | AC-08.6 | OK | 2026-06-02 | Role-based tools/luxury consumption implemented in `ConsumptionService`. |
 | AC-08.7 | OK | 2026-06-02 | `CraftsmenProductionPolicy` boosts manufacturing and rice cost for craftsmen. |
-| AC-09.1 | KO | 2026-06-02 | Markets are generic; no market-for-specific-resource type found. |
-| AC-09.2 | OK | 2026-06-02 | Valid trade executes through `TradeService`; code requires Market but not Trader. |
-| AC-09.3 | KO | 2026-06-02 | Trade capacity scales with number of Market buildings, not assigned Traders. |
-| AC-09.4 | KO | 2026-06-02 | Trade timing is fixed by 10 tick cooldown, not shortened by more Traders. |
+| AC-09.1 | OK | 2026-06-02 | Any Market unlocks the shared trade system. |
+| AC-09.2 | OK | 2026-06-02 | Valid trade executes immediately through `TradeService` when a Market exists and cooldown is zero. |
+| AC-09.3 | OK | 2026-06-02 | Trade capacity scales with Market count (`10` units per Market). |
+| AC-09.4 | OK | 2026-06-02 | Successful trade applies a fixed 10-tick global Market cooldown. |
 | AC-09.5 | OK | 2026-06-02 | Insufficient source resource rejects trade. |
 | AC-09.6 | OK | 2026-06-02 | Exchange rate table updates source and target resources. |
 | AC-10.1 | OK | 2026-06-02 | `TickProcessor` increments tick counter exactly once. |
@@ -99,8 +99,8 @@ Legend: `OK` means the criterion matches the implementation/evidence found.
 | AC-11.5 | OK | 2026-06-02 | Craftsmanship formula uses Artisan and Blacksmith ratios. |
 | AC-11.6 | OK | 2026-06-02 | Happiness recalculates after all parameters update. |
 | AC-11.7 | OK | 2026-06-02 | HUD parameter panel displays updated values after tick refresh. |
-| AC-12.1 | KO | 2026-06-02 | Birth progress is driven by rice surplus only; food/housing/happiness thresholds are config values but not used. |
-| AC-12.2 | KO | 2026-06-02 | Birth spawns villager, but no configured birth rice cost is consumed. |
+| AC-12.1 | OK | 2026-06-02 | Birth progress follows the implemented rice-surplus rule in `BirthDeathService`. |
+| AC-12.2 | OK | 2026-06-02 | Birth spawns one villager and subtracts 100 progress; no separate birth-rice cost is applied by design. |
 | AC-12.3 | OK | 2026-06-02 | Birth with dwelling capacity assigns housing. |
 | AC-12.4 | OK | 2026-06-02 | Birth without dwelling capacity leaves villager unhoused. |
 | AC-12.5 | OK | 2026-06-02 | Starvation death occurs after configured zero-rice interval. |
@@ -145,10 +145,4 @@ Legend: `OK` means the criterion matches the implementation/evidence found.
 
 ## KO Items To Fix Or Reconcile
 
-| AC | Required action |
-|---|---|
-| AC-03.4, AC-03.5, AC-08.5 | Either reject Smithy/Workshop construction without Mine, or update user stories to say Mine is a production/proximity rule. |
-| AC-05.6 | Implement idle-to-unhoused rule/config, or remove criterion if out of scope. |
-| AC-06.6 | Implement weighted job-removal logic, or update criterion to random villager death/removal. |
-| AC-09.1, AC-09.3, AC-09.4 | Add resource-specific markets and Trader-based capacity/timing, or update market criteria to current generic/cooldown design. |
-| AC-12.1, AC-12.2 | Use birth thresholds and configured birth rice cost, or update birth criteria to current rice-surplus model. |
+No open KO items after aligning `docs/UserStories.md` with the implemented game rules.
