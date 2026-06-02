@@ -10,7 +10,7 @@ The core simulation is pure Java (no libGDX), so it is usable from unit tests, p
 
 ## 1. Domain Model
 
-DaimyoSimulator is centered on a `Village` (aggregate root) holding a logical `Grid`, the current `VillageState` (resources + parameters), the `Villager` list, the active policy, and the tick counter. The player does not control villagers directly: they construct buildings, and the simulation assigns idle villagers to the job slots created by those buildings.
+DaimyoSimulator is centered on a `Village` (aggregate root) holding a logical `Grid`, the current resources (`ResourceStock`) and `VillageParameters`, the `Villager` list, a `PolicyManager`, and the tick counter. The player does not control villagers directly: they construct buildings, and the simulation assigns idle villagers to the job slots created by those buildings.
 
 Main concepts:
 
@@ -19,7 +19,7 @@ Main concepts:
 - **Villager / Role** — a person who is unhoused, idle, or employed (Rice Farmer, Woodcutter, Blacksmith, Artisan, Trader, Samurai, Monk).
 - **Building** — placed by the player using timber; provides housing, job slots, production, exchange, or bonuses.
 - **Resources** — Rice, Timber, Tools, Luxury Goods.
-- **Village Parameters** — Happiness, Protection, Food, Faith, Housing, Craftsmanship; recalculated every tick. Happiness is derived from the other parameters by `HappinessCalculator`, keeping it testable and separate from `VillageState`.
+- **Village Parameters** — Happiness, Protection, Food, Faith, Housing, Craftsmanship; recalculated every tick by `VillageParameterCalculator`. Happiness is derived from the other parameters by `HappinessCalculator`, keeping that rule testable and separate from the raw `VillageParameters`.
 - **Strategy Policy** — one active temporary policy modifying production, protection, or consumption.
 - **Random Event** — condition- or probability-based, triggered during ticks.
 
@@ -27,12 +27,14 @@ Main concepts:
 classDiagram
     class Village {
         Grid grid
-        VillageState state
+        ResourceStock resources
+        VillageParameters parameters
         List~Villager~ villagers
         PolicyManager policyManager
-        int tickNumber
-        construct(Building, Position)
-        getState()
+        long tickNumber
+        int birthProgress
+        getResources()
+        getParameters()
     }
     class Grid {
         int width
@@ -48,11 +50,6 @@ classDiagram
     }
     class Position { int x; int y }
     class NaturalFeature { <<enumeration>> FOREST }
-    class VillageState {
-        ResourceStock resources
-        VillageParameters parameters
-        int birthProgress
-    }
     class ResourceStock {
         int rice
         int timber
@@ -70,7 +67,8 @@ classDiagram
         int housing
         int craftsmanship
     }
-    class Villager { Role role; HousingStatus housingStatus }
+    class Villager { long id; Role role; HousingStatus housingStatus }
+    class HousingStatus { <<enumeration>> HOUSED; UNHOUSED }
     class Role {
         <<enumeration>>
         UNHOUSED
@@ -84,20 +82,33 @@ classDiagram
         MONK
     }
     class Building {
+        <<interface>>
+        getType() BuildingType
+        getTimberCost() int
+        getJobSlots() Map~Role,Integer~
+        getPlacementRules() List~PlacementRule~
+    }
+    class AbstractBuilding {
         <<abstract>>
         BuildingType type
         int timberCost
-        getPlacementRules()
+        int housingCapacity
+        Map~Role,Integer~ jobSlots
+        List~PlacementRule~ placementRules
     }
     class PolicyStrategy {
         <<interface>>
-        modifyProduction(BuildingEffect)
-        modifyConsumption(ConsumptionPlan)
-        modifyParameters(VillageParameters)
+        getType() PolicyType
+        productionMultiplier(ResourceType, BuildingType) double
+        riceConsumptionMultiplier(Role) double
+        toolsConsumptionMultiplier(Role) double
+        luxuryConsumptionMultiplier(Role) double
+        protectionMultiplier() double
     }
 
     Village *-- Grid
-    Village *-- VillageState
+    Village *-- ResourceStock
+    Village *-- VillageParameters
     Village *-- Villager
     Village *-- PolicyManager
     PolicyManager --> PolicyStrategy
@@ -105,19 +116,19 @@ classDiagram
     Cell *-- Position
     Cell o-- Building
     Cell o-- NaturalFeature
-    VillageState *-- ResourceStock
-    VillageState *-- VillageParameters
     Villager --> Role
-    Building <|-- Dwelling
-    Building <|-- RiceFarm
-    Building <|-- RicePaddy
-    Building <|-- WoodcuttersHut
-    Building <|-- Mine
-    Building <|-- Smithy
-    Building <|-- Workshop
-    Building <|-- Market
-    Building <|-- GuardPost
-    Building <|-- Temple
+    Villager --> HousingStatus
+    Building <|.. AbstractBuilding
+    AbstractBuilding <|-- Dwelling
+    AbstractBuilding <|-- RiceFarm
+    AbstractBuilding <|-- RicePaddy
+    AbstractBuilding <|-- WoodcuttersHut
+    AbstractBuilding <|-- Mine
+    AbstractBuilding <|-- Smithy
+    AbstractBuilding <|-- Workshop
+    AbstractBuilding <|-- Market
+    AbstractBuilding <|-- GuardPost
+    AbstractBuilding <|-- Temple
 ```
 
 **Buildings (responsibility / job slots / key rule):** `Dwelling` (housing 4) · `RiceFarm` (Rice Farmer ×3) · `RicePaddy` (rice; needs a Rice Farm in range + ≥1 farmer) · `WoodcuttersHut` (timber, Woodcutter ×3; **must be within range 1 of a Forest**) · `Mine` (lets adjacent Smithy/Workshop produce) · `Smithy` (tools, Blacksmith ×2; needs Mine in range) · `Workshop` (luxury goods, Artisan ×2; needs Mine in range) · `Market` (exchange, Trader ×2; shared, 10-tick cooldown) · `GuardPost` (protection, Samurai ×2) · `Temple` (faith, Monk ×2).
@@ -181,7 +192,7 @@ sequenceDiagram
     Player->>System: saveVillage(slot)
     System-->>Player: saveResult(success/failure, message)
     Player->>System: loadVillage(slot)
-    System-->>Player: loadResult(success/failure, restoredVillageState)
+    System-->>Player: loadResult(success/failure, restoredSnapshot)
 ```
 
 ---
@@ -196,6 +207,7 @@ The core is a pure-Java domain reached through `CoreGameFacade` → `GameControl
 classDiagram
     class CoreGameFacade {
         +startNewVillage(width, height) VillageSnapshot
+        +applyStarterBuildings() VillageSnapshot
         +constructBuilding(type, position) PlacementResult
         +demolishBuilding(position) PlacementResult
         +advanceTick() TickResult
@@ -203,29 +215,39 @@ classDiagram
         +requestTrade(TradeRequest) TradeResult
         +inspectCell(position) CellViewModel
         +getCurrentSnapshot() VillageSnapshot
+        +getDashboard() DashboardViewModel
         +saveVillage(slot) SaveResult
         +loadVillage(slot) LoadResult
     }
     class GameController {
+        +startNewVillage(width, height)
         +constructBuilding(type, position)
+        +demolishBuilding(position)
         +advanceTick()
         +activatePolicy(policyType)
-        +save(path); +load(path)
+        +getDashboard()
+        +saveVillage(path); +loadVillage(path)
     }
     class SimulationEngine { +advanceTick(Village) TickResult }
+    class TickProcessor { +process(Village) TickResult }
     class Village {
         -Grid grid
-        -VillageState state
+        -ResourceStock resources
+        -VillageParameters parameters
         -List~Villager~ villagers
         -PolicyManager policyManager
-        +construct(Building, Position)
+        +getResources(); +getParameters()
     }
     class TickResult {
-        VillageState beforeState
-        VillageState afterState
-        List~BuildingEffect~ buildingEffects
-        List~EventEffect~ eventEffects
-        String activePolicyName
+        <<record>>
+        VillageSnapshot beforeState
+        VillageSnapshot afterState
+        ResourceViewModel producedResources
+        ResourceViewModel consumedResources
+        int births; int deaths
+        List~String~ policyEffects
+        List~String~ shortagePenalties
+        List~EventReport~ randomEventReports
     }
     class VillageSnapshot {
         <<immutable>>
@@ -246,15 +268,16 @@ classDiagram
         PolicyViewModel policy
         EventLogViewModel eventLog
     }
-    class VillagePersistenceService { +save(Village, Path); +load(Path) Village }
+    class VillagePersistenceService { +save(Village, Path); +load(Path, GameConfig) Village }
 
     CoreGameFacade --> GameController
     GameController --> ConstructionService
     GameController --> SimulationEngine
     GameController --> TradeService
     GameController --> VillagePersistenceService
+    SimulationEngine --> TickProcessor
     CoreGameFacade --> VillageSnapshot
-    SimulationEngine --> TickResult
+    TickProcessor --> TickResult
     VillageSnapshot *-- CellViewModel
     VillageSnapshot *-- DashboardViewModel
     CellViewModel *-- BuildingViewModel
@@ -268,6 +291,7 @@ classDiagram
         <<interface>>
         +getType() BuildingType
         +getTimberCost() int
+        +getDisplayName() String
         +getHousingCapacity() int
         +getJobSlots() Map~Role,Integer~
         +getPlacementRules() List~PlacementRule~
@@ -299,19 +323,23 @@ classDiagram
 classDiagram
     class PolicyStrategy {
         <<interface>>
-        +getName() String
-        +modifyProduction(BuildingEffect) BuildingEffect
-        +modifyConsumption(ConsumptionPlan) ConsumptionPlan
-        +modifyProtection(int) int
+        +getType() PolicyType
+        +getDisplayName() String
+        +productionMultiplier(ResourceType, BuildingType) double
+        +riceConsumptionMultiplier(Role) double
+        +toolsConsumptionMultiplier(Role) double
+        +luxuryConsumptionMultiplier(Role) double
+        +protectionMultiplier() double
     }
     class PolicyManager {
         -PolicyStrategy activePolicy
-        -int remainingTicks
-        -int cooldownTicks
-        +activate(PolicyType)
-        +canActivate(PolicyType) boolean
-        +updateDurationAndCooldown()
+        -int activeRemainingTicks
+        -Map~PolicyType,Integer~ cooldowns
+        +activate(PolicyType, GameConfig) PolicyActivation
+        +advanceTick(GameConfig) List~String~
+        +isPolicyActive() boolean
         +getActivePolicy() PolicyStrategy
+        +getCooldown(PolicyType) int
     }
     PolicyStrategy <|.. NoPolicy
     PolicyStrategy <|.. AgriculturalExpansionPolicy
@@ -366,66 +394,80 @@ The most significant internal object collaborations.
 sequenceDiagram
     participant UI as libGDX HUD/Input
     participant C as CoreGameFacade
+    participant GC as GameController
     participant CS as ConstructionService
     participant BF as BuildingFactory
-    participant Cost as ProgressiveCostCalculator
     participant Val as CompositePlacementValidator
+    participant Cost as ProgressiveCostCalculator
     participant RS as ResourceStock
     participant G as Grid
+    participant HS as HousingService
+    participant PC as VillageParameterCalculator
 
     UI->>C: constructBuilding(type, position)
-    C->>CS: constructBuilding(village, type, position)
+    C->>GC: constructBuilding(type, position)
+    GC->>CS: constructBuilding(village, type, position)
     CS->>BF: create(type)
     BF-->>CS: building
-    CS->>Cost: scaledCost(type, existingCount, baseCost)
-    Cost-->>CS: timber cost
     CS->>Val: validate(village, building, position)
-    Val->>RS: enough timber? cell empty? inside grid? building rules?
-    Val-->>CS: PlacementCheck
+    Val-->>CS: PlacementCheck (timber? cell empty? inside grid? rules?)
     alt valid placement
+        CS->>Cost: scaledCost(type, existingCount, baseCost)
+        Cost-->>CS: timber cost
         CS->>RS: consume(TIMBER, cost)
         CS->>G: placeBuilding(building, position)
-        CS-->>C: PlacementResult(success)
+        CS->>HS: assignHousing(village)
+        CS->>PC: recalculate(village)
+        CS-->>GC: PlacementResult(success, before, after)
     else invalid
-        CS-->>C: PlacementResult(failure, reason)
+        CS-->>GC: PlacementResult(failure, reason)
     end
+    GC-->>C: PlacementResult
     C-->>UI: result + updated snapshot
 ```
 
-**4.2 — Advance one tick.** Orchestrated by `SimulationEngine`/`TickProcessor`: snapshot *before* → advance counter, reset build quota, decrement market cooldown → update policy duration/cooldown → assign **one** idle villager (weighted by free slots) → produce → consume → apply shortages/penalties → luxury-deprivation desertion → recalculate parameters → births/deaths → random events → build `TickResult`.
+**4.2 — Advance one tick.** Orchestrated by `SimulationEngine`/`TickProcessor`: snapshot *before* → advance counter, reset build quota, decrement market cooldown → update policy duration/cooldown → validate building prerequisites → assign **one** idle villager (weighted by free slots) → produce → consume → apply shortages/penalties → luxury-deprivation desertion → recalculate parameters → births/deaths → recalculate again if population/desertion changed → random events → build `TickResult`.
 
 ```mermaid
 sequenceDiagram
     participant C as CoreGameFacade
     participant E as SimulationEngine
+    participant TP as TickProcessor
+    participant VM as SnapshotMapper
     participant PM as PolicyManager
     participant JR as JobAssignmentService
     participant PR as ProductionService
     participant CS as ConsumptionService
-    participant RC as ResourceStock
-    participant PC as ParameterCalculator
+    participant SH as ShortageService
+    participant PC as VillageParameterCalculator
     participant BD as BirthDeathService
     participant REM as RandomEventManager
-    participant VM as SnapshotMapper
 
     C->>E: advanceTick(village)
-    E->>E: snapshot beforeState
-    E->>PM: updateDurationAndCooldown()
-    E->>JR: assignIdleVillagers(village)
-    E->>PR: produce(village, activePolicy)
+    E->>TP: process(village)
+    TP->>VM: toSnapshot(village)  %% beforeState
+    TP->>TP: advanceTickCounter, resetBuildsThisTick, decrementMarketCooldown
+    TP->>PM: advanceTick(config)
+    TP->>TP: validateBuildingRules(village)
+    TP->>JR: assignOneIdleVillager(village)
+    TP->>PR: produce(village)
     PR->>PM: getActivePolicy()
     PM-->>PR: PolicyStrategy
-    PR->>RC: add produced resources
-    E->>CS: consume(village, activePolicy)
-    CS->>RC: consume required resources
-    E->>PC: recalculate parameters
-    E->>BD: processBirthsAndDeaths(village)
-    E->>REM: evaluateEvents(village)
-    REM-->>E: event effects
-    E->>E: build TickResult
+    PR-->>TP: produced resources
+    TP->>CS: consume(village)
+    CS-->>TP: ConsumptionResult
+    TP->>SH: applyShortages(consumption)
+    TP->>TP: updateLuxuryDesertion(village)
+    TP->>PC: recalculate(village)
+    TP->>BD: process(village)
+    alt births/deaths/desertions changed population
+        TP->>PC: recalculate(village)
+    end
+    TP->>REM: evaluateFull(village)
+    REM-->>TP: List~EventReport~
+    TP->>VM: toSnapshot(village)  %% afterState
+    TP-->>E: TickResult
     E-->>C: TickResult
-    C->>VM: toVillageSnapshot(village, tickResult)
-    VM-->>C: VillageSnapshot
 ```
 
 **4.3 — Activate a strategy policy**
@@ -434,19 +476,22 @@ sequenceDiagram
 sequenceDiagram
     participant UI as PolicyPanel
     participant C as CoreGameFacade
+    participant GC as GameController
     participant PM as PolicyManager
     participant PF as PolicyFactory
 
     UI->>C: activatePolicy(policyType)
-    C->>PM: canActivate(policyType)
-    alt can activate
+    C->>GC: activatePolicy(policyType)
+    GC->>PM: activate(policyType, config)
+    alt no active policy and not on cooldown
         PM->>PF: create(policyType)
         PF-->>PM: PolicyStrategy
-        PM->>PM: set activePolicy + duration
-        PM-->>C: success
-    else unavailable / on cooldown
-        PM-->>C: failure
+        PM->>PM: set activePolicy + activeRemainingTicks
+        PM-->>GC: PolicyActivation(success)
+    else already active / on cooldown
+        PM-->>GC: PolicyActivation(failure)
     end
+    GC-->>C: PolicyActivationResult(success, activeType, dashboard)
     C-->>UI: PolicyActivationResult + updated dashboard
 ```
 
@@ -455,20 +500,25 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant C as CoreGameFacade
+    participant GC as GameController
     participant P as VillagePersistenceService
     participant M as VillageMapper
     participant FS as FileSystem
 
-    C->>P: save(village, slot)
+    C->>GC: saveVillage(slot)
+    GC->>P: save(village, path)
     P->>M: toDTO(village)
     M-->>P: VillageDTO
     P->>FS: write JSON file
-    P-->>C: SaveResult
+    P-->>GC: saved
+    GC-->>C: SaveResult
 
-    C->>P: load(slot)
+    C->>GC: loadVillage(slot)
+    GC->>P: load(path, config)
     P->>FS: read JSON file
     FS-->>P: json data
-    P->>M: fromDTO(json data)
+    P->>M: fromDTO(VillageDTO, config)
     M-->>P: Village
-    P-->>C: loaded Village
+    P-->>GC: Village
+    GC-->>C: LoadResult
 ```
